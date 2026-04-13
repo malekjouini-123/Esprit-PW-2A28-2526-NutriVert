@@ -1,0 +1,8 @@
+# Common PHP / XAMPP ignore
+.DS_Store
+.vscode/
+.idea/
+vendor/
+node_modules/
+*.log
+config.php
