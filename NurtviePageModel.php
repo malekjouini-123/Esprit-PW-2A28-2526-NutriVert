@@ -23,7 +23,7 @@ class NurtviePageModel
             'css_href' => 'css/nurtvie.css',
             'js_saisie_href' => 'js/nv_saisie_marketplace.js',
             'js_page_href' => 'js/nurtvie_page.js',
-            'logo_src' => 'front/logo web.png',
+            'logo_src' => '../logoo.png',
             'admin_href' => 'back/marketplace.php',
         ];
     }
