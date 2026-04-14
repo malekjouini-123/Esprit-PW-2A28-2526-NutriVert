@@ -7,7 +7,6 @@ declare(strict_types=1);
 class Category
 {
     public int $id;
-    public string $cat_id;
     public string $nom;
     public string $description;
     public string $atelier;
@@ -17,7 +16,6 @@ class Category
     public function __construct(array $data = [])
     {
         $this->id = (int)($data['id'] ?? 0);
-        $this->cat_id = (string)($data['cat_id'] ?? '');
         $this->nom = (string)($data['nom'] ?? '');
         $this->description = (string)($data['description'] ?? '');
         $this->atelier = (string)($data['atelier'] ?? '');
@@ -57,9 +55,8 @@ class Category
         $imagesStr = implode(',', $this->images);
 
         if ($this->id > 0) {
-            $stmt = $pdo->prepare("UPDATE categories SET cat_id = ?, nom = ?, description = ?, atelier = ?, images = ? WHERE id = ?");
+            $stmt = $pdo->prepare("UPDATE categories SET nom = ?, description = ?, atelier = ?, images = ? WHERE id = ?");
             return $stmt->execute([
-                $this->cat_id,
                 $this->nom,
                 $this->description,
                 $this->atelier,
@@ -67,9 +64,8 @@ class Category
                 $this->id
             ]);
         } else {
-            $stmt = $pdo->prepare("INSERT INTO categories (cat_id, nom, description, atelier, images) VALUES (?, ?, ?, ?, ?)");
+            $stmt = $pdo->prepare("INSERT INTO categories (nom, description, atelier, images) VALUES (?, ?, ?, ?)");
             $res = $stmt->execute([
-                $this->cat_id,
                 $this->nom,
                 $this->description,
                 $this->atelier,

@@ -96,7 +96,6 @@ class NurtvieController
 
         $data = [
             'id' => (int)($_POST['id'] ?? 0),
-            'participant_custom_id' => (string)($_POST['participant_custom_id'] ?? ''),
             'evenement_id' => (int)($_POST['evenement_id'] ?? 0),
             'nom' => (string)($_POST['nom'] ?? ''),
             'prenom' => (string)($_POST['prenom'] ?? ''),
@@ -136,7 +135,6 @@ class NurtvieController
         
         $data = [
             'id' => (int)($_POST['id'] ?? 0),
-            'participant_custom_id' => (string)($_POST['participant_custom_id'] ?? ''),
             'evenement_id' => (int)($_POST['evenement_id'] ?? 0),
             'nom' => (string)($_POST['nom'] ?? ''),
             'prenom' => (string)($_POST['prenom'] ?? ''),
@@ -185,10 +183,8 @@ class NurtvieController
         $id = (int)($_POST['id'] ?? 0);
         $data = [
             'id' => $id > 0 ? $id : 0,
-            'event_custom_id' => (string)($_POST['event_custom_id'] ?? ''),
             'titre' => (string)($_POST['titre'] ?? ''),
             'categorie' => (string)($_POST['categorie'] ?? ''),
-            'categorie_id' => (string)($_POST['categorie_id'] ?? ''),
             'description' => (string)($_POST['description'] ?? ''),
             'date_evenement' => (string)($_POST['date_evenement'] ?? ''),
             'lieu' => (string)($_POST['lieu'] ?? ''),
@@ -227,7 +223,6 @@ class NurtvieController
         $id = (int)($_POST['id'] ?? 0);
         $data = [
             'id' => $id > 0 ? $id : 0,
-            'cat_id' => (string)($_POST['cat_id'] ?? ''),
             'nom' => (string)($_POST['nom'] ?? ''),
             'description' => (string)($_POST['description'] ?? ''),
             'atelier' => (string)($_POST['atelier'] ?? ''),

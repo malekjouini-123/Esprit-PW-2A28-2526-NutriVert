@@ -99,6 +99,11 @@ declare(strict_types=1);
         .imc-val { font-size: 2.2rem; font-weight: 800; color: #1f5e1a; display: block; }
         .imc-lbl { font-size: 0.8rem; font-weight: 700; color: #2c4d24; text-transform: uppercase; letter-spacing: 1px; }
 
+        /* Validation Styles */
+        .error-msg { color: #e74c3c; font-size: 0.75rem; font-weight: 700; margin-top: 0.3rem; display: none; }
+        .form-field.has-error input, .form-field.has-error select { border-color: #e74c3c; background: #fff5f5; }
+        .form-field.has-error .error-msg { display: block; }
+
         /* Participants Table */
         .participants-section { margin-top: 5rem; }
         .table-container { overflow-x: auto; border-radius: 1.5rem; border: 1px solid rgba(100, 180, 70, 0.3); background: rgba(255, 255, 250, 0.8); }
@@ -226,6 +231,44 @@ declare(strict_types=1);
     </header>
 
     <div class="container" style="margin-top: 3rem;">
+        <?php if ($participant): ?>
+            <div class="glass-card" style="padding: 3rem; text-align: center; margin-bottom: 4rem;">
+                <h2 style="font-size: 2.5rem; color: #1f5e1a; margin-bottom: 1.5rem;">Bienvenue, <?= htmlspecialchars($participant->prenom) ?> !</h2>
+                <p style="font-size: 1.1rem; color: #2c4d24; margin-bottom: 2rem;">Voici vos informations de suivi nutritionnel.</p>
+                
+                <div class="detail-grid" style="text-align: left; max-width: 800px; margin: 0 auto; display: grid; grid-template-columns: 1fr 1fr; gap: 2rem;">
+                    <div class="detail-item">
+                        <span class="detail-label">Nom Complet</span>
+                        <span class="detail-value"><?= htmlspecialchars($participant->prenom . ' ' . $participant->nom) ?></span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Email</span>
+                        <span class="detail-value"><?= htmlspecialchars($participant->email) ?></span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Téléphone</span>
+                        <span class="detail-value"><?= htmlspecialchars($participant->telephone) ?></span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Ville</span>
+                        <span class="detail-value"><?= htmlspecialchars($participant->lieu) ?></span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Poids / Taille</span>
+                        <span class="detail-value"><?= $participant->poids ?> kg / <?= $participant->taille ?> cm</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">IMC</span>
+                        <span class="detail-value" style="font-weight: 800; color: #27ae60;"><?= $participant->imc ?></span>
+                    </div>
+                </div>
+
+                <div style="margin-top: 3rem;">
+                    <a href="index.php?action=logout" class="btn-primary-green" style="background: #e74c3c;">Se déconnecter</a>
+                </div>
+            </div>
+        <?php endif; ?>
+
         <div class="glass-card">
             <div class="main-grid">
                 <div class="form-side">
@@ -237,11 +280,7 @@ declare(strict_types=1);
                     </div>
                     <form action="index.php?action=save_inscription" method="post" class="register-form" id="mainRegisterForm">
                         <div class="form-row">
-                            <div class="form-field">
-                                <label for="participant_custom_id">ID Participant (Custom)</label>
-                                <input type="text" id="participant_custom_id" name="participant_custom_id" class="form-control" placeholder="Ex: PART-001">
-                                <input type="hidden" id="participantId" name="id" value="0">
-                            </div>
+                            <input type="hidden" id="participantId" name="id" value="0">
                             <div class="form-field">
                                 <label for="evenement_id">Événement Choisi</label>
                                 <select name="evenement_id" id="evenement_id">
@@ -255,6 +294,7 @@ declare(strict_types=1);
                                         </option>
                                     <?php endforeach; ?>
                                 </select>
+                                <span class="error-msg">Veuillez choisir un événement.</span>
                             </div>
                         </div>
 
@@ -268,6 +308,7 @@ declare(strict_types=1);
                                     <option value="Sport">Sport & Vitalité</option>
                                     <option value="Bien-être">Bien-être</option>
                                 </select>
+                                <span class="error-msg">Sélectionnez une préférence.</span>
                             </div>
                         </div>
 
@@ -275,10 +316,12 @@ declare(strict_types=1);
                             <div class="form-field">
                                 <label for="nom">Nom</label>
                                 <input type="text" id="nom" name="nom" placeholder="Dupont">
+                                <span class="error-msg">Le nom est requis (min 2 car.).</span>
                             </div>
                             <div class="form-field">
                                 <label for="prenom">Prénom</label>
                                 <input type="text" id="prenom" name="prenom" placeholder="Jean">
+                                <span class="error-msg">Le prénom est requis (min 2 car.).</span>
                             </div>
                         </div>
 
@@ -286,37 +329,44 @@ declare(strict_types=1);
                             <div class="form-field">
                                 <label for="date_naissance">Date de Naissance</label>
                                 <input type="date" id="date_naissance" name="date_naissance">
+                                <span class="error-msg">Min 13 ans requis.</span>
                             </div>
                             <div class="form-field">
                                 <label for="telephone">Téléphone</label>
                                 <input type="tel" id="telephone" name="telephone" placeholder="06 12 34 56 78">
+                                <span class="error-msg">8 chiffres requis.</span>
                             </div>
                         </div>
 
                         <div class="form-row">
                             <div class="form-field">
                                 <label for="email">Email</label>
-                                <input type="email" id="email" name="email" placeholder="jean.dupont@gmail.com">
+                                <input type="text" id="email" name="email" placeholder="jean.dupont@gmail.com">
+                                <span class="error-msg">Email invalide.</span>
                             </div>
                             <div class="form-field">
                                 <label for="mot_de_passe">Mot de Passe</label>
                                 <input type="password" id="mot_de_passe" name="mot_de_passe" placeholder="••••••••">
+                                <span class="error-msg">Min 6 caractères.</span>
                             </div>
                         </div>
 
                         <div class="form-field">
                             <label for="lieu">Lieu de Résidence</label>
                             <input type="text" id="lieu" name="lieu" placeholder="Ex: Paris, Lyon...">
+                            <span class="error-msg">Le lieu est requis.</span>
                         </div>
 
                         <div class="form-row">
                             <div class="form-field">
                                 <label for="poids">Poids (kg)</label>
-                                <input type="number" id="poids" name="poids" step="0.1" placeholder="70" oninput="calculateIMC()">
+                                <input type="text" id="poids" name="poids" placeholder="70" oninput="calculateIMC()">
+                                <span class="error-msg">Poids invalide (20-300 kg).</span>
                             </div>
                             <div class="form-field">
                                 <label for="taille">Taille (cm)</label>
-                                <input type="number" id="taille" name="taille" placeholder="175" oninput="calculateIMC()">
+                                <input type="text" id="taille" name="taille" placeholder="175" oninput="calculateIMC()">
+                                <span class="error-msg">Taille invalide (50-250 cm).</span>
                             </div>
                         </div>
 
@@ -345,12 +395,9 @@ declare(strict_types=1);
                 </div>
             </div>
         </div>
-    </div>
 
-        </div>
-
-        <section class="participants-section">
-            <h2 class="section-title">Liste des Inscriptions (Démo)</h2>
+        <section class="participants-section" style="margin-top: 5rem;">
+            <h2 class="section-title">Liste des Inscriptions</h2>
             <div class="table-container glass-card">
                 <table>
                     <thead>
@@ -394,11 +441,107 @@ declare(strict_types=1);
         const form = document.getElementById('mainRegisterForm');
         const participantsContainer = document.getElementById('participantsList');
         const participantIdInput = document.getElementById('participantId');
-        const customIdInput = document.getElementById('participant_custom_id');
+        const customIdInput = null; // Supprimé
         const submitBtn = document.getElementById('submitBtn');
         const btnUpdate = document.getElementById('btnUpdate');
         const btnDelete = document.getElementById('btnDelete');
         const btnShow = document.getElementById('btnShow');
+
+        // Validation JS
+        form.addEventListener('submit', function(e) {
+            let isValid = true;
+            
+            // Reset errors
+            document.querySelectorAll('.form-field').forEach(f => f.classList.remove('has-error'));
+
+            // IDs
+            if (document.getElementById('evenement_id').value === '') {
+                showError('evenement_id');
+                isValid = false;
+            }
+            if (document.getElementById('categorie_preferee').value === '') {
+                showError('categorie_preferee');
+                isValid = false;
+            }
+
+            // Names
+            if (document.getElementById('nom').value.trim().length < 2) {
+                showError('nom');
+                isValid = false;
+            }
+            if (document.getElementById('prenom').value.trim().length < 2) {
+                showError('prenom');
+                isValid = false;
+            }
+
+            // Email
+            const email = document.getElementById('email').value;
+            if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+                showError('email');
+                isValid = false;
+            }
+
+            // Password
+            let isPasswordRequired = !document.getElementById('mot_de_passe').hasAttribute('data-not-required');
+            if (isPasswordRequired && document.getElementById('mot_de_passe').value.length < 6) {
+                showError('mot_de_passe');
+                isValid = false;
+            }
+
+            // Date de naissance (Min 13 years old)
+            const dobInput = document.getElementById('date_naissance').value;
+            if (dobInput) {
+                const dob = new Date(dobInput);
+                const today = new Date();
+                let age = today.getFullYear() - dob.getFullYear();
+                const m = today.getMonth() - dob.getMonth();
+                if (m < 0 || (m === 0 && today.getDate() < dob.getDate())) {
+                    age--;
+                }
+                if (isNaN(dob.getTime()) || age < 13) {
+                    showError('date_naissance');
+                    isValid = false;
+                }
+            } else {
+                showError('date_naissance');
+                isValid = false;
+            }
+
+            // Phone
+            const tel = document.getElementById('telephone').value.replace(/\s/g, '');
+            if (!/^\d{8}$/.test(tel)) {
+                showError('telephone');
+                isValid = false;
+            }
+
+            // Lieu
+            if (document.getElementById('lieu').value.trim() === '') {
+                showError('lieu');
+                isValid = false;
+            }
+
+            // Poids & Taille
+            const poids = parseFloat(document.getElementById('poids').value);
+            if (isNaN(poids) || poids < 20 || poids > 300) {
+                showError('poids');
+                isValid = false;
+            }
+            const taille = parseFloat(document.getElementById('taille').value);
+            if (isNaN(taille) || taille < 50 || taille > 250) {
+                showError('taille');
+                isValid = false;
+            }
+
+            if (!isValid) {
+                e.preventDefault();
+                alert("Veuillez corriger les erreurs dans le formulaire.");
+            }
+        });
+
+        function showError(id) {
+            document.getElementById(id).closest('.form-field').classList.add('has-error');
+        }
+
         let participantsData = <?php echo json_encode($all_participants); ?>;
 
         // Initial state
@@ -419,7 +562,7 @@ declare(strict_types=1);
             participantsData.forEach((p, idx) => {
                 const tr = document.createElement('tr');
                 tr.innerHTML = `
-                    <td>${p.participant_custom_id || p.id}</td>
+                    <td>${p.id}</td>
                     <td>
                         <div style="font-weight:700; color: #1f5e1a; cursor: pointer;" onclick="showParticipantDetails(${idx})">
                             ${p.prenom} ${p.nom}
@@ -460,7 +603,7 @@ declare(strict_types=1);
             detailsContainer.innerHTML = `
                 <div class="detail-item">
                     <span class="detail-label">ID Participant</span>
-                    <span class="detail-value">#${p.participant_custom_id || p.id}</span>
+                    <span class="detail-value">#${p.id}</span>
                 </div>
                 <div class="detail-item">
                     <span class="detail-label">Prénom & Nom</span>
@@ -548,14 +691,13 @@ declare(strict_types=1);
             
             // Préparer pour la mise à jour
             participantIdInput.value = p.id;
-            customIdInput.value = p.participant_custom_id;
             submitBtn.innerHTML = "<i class='fas fa-plus'></i> ENREGISTRER (NOUVEAU)";
             submitBtn.style.background = "#27ae60";
             submitBtn.disabled = false;
             submitBtn.style.opacity = "1";
             
             // Le mot de passe n'est plus requis pour la modification
-            form.mot_de_passe.required = false;
+            form.mot_de_passe.setAttribute('data-not-required', 'true');
             form.mot_de_passe.placeholder = "(Inchangé si vide)";
             
             // Activer les boutons CRUD
@@ -626,13 +768,12 @@ declare(strict_types=1);
         window.resetForm = () => {
             form.reset();
             participantIdInput.value = "0";
-            customIdInput.value = "";
             submitBtn.innerHTML = "<i class='fas fa-save'></i> ENREGISTRER";
             submitBtn.style.background = "#2ecc71";
             submitBtn.disabled = false;
             submitBtn.style.opacity = "1";
             
-            form.mot_de_passe.required = true;
+            form.mot_de_passe.removeAttribute('data-not-required');
             form.mot_de_passe.placeholder = "••••••••";
             
             if (btnUpdate) { btnUpdate.disabled = true; btnUpdate.style.opacity = "0.5"; btnUpdate.innerHTML = "<i class='fas fa-edit'></i> MODIFIER"; }

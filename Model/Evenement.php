@@ -7,10 +7,8 @@ declare(strict_types=1);
 class Evenement
 {
     public int $id;
-    public string $event_custom_id;
     public string $titre;
     public ?string $categorie;
-    public ?string $categorie_id;
     public string $description;
     public string $date_evenement;
     public string $lieu;
@@ -23,10 +21,8 @@ class Evenement
     public function __construct(array $data = [])
     {
         $this->id = (int)($data['id'] ?? 0);
-        $this->event_custom_id = (string)($data['event_custom_id'] ?? '');
         $this->titre = (string)($data['titre'] ?? '');
         $this->categorie = (string)($data['categorie'] ?? '');
-        $this->categorie_id = (string)($data['categorie_id'] ?? '');
         $this->description = (string)($data['description'] ?? '');
         $this->date_evenement = (string)($data['date_evenement'] ?? '');
         $this->lieu = (string)($data['lieu'] ?? '');
@@ -70,12 +66,10 @@ class Evenement
     {
         $pdo = nv_pdo();
         if ($this->id > 0) {
-            $stmt = $pdo->prepare("UPDATE evenements SET event_custom_id = ?, titre = ?, categorie = ?, categorie_id = ?, description = ?, date_evenement = ?, lieu = ?, prix_participation = ?, capacite_max = ?, statut = ?, image_url = ? WHERE id = ?");
+            $stmt = $pdo->prepare("UPDATE evenements SET titre = ?, categorie = ?, description = ?, date_evenement = ?, lieu = ?, prix_participation = ?, capacite_max = ?, statut = ?, image_url = ? WHERE id = ?");
             return $stmt->execute([
-                $this->event_custom_id,
                 $this->titre,
                 $this->categorie,
-                $this->categorie_id,
                 $this->description,
                 $this->date_evenement,
                 $this->lieu,
@@ -86,12 +80,10 @@ class Evenement
                 $this->id
             ]);
         } else {
-            $stmt = $pdo->prepare("INSERT INTO evenements (event_custom_id, titre, categorie, categorie_id, description, date_evenement, lieu, prix_participation, capacite_max, statut, image_url) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+            $stmt = $pdo->prepare("INSERT INTO evenements (titre, categorie, description, date_evenement, lieu, prix_participation, capacite_max, statut, image_url) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
             $res = $stmt->execute([
-                $this->event_custom_id,
                 $this->titre,
                 $this->categorie,
-                $this->categorie_id,
                 $this->description,
                 $this->date_evenement,
                 $this->lieu,

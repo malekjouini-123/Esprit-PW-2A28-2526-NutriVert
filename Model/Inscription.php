@@ -7,7 +7,6 @@ declare(strict_types=1);
 class Inscription
 {
     public int $id;
-    public string $participant_custom_id;
     public int $evenement_id;
     public string $nom;
     public string $prenom;
@@ -25,7 +24,6 @@ class Inscription
     public function __construct(array $data = [])
     {
         $this->id = (int)($data['id'] ?? 0);
-        $this->participant_custom_id = (string)($data['participant_custom_id'] ?? '');
         $this->evenement_id = (int)($data['evenement_id'] ?? 0);
         $this->nom = (string)($data['nom'] ?? '');
         $this->prenom = (string)($data['prenom'] ?? '');
@@ -62,12 +60,11 @@ class Inscription
         $pdo = nv_pdo();
         $stmt = $pdo->prepare("
             INSERT INTO inscriptions 
-            (participant_custom_id, evenement_id, nom, prenom, email, mot_de_passe, telephone, lieu, date_naissance, poids, taille, imc, categorie_preferee) 
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            (evenement_id, nom, prenom, email, mot_de_passe, telephone, lieu, date_naissance, poids, taille, imc, categorie_preferee) 
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         ");
         
         $res = $stmt->execute([
-            $this->participant_custom_id,
             $this->evenement_id,
             $this->nom,
             $this->prenom,
@@ -119,12 +116,11 @@ class Inscription
         $pdo = nv_pdo();
         $stmt = $pdo->prepare("
             UPDATE inscriptions 
-            SET participant_custom_id = ?, evenement_id = ?, nom = ?, prenom = ?, email = ?, mot_de_passe = ?, telephone = ?, lieu = ?, date_naissance = ?, poids = ?, taille = ?, imc = ?, categorie_preferee = ?
+            SET evenement_id = ?, nom = ?, prenom = ?, email = ?, mot_de_passe = ?, telephone = ?, lieu = ?, date_naissance = ?, poids = ?, taille = ?, imc = ?, categorie_preferee = ?
             WHERE id = ?
         ");
         
         return $stmt->execute([
-            $this->participant_custom_id,
             $this->evenement_id,
             $this->nom,
             $this->prenom,

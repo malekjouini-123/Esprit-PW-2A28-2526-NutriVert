@@ -153,6 +153,12 @@ declare(strict_types=1);
         .login-input { padding: 1rem 1.5rem; border-radius: 3rem; border: none; background: rgba(255,255,255,0.1); color: #fff; font-size: 1rem; outline: none; }
         .login-input::placeholder { color: rgba(255,255,255,0.4); }
 
+        /* Validation Styles */
+        .error-msg { color: #e74c3c; font-size: 0.75rem; font-weight: 700; margin-top: 0.3rem; display: none; text-align: left; }
+        .form-group.has-error .form-control { border-color: #e74c3c; background: #fff5f5; }
+        .form-group.has-error .error-msg { display: block; }
+        .login-form .has-error input { border: 1px solid #e74c3c; background: rgba(231, 76, 60, 0.1); }
+
         footer { text-align: center; padding: 2rem; background: rgba(30, 55, 25, 0.9); color: #e0f0cf; margin-top: 4rem; font-size: 0.9rem; }
 
         @media (max-width: 1000px) { .builder-grid { grid-template-columns: 1fr; } }
@@ -228,19 +234,14 @@ declare(strict_types=1);
                     <p style="font-size: 0.85rem; color: #7f8c8d; margin-bottom: 1rem;"><i class="fas fa-info-circle"></i> Le mode création est désactivé car vous êtes connecté à votre suivi.</p>
                 <?php endif; ?>
                 <form id="offerForm" action="index.php?action=save_event" method="post">
-                    <div class="form-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.2rem;">
-                        <div class="form-group" style="margin-bottom: 0;">
-                            <label for="event_custom_id">ID Événement (Custom)</label>
-                            <input type="text" id="event_custom_id" name="event_custom_id" class="form-control" placeholder="Ex: EV-2026-01">
-                            <input type="hidden" id="eventId" name="id" value="0">
-                        </div>
-                        <div class="form-group" style="margin-bottom: 0;">
-                            <label for="offerTitle">Titre de l'Événement</label>
-                            <input type="text" id="offerTitle" name="titre" class="form-control" placeholder="Ex: Coaching Premium...">
-                        </div>
+                    <div class="form-group">
+                        <label for="offerTitle">Titre de l'Événement</label>
+                        <input type="text" id="offerTitle" name="titre" class="form-control" placeholder="Ex: Yoga Matinal...">
+                        <input type="hidden" id="eventId" name="id" value="0">
+                        <span class="error-msg">Le titre est requis.</span>
                     </div>
-                    
-                    <div class="form-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.2rem;">
+
+                    <div class="form-row" style="display: grid; grid-template-columns: 1fr; gap: 1rem; margin-bottom: 1.2rem;">
                         <div class="form-group" style="margin-bottom: 0;">
                             <label for="offerCat">Catégorie</label>
                             <select id="offerCat" name="categorie" class="form-control">
@@ -249,10 +250,7 @@ declare(strict_types=1);
                                 <option value="Sport">Sport</option>
                                 <option value="Bien-être">Bien-être</option>
                             </select>
-                        </div>
-                        <div class="form-group" style="margin-bottom: 0;">
-                            <label for="offerCatId">ID Catégorie</label>
-                            <input type="text" id="offerCatId" name="categorie_id" class="form-control" placeholder="Ex: CAT-001">
+                            <span class="error-msg">Sélectionnez une catégorie.</span>
                         </div>
                     </div>
 
@@ -260,21 +258,25 @@ declare(strict_types=1);
                         <div class="form-group" style="margin-bottom: 0;">
                             <label for="offerDate">Date de l'Événement</label>
                             <input type="datetime-local" id="offerDate" name="date_evenement" class="form-control">
+                            <span class="error-msg">La date doit être dans le futur.</span>
                         </div>
                         <div class="form-group" style="margin-bottom: 0;">
                             <label for="offerLieu">Lieu</label>
                             <input type="text" id="offerLieu" name="lieu" class="form-control" placeholder="Ex: Paris">
+                            <span class="error-msg">Le lieu est requis.</span>
                         </div>
                     </div>
 
                     <div class="form-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.2rem;">
                         <div class="form-group" style="margin-bottom: 0;">
                             <label for="offerPrice">Prix Mensuel (DT)</label>
-                            <input type="number" id="offerPrice" name="prix" class="form-control" placeholder="Ex: 49">
+                            <input type="text" id="offerPrice" name="prix" class="form-control" placeholder="Ex: 49">
+                            <span class="error-msg">Le prix doit être positif.</span>
                         </div>
                         <div class="form-group" style="margin-bottom: 0;">
                             <label for="offerCap">Capacité Max</label>
-                            <input type="number" id="offerCap" name="capacite" class="form-control" placeholder="Ex: 50">
+                            <input type="text" id="offerCap" name="capacite" class="form-control" placeholder="Ex: 50">
+                            <span class="error-msg">La capacité doit être positive.</span>
                         </div>
                     </div>
 
@@ -285,11 +287,13 @@ declare(strict_types=1);
                             <option value="En attente">En attente</option>
                             <option value="Terminé">Terminé</option>
                         </select>
+                        <span class="error-msg">Sélectionnez un statut.</span>
                     </div>
 
                     <div class="form-group">
                         <label for="offerDesc">Description de l'Événement</label>
                         <textarea id="offerDesc" name="description" class="form-control" style="min-height: 80px;" placeholder="Détails du programme..."></textarea>
+                        <span class="error-msg">La description doit faire au moins 20 car.</span>
                     </div>
 
                     <div class="form-group">
@@ -357,7 +361,7 @@ declare(strict_types=1);
                             <button class="btn-delete" onclick="deleteOffer(<?= $ev->id ?>)"><i class="fas fa-trash"></i></button>
                             <button class="btn-show" onclick="showEventDetails(<?= $ev->id ?>)" style="background: #3498db; color: white; border: none; padding: 0.5rem; border-radius: 8px; cursor: pointer; margin-left: 5px;"><i class="fas fa-eye"></i></button>
                         </div>
-                        <a href="index.php?sub=participants&event_id=<?= $ev->id ?>" class="btn-primary-green" style="padding: 0.8rem; text-align: center; margin-top: 0.5rem;">S'inscrire</a>
+                        <a href="index.php?action=inscription&event_id=<?= $ev->id ?>" class="btn-primary-green" style="padding: 0.8rem; text-align: center; margin-top: 0.5rem;">S'inscrire</a>
                     </div>
                 </div>
 <?php endforeach; ?>
@@ -371,9 +375,15 @@ declare(strict_types=1);
                 <?php if (isset($_GET['error']) && $_GET['error'] === 'auth_failed'): ?>
                     <p style="color: #ff7675; font-weight: 700; margin-top: 1rem;">Email ou mot de passe incorrect.</p>
                 <?php endif; ?>
-                <form class="login-form" action="index.php?action=login_suivi" method="post">
-                    <input type="email" name="email" class="login-input" placeholder="Votre Email Gmail..." required>
-                    <input type="password" name="password" class="login-input" placeholder="Votre Mot de Passe..." required>
+                <form class="login-form" id="loginForm" action="index.php?action=login_suivi" method="post">
+                    <div class="form-group" style="margin-bottom: 0;">
+                        <input type="text" id="loginEmail" name="email" class="login-input" placeholder="Votre Email Gmail..." style="width: 100%;">
+                        <span class="error-msg" style="color: #ff7675; margin-left: 1.5rem;">Email invalide.</span>
+                    </div>
+                    <div class="form-group" style="margin-bottom: 0;">
+                        <input type="password" id="loginPass" name="password" class="login-input" placeholder="Votre Mot de Passe..." style="width: 100%;">
+                        <span class="error-msg" style="color: #ff7675; margin-left: 1.5rem;">Mot de passe requis.</span>
+                    </div>
                     <button type="submit" class="btn-primary-green" style="padding: 1.2rem; margin-top: 1rem;">SE CONNECTER</button>
                 </form>
             </section>
@@ -401,7 +411,7 @@ declare(strict_types=1);
         const offerForm = document.getElementById('offerForm');
         const offerTitle = document.getElementById('offerTitle');
         const offerCat = document.getElementById('offerCat');
-        const offerCatId = document.getElementById('offerCatId');
+        const offerCatId = null; // Supprimé
         const offerDate = document.getElementById('offerDate');
         const offerLieu = document.getElementById('offerLieu');
         const offerPrice = document.getElementById('offerPrice');
@@ -410,7 +420,7 @@ declare(strict_types=1);
         const offerDesc = document.getElementById('offerDesc');
         const offerImg = document.getElementById('offerImg');
         const eventIdInput = document.getElementById('eventId');
-        const customEventIdInput = document.getElementById('event_custom_id');
+        const customEventIdInput = null; // Supprimé
         const formTitle = document.getElementById('formTitle');
         const submitBtn = document.getElementById('submitBtn');
         const btnUpdate = document.getElementById('btnUpdate');
@@ -418,6 +428,86 @@ declare(strict_types=1);
         const btnShow = document.getElementById('btnShow');
 
         const imgOptions = document.querySelectorAll('.img-option');
+
+        // Validation Login
+        const loginForm = document.getElementById('loginForm');
+        if (loginForm) {
+            loginForm.addEventListener('submit', function(e) {
+                let isValid = true;
+                const email = document.getElementById('loginEmail');
+                const pass = document.getElementById('loginPass');
+
+                email.closest('.form-group').classList.remove('has-error');
+                pass.closest('.form-group').classList.remove('has-error');
+
+                if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.value)) {
+                    email.closest('.form-group').classList.add('has-error');
+                    isValid = false;
+                }
+                if (pass.value.trim() === '') {
+                    pass.closest('.form-group').classList.add('has-error');
+                    isValid = false;
+                }
+
+                if (!isValid) e.preventDefault();
+            });
+        }
+
+        // Validation Offer Form
+        if (offerForm) {
+            offerForm.addEventListener('submit', function(e) {
+                let isValid = true;
+                
+                // Reset errors
+                document.querySelectorAll('.form-group').forEach(g => g.classList.remove('has-error'));
+
+                // Title
+                if (offerTitle.value.trim().length < 5) {
+                    offerTitle.closest('.form-group').classList.add('has-error');
+                    isValid = false;
+                }
+
+                // Date
+                if (offerDate.value) {
+                    const selectedDate = new Date(offerDate.value);
+                    const now = new Date();
+                    if (selectedDate <= now) {
+                        offerDate.closest('.form-group').classList.add('has-error');
+                        isValid = false;
+                    }
+                } else {
+                    offerDate.closest('.form-group').classList.add('has-error');
+                    isValid = false;
+                }
+
+                // Lieu
+                if (offerLieu.value.trim() === '') {
+                    offerLieu.closest('.form-group').classList.add('has-error');
+                    isValid = false;
+                }
+
+                // Description
+                if (offerDesc.value.trim().length < 20) {
+                    offerDesc.closest('.form-group').classList.add('has-error');
+                    isValid = false;
+                }
+
+                // Price & Cap
+                if (parseFloat(offerPrice.value) <= 0) {
+                    offerPrice.closest('.form-group').classList.add('has-error');
+                    isValid = false;
+                }
+                if (parseInt(offerCap.value) <= 0) {
+                    offerCap.closest('.form-group').classList.add('has-error');
+                    isValid = false;
+                }
+
+                if (!isValid) {
+                    e.preventDefault();
+                    alert("Veuillez corriger les erreurs dans le formulaire.");
+                }
+            });
+        }
 
         // Initial state
         if (btnUpdate) btnUpdate.disabled = true;
@@ -463,7 +553,6 @@ declare(strict_types=1);
             offerLieu.value = off.lieu;
             offerImg.value = off.image_url;
             eventIdInput.value = off.id;
-            customEventIdInput.value = off.event_custom_id;
             
             formTitle.textContent = "MODIFICATION EN COURS";
             

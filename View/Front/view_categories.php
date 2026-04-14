@@ -121,6 +121,11 @@ declare(strict_types=1);
 
         .btn-generate { width: 100%; padding: 1.2rem; font-size: 1rem; margin-top: 1rem; display: flex; align-items: center; justify-content: center; gap: 10px; }
 
+        /* Validation Styles */
+        .error-msg { color: #e74c3c; font-size: 0.75rem; font-weight: 700; margin-top: 0.3rem; display: none; }
+        .form-group.has-error .form-control { border-color: #e74c3c; background: #fff5f5; }
+        .form-group.has-error .error-msg { display: block; }
+
         footer { text-align: center; padding: 2rem; background: rgba(30, 55, 25, 0.9); color: #e0f0cf; margin-top: 4rem; font-size: 0.9rem; }
 
         @media (max-width: 1000px) { .builder-grid { grid-template-columns: 1fr; } }
@@ -152,26 +157,25 @@ declare(strict_types=1);
                 </div>
                 <form id="catForm" action="index.php?action=save_category" method="post">
                     <input type="hidden" id="categoryId" name="id" value="0">
-                    <div class="form-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.2rem;">
-                        <div class="form-group" style="margin-bottom: 0;">
-                            <label for="cat_id">ID Catégorie (Custom)</label>
-                            <input type="text" id="cat_id" name="cat_id" class="form-control" placeholder="Ex: CAT-001">
-                        </div>
+                    <div class="form-row" style="display: grid; grid-template-columns: 1fr; gap: 1rem; margin-bottom: 1.2rem;">
                         <div class="form-group" style="margin-bottom: 0;">
                             <label for="catName">Nom de la catégorie</label>
                             <input type="text" id="catName" name="nom" class="form-control" placeholder="Ex: Nutrition Sportive...">
+                            <span class="error-msg">Le nom est requis (min 3 car.).</span>
                         </div>
                     </div>
                     <div class="form-group">
                         <label for="catDesc">Description</label>
                         <textarea id="catDesc" name="description" class="form-control" style="min-height: 120px;" placeholder="Décrivez l'univers de cette catégorie..."></textarea>
+                        <span class="error-msg">La description doit faire au moins 10 car.</span>
                     </div>
                     <div class="form-group">
                         <label for="catWorkshop">Atelier de cuisine</label>
                         <input type="text" id="catWorkshop" name="atelier" class="form-control" placeholder="Ex: Atelier Recettes Énergie...">
+                        <span class="error-msg">L'atelier est requis.</span>
                     </div>
 
-                    <div class="form-group">
+                    <div class="form-group" id="imgGroup">
                         <label>Choisissez les images pour cette catégorie</label>
                         <div class="multi-img-selector" id="catImgSelector">
                             <!-- Image Options -->
@@ -195,6 +199,7 @@ declare(strict_types=1);
                             </div>
                             <?php endforeach; ?>
                         </div>
+                        <span class="error-msg">Sélectionnez au moins une image.</span>
                     </div>
                     <button type="submit" class="btn-primary-green btn-generate" id="submitBtn">
                         <i class="fas fa-magic"></i> GÉNÉRER
@@ -288,10 +293,48 @@ declare(strict_types=1);
 
         const catForm = document.getElementById('catForm');
         const categoryIdInput = document.getElementById('categoryId');
-        const customCatIdInput = document.getElementById('cat_id');
+        const customCatIdInput = null; // Supprimé
         const formTitle = document.getElementById('formTitle');
         const submitBtn = document.getElementById('submitBtn');
         const imgOpts = document.querySelectorAll('.cat-img-opt');
+
+        // Validation JS
+        catForm.addEventListener('submit', function(e) {
+            let isValid = true;
+            
+            // Reset errors
+            document.querySelectorAll('.form-group').forEach(g => g.classList.remove('has-error'));
+
+            // Name
+            if (document.getElementById('catName').value.trim().length < 3) {
+                document.getElementById('catName').closest('.form-group').classList.add('has-error');
+                isValid = false;
+            }
+
+            // Description
+            if (document.getElementById('catDesc').value.trim().length < 10) {
+                document.getElementById('catDesc').closest('.form-group').classList.add('has-error');
+                isValid = false;
+            }
+
+            // Atelier
+            if (document.getElementById('catWorkshop').value.trim() === '') {
+                document.getElementById('catWorkshop').closest('.form-group').classList.add('has-error');
+                isValid = false;
+            }
+
+            // Images
+            const selectedImgs = document.querySelectorAll('.cat-img-opt.selected');
+            if (selectedImgs.length === 0) {
+                document.getElementById('imgGroup').classList.add('has-error');
+                isValid = false;
+            }
+
+            if (!isValid) {
+                e.preventDefault();
+                alert("Veuillez corriger les erreurs dans le formulaire.");
+            }
+        });
 
         // Multi-image selector logic
         imgOpts.forEach(opt => {
@@ -368,7 +411,7 @@ declare(strict_types=1);
         };
 
         window.deleteCat = (id) => {
-            if (confirm("Supprimer cette catégorie ?")) {
+            if (confirm("Voulez-vous vraiment supprimer cette catégorie ?")) {
                 window.location.href = `index.php?action=delete_category&id=${id}`;
             }
         };
@@ -381,7 +424,6 @@ declare(strict_types=1);
             catForm.description.value = cat.description;
             catForm.atelier.value = cat.atelier;
             categoryIdInput.value = cat.id;
-            customCatIdInput.value = cat.cat_id;
             
             formTitle.textContent = "Modifier la Catégorie";
             submitBtn.innerHTML = '<i class="fas fa-plus"></i> ENREGISTRER (NOUVEAU)';
