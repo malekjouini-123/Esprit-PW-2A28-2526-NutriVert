@@ -154,7 +154,30 @@ $labelIsChecked = static function (string $option, array $selected): bool {
         margin: 0.2rem 0 0;
         min-height: 1.15em;
     }
+    .adm-stock-alert {
+        background: #fdecea;
+        color: #7a1a12;
+        border: 2px solid #c44a3e;
+        border-radius: 0.65rem;
+        padding: 0.85rem 1rem;
+        margin-bottom: 1.25rem;
+        font-weight: 700;
+        font-size: 0.92rem;
+    }
+    .adm-stock-alert ul { margin: 0.5rem 0 0 1.1rem; font-weight: 600; }
+    tr.adm-row-stock-faible td { background: #fff5f4; }
 </style>
+
+<?php if (!empty($produitsStockFaible)) : ?>
+    <div class="adm-stock-alert" role="alert">
+        Stock faible (&lt; 2 unités) — produit(s) concerné(s)&nbsp;:
+        <ul>
+            <?php foreach ($produitsStockFaible as $spf) : ?>
+                <li><?= e((string) ($spf['nom'] ?? '')) ?> (<?= (int) ($spf['combien'] ?? 0) ?> en stock)</li>
+            <?php endforeach; ?>
+        </ul>
+    </div>
+<?php endif; ?>
 
 <?php if (!empty($flash) && is_array($flash)) : ?>
     <div class="adm-flash <?= !empty($flash['ok']) ? 'ok' : 'err' ?>" role="alert">
@@ -287,6 +310,13 @@ $labelIsChecked = static function (string $option, array $selected): bool {
             </div>
         </div>
         <div>
+            <label for="prod_combien">Combien (quantité en stock)</label>
+            <input type="number" id="prod_combien" name="prod_combien" step="1" min="0" max="9999999"
+                   value="<?= e(isset($ep['combien']) ? (string) (int) $ep['combien'] : '0') ?>"
+                   placeholder="Ex. 5 pour 5 unités">
+            <span id="prod_combien_err" class="mp-field-error" role="alert"></span>
+        </div>
+        <div>
             <label for="prod_icone">Icône</label>
             <select id="prod_icone" name="prod_icone">
                 <?php foreach ($iconeOptions as $val => $lab) : ?>
@@ -317,15 +347,16 @@ $labelIsChecked = static function (string $option, array $selected): bool {
                     <th>Producteur</th>
                     <th>Prix</th>
                     <th>CO₂</th>
+                    <th>Combien</th>
                     <th>Actions</th>
                 </tr>
             </thead>
             <tbody>
                 <?php if ($produits === []) : ?>
-                    <tr><td colspan="8" class="adm-muted">Aucun produit.</td></tr>
+                    <tr><td colspan="9" class="adm-muted">Aucun produit.</td></tr>
                 <?php else : ?>
                     <?php foreach ($produits as $p) : ?>
-                        <tr>
+                        <tr<?= (int) ($p['combien'] ?? 0) < 2 ? ' class="adm-row-stock-faible"' : '' ?>>
                             <td><?= (int) $p['id'] ?></td>
                             <td><?= e($p['categorie_nom'] ?? '') ?></td>
                             <td><strong><?= e($p['nom']) ?></strong></td>
@@ -333,6 +364,7 @@ $labelIsChecked = static function (string $option, array $selected): bool {
                             <td><?= e($p['producteur'] ?? '—') ?></td>
                             <td><?= e(number_format((float) $p['prix'], 2, ',', ' ')) ?> DT</td>
                             <td><?= isset($p['empreinte_co2']) && $p['empreinte_co2'] !== null && $p['empreinte_co2'] !== '' ? e((string) $p['empreinte_co2']) : '—' ?></td>
+                            <td><strong><?= (int) ($p['combien'] ?? 0) ?></strong><?= (int) ($p['combien'] ?? 0) < 2 ? ' <span style="color:#a53c32;font-size:0.78rem;">Stock faible</span>' : '' ?></td>
                             <td>
                                 <div class="adm-table-actions">
                                     <a href="marketplace.php?edit_prod=<?= (int) $p['id'] ?>#produits">Modifier</a>
@@ -369,11 +401,13 @@ $labelIsChecked = static function (string $option, array $selected): bool {
         producteurId: 'prod_producteur',
         prixId: 'prod_prix',
         co2Id: 'prod_co2',
+        combienId: 'prod_combien',
         errCategorieId: 'prod_categorie_err',
         errNomId: 'prod_nom_err',
         errProducteurId: 'prod_producteur_err',
         errPrixId: 'prod_prix_err',
         errCo2Id: 'prod_co2_err',
+        errCombienId: 'prod_combien_err',
         labelsWrapId: 'adm_prod_labels_wrap'
     };
 

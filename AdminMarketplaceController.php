@@ -36,6 +36,12 @@ class AdminMarketplaceController
 
         $categories = $catModel->findAll();
         $produits = $prodModel->findAll();
+        $produitsStockFaible = [];
+        foreach ($produits as $p) {
+            if ((int) ($p['combien'] ?? 0) < 2) {
+                $produitsStockFaible[] = $p;
+            }
+        }
 
         $labelOptions = ['Bio', 'Local', 'Sans gluten', 'Équitable', 'Circuit court', 'AOP', 'Saison'];
         $iconeOptions = [
@@ -56,6 +62,7 @@ class AdminMarketplaceController
         extract(compact(
             'categories',
             'produits',
+            'produitsStockFaible',
             'flash',
             'editCat',
             'editProd',
@@ -191,12 +198,17 @@ class AdminMarketplaceController
             throw new RuntimeException('Empreinte CO₂ invalide (nombre ≥ 0).');
         }
 
+        $combien = (int) ($_POST['prod_combien'] ?? 0);
+        if ($combien < 0 || $combien > 9999999) {
+            throw new RuntimeException('Quantité en stock (Combien) : entier entre 0 et 9 999 999.');
+        }
+
         $id = isset($_POST['prod_id']) ? (int) $_POST['prod_id'] : 0;
         if ($id > 0) {
-            $prodModel->update($id, $cid, $nom, $labelStr, $producteur, $prix, $co2, $icone);
+            $prodModel->update($id, $cid, $nom, $labelStr, $producteur, $prix, $co2, $combien, $icone);
             $this->flash(true, 'Produit modifié.');
         } else {
-            $prodModel->create($cid, $nom, $labelStr, $producteur, $prix, $co2, $icone);
+            $prodModel->create($cid, $nom, $labelStr, $producteur, $prix, $co2, $combien, $icone);
             $this->flash(true, 'Produit ajouté.');
         }
     }

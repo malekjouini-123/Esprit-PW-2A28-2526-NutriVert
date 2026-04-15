@@ -6,7 +6,7 @@ declare(strict_types=1);
  */
 class Produit
 {
-    private const SQL_LIST = 'SELECT p.id, p.categorie_id, p.nom, p.label, p.producteur, p.prix, p.empreinte_co2, p.icone,
+    private const SQL_LIST = 'SELECT p.id, p.categorie_id, p.nom, p.label, p.producteur, p.prix, p.empreinte_co2, p.combien, p.icone,
         c.nom AS categorie_nom
         FROM produit p
         INNER JOIN categorie c ON c.id = p.categorie_id';
@@ -41,12 +41,13 @@ class Produit
         ?string $producteur,
         float $prix,
         ?float $empreinteCo2,
+        int $combien,
         string $icone
     ): int {
         $stmt = $this->pdo->prepare(
-            'INSERT INTO produit (categorie_id, nom, label, producteur, prix, empreinte_co2, icone) VALUES (?,?,?,?,?,?,?)'
+            'INSERT INTO produit (categorie_id, nom, label, producteur, prix, empreinte_co2, combien, icone) VALUES (?,?,?,?,?,?,?,?)'
         );
-        $stmt->execute([$categorieId, $nom, $label, $producteur, $prix, $empreinteCo2, $icone]);
+        $stmt->execute([$categorieId, $nom, $label, $producteur, $prix, $empreinteCo2, $combien, $icone]);
         return (int) $this->pdo->lastInsertId();
     }
 
@@ -58,12 +59,13 @@ class Produit
         ?string $producteur,
         float $prix,
         ?float $empreinteCo2,
+        int $combien,
         string $icone
     ): int {
         $stmt = $this->pdo->prepare(
-            'UPDATE produit SET categorie_id=?, nom=?, label=?, producteur=?, prix=?, empreinte_co2=?, icone=? WHERE id=?'
+            'UPDATE produit SET categorie_id=?, nom=?, label=?, producteur=?, prix=?, empreinte_co2=?, combien=?, icone=? WHERE id=?'
         );
-        $stmt->execute([$categorieId, $nom, $label, $producteur, $prix, $empreinteCo2, $icone, $id]);
+        $stmt->execute([$categorieId, $nom, $label, $producteur, $prix, $empreinteCo2, $combien, $icone, $id]);
         return $stmt->rowCount();
     }
 

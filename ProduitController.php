@@ -29,7 +29,7 @@ class ProduitController
                 case 'POST':
                     $data = $this->parseBody(nv_json_input());
                     if ($data === null) {
-                        nv_json(['error' => 'categorie_id et nom sont obligatoires.'], 400);
+                        nv_json(['error' => 'categorie_id, nom et quantité stock (combien) valides requis.'], 400);
                     }
                     $id = $model->create(
                         $data['categorie_id'],
@@ -38,6 +38,7 @@ class ProduitController
                         $data['producteur'],
                         $data['prix'],
                         $data['empreinte_co2'],
+                        $data['combien'],
                         $data['icone']
                     );
                     nv_json(['ok' => true, 'id' => $id]);
@@ -49,7 +50,7 @@ class ProduitController
                     }
                     $data = $this->parseBody(nv_json_input());
                     if ($data === null) {
-                        nv_json(['error' => 'categorie_id et nom sont obligatoires.'], 400);
+                        nv_json(['error' => 'categorie_id, nom et quantité stock (combien) valides requis.'], 400);
                     }
                     $affected = $model->update(
                         $id,
@@ -59,6 +60,7 @@ class ProduitController
                         $data['producteur'],
                         $data['prix'],
                         $data['empreinte_co2'],
+                        $data['combien'],
                         $data['icone']
                     );
                     nv_json(['ok' => true, 'affected' => $affected]);
@@ -88,7 +90,7 @@ class ProduitController
     }
 
     /**
-     * @return array{categorie_id:int,nom:string,label:?string,producteur:?string,prix:float,empreinte_co2:?float,icone:string}|null
+     * @return array{categorie_id:int,nom:string,label:?string,producteur:?string,prix:float,empreinte_co2:?float,combien:int,icone:string}|null
      */
     private function parseBody(array $in): ?array
     {
@@ -112,6 +114,10 @@ class ProduitController
         if ($icone === '') {
             $icone = 'fa-seedling';
         }
+        $combien = isset($in['combien']) ? (int) $in['combien'] : 0;
+        if ($combien < 0 || $combien > 9999999) {
+            return null;
+        }
 
         return [
             'categorie_id' => $cid,
@@ -120,6 +126,7 @@ class ProduitController
             'producteur' => $producteur,
             'prix' => $prix,
             'empreinte_co2' => $co2,
+            'combien' => $combien,
             'icone' => $icone,
         ];
     }
