@@ -1,4 +1,5 @@
 <?php
+
 class RecetteController extends BaseController
 {
     private Recette $recetteModel;
@@ -40,6 +41,7 @@ class RecetteController extends BaseController
         ];
 
         $errors = $this->recetteModel->validate($data);
+
         if (!empty($errors)) {
             $this->render('back/recettes/form', [
                 'pageTitle' => 'Ajouter recette',
@@ -52,16 +54,19 @@ class RecetteController extends BaseController
 
         $this->recetteModel->create([
             ...$data,
-            'duree' => (int)$data['duree'],
+            'duree' => (int) $data['duree'],
         ]);
+
         $this->redirect('index.php?page=back_recettes');
     }
 
     public function edit(int $id): void
     {
         $recette = $this->recetteModel->find($id);
+
         if (!$recette) {
             $this->redirect('index.php?page=back_recettes');
+            return;
         }
 
         $this->render('back/recettes/form', [
@@ -82,8 +87,10 @@ class RecetteController extends BaseController
         ];
 
         $errors = $this->recetteModel->validate($data);
+
         if (!empty($errors)) {
             $data['id_recette'] = $id;
+
             $this->render('back/recettes/form', [
                 'pageTitle' => 'Modifier recette',
                 'action' => 'back_recette_update&id=' . $id,
@@ -95,8 +102,9 @@ class RecetteController extends BaseController
 
         $this->recetteModel->update($id, [
             ...$data,
-            'duree' => (int)$data['duree'],
+            'duree' => (int) $data['duree'],
         ]);
+
         $this->redirect('index.php?page=back_recettes');
     }
 
@@ -139,29 +147,34 @@ class RecetteController extends BaseController
 
         $etapes = $old['etape'];
         $descriptions = $old['description'];
-        $ingredients = $old['ingredient_produit'];
+        $ingredientsList = $old['ingredient_produit'];
 
         if (count($etapes) === 0) {
-            $errors['etape'][0] = 'Vous devez ajouter au moins une étape.';
+            $errors['global'] = 'Vous devez ajouter au moins une étape.';
         }
 
-        foreach ($etapes as $index => $etape) {
-            $etape = trim((string)$etape);
-            $description = trim((string)($descriptions[$index] ?? ''));
-            $ingredient = trim((string)($ingredients[$index] ?? ''));
+        foreach ($etapes as $i => $etape) {
+            if (trim((string) $etape) === '') {
+                $errors['etape'][$i] = 'Le nom de l’étape est obligatoire.';
+            }
 
-            if ($etape === '') {
-                $errors['etape'][$index] = 'Le champ étape est obligatoire.';
+            if (empty(trim((string) ($descriptions[$i] ?? '')))) {
+                $errors['description'][$i] = 'La description est obligatoire.';
             }
-            if ($description === '') {
-                $errors['description'][$index] = 'La description est obligatoire.';
-            }
-            if ($ingredient === '') {
-                $errors['ingredient_produit'][$index] = 'Les ingrédients sont obligatoires.';
+
+            $ingredients = json_decode($ingredientsList[$i] ?? '[]', true);
+
+            if (!is_array($ingredients) || count($ingredients) === 0) {
+                $errors['ingredient_produit'][$i] = 'Chaque étape doit contenir au moins un ingrédient.';
             } else {
-                $decoded = json_decode($ingredient, true);
-                if (json_last_error() !== JSON_ERROR_NONE || !is_array($decoded)) {
-                    $errors['ingredient_produit'][$index] = 'Le JSON des ingrédients est invalide.';
+                foreach ($ingredients as $ingredient) {
+                    $nomProduit = trim((string) ($ingredient['nom_produit'] ?? ''));
+                    $quantite = trim((string) ($ingredient['quantite'] ?? ''));
+
+                    if ($nomProduit === '' || $quantite === '') {
+                        $errors['ingredient_produit'][$i] = 'Chaque ingrédient doit avoir un nom et une quantité.';
+                        break;
+                    }
                 }
             }
         }
@@ -182,15 +195,15 @@ class RecetteController extends BaseController
                 'titre' => $old['titre'],
                 'objectif' => $old['objectif'],
                 'regime' => $old['regime'],
-                'duree' => (int)$old['duree'],
+                'duree' => (int) $old['duree'],
             ]);
 
             foreach ($etapes as $index => $etape) {
                 $this->instructionModel->create([
                     'id_recette' => $recetteId,
-                    'etape' => trim((string)$etape),
-                    'description' => trim((string)$descriptions[$index]),
-                    'ingredient_produit' => trim((string)$ingredients[$index]),
+                    'etape' => trim((string) $etape),
+                    'description' => trim((string) ($descriptions[$index] ?? '')),
+                    'ingredient_produit' => trim((string) ($ingredientsList[$index] ?? '[]')),
                 ]);
             }
 
@@ -200,7 +213,9 @@ class RecetteController extends BaseController
             if ($this->pdo->inTransaction()) {
                 $this->pdo->rollBack();
             }
+
             $errors['global'] = 'Erreur lors de l\'enregistrement : ' . $e->getMessage();
+
             $this->render('back/recettes/form_complete', [
                 'pageTitle' => 'Ajouter recette complète',
                 'errors' => $errors,

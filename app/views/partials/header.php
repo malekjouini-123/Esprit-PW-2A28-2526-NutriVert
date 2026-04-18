@@ -8,7 +8,17 @@
 </head>
 <body>
 <header class="site-header">
-    <div class="brand">🌿 NutriVert</div>
+    <div class="brand" style="display:flex; align-items:center;">
+        <img 
+            src="assets/images/logo.png" 
+            alt="Logo NutriVert"
+            style="width:120px; height:auto; max-height:45px; display:block;"
+        >
+        <span style="font-size:22px; font-weight:bold; color:#2f8a2b;">
+            NutriVert
+        </span>
+    </div>
+
     <nav class="site-nav">
         <a href="index.php?page=front_home">FrontOffice</a>
         <a href="index.php?page=back_dashboard">BackOffice</a>
