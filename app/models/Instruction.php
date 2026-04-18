@@ -91,4 +91,19 @@ class Instruction
 
         return $errors;
     }
+public function searchByRecetteId(int $idRecette): array
+{
+    $sql = "SELECT i.*, r.titre AS recette_titre
+            FROM instruction i
+            INNER JOIN recette r ON i.id_recette = r.id_recette
+            WHERE i.id_recette = :id_recette
+            ORDER BY i.id_instruction DESC";
+
+    $stmt = $this->pdo->prepare($sql);
+    $stmt->execute([
+        ':id_recette' => $idRecette
+    ]);
+
+    return $stmt->fetchAll();
+}
 }

@@ -10,13 +10,29 @@ class InstructionController extends BaseController
         $this->recetteModel = $recetteModel;
     }
 
-    public function index(): void
-    {
-        $this->render('back/instructions/index', [
-            'pageTitle' => 'BackOffice | Instructions',
-            'instructions' => $this->instructionModel->all(),
-        ]);
+public function index(): void
+{
+    $searchIdRecette = trim($_GET['id_recette'] ?? '');
+    $errorSearch = '';
+
+    if ($searchIdRecette !== '') {
+        if (ctype_digit($searchIdRecette)) {
+            $instructions = $this->instructionModel->searchByRecetteId((int) $searchIdRecette);
+        } else {
+            $instructions = [];
+            $errorSearch = 'ID recette invalide.';
+        }
+    } else {
+        $instructions = $this->instructionModel->all();
     }
+
+    $this->render('back/instructions/index', [
+        'pageTitle' => 'BackOffice | Instructions',
+        'instructions' => $instructions,
+        'searchIdRecette' => $searchIdRecette,
+        'errorSearch' => $errorSearch,
+    ]);
+}
 
     public function create(): void
     {

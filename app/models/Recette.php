@@ -79,4 +79,15 @@ class Recette
 
         return $errors;
     }
+public function searchByTitre(string $titre): array
+{
+    $sql = "SELECT * FROM recette WHERE titre LIKE :titre ORDER BY id_recette DESC";
+    $stmt = $this->pdo->prepare($sql);
+    $stmt->execute([
+        ':titre' => '%' . $titre . '%'
+    ]);
+    return $stmt->fetchAll();
 }
+
+}
+

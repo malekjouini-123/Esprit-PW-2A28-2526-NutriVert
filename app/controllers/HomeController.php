@@ -10,19 +10,30 @@ class HomeController extends BaseController
         $this->instructionModel = $instructionModel;
     }
 
-    public function index(): void
-    {
-        $this->render('front/home', [
-            'pageTitle' => 'NutriVert | FrontOffice',
-            'recettes' => $this->recetteModel->all(),
-        ]);
+public function index(): void
+{
+    $search = trim($_GET['search'] ?? '');
+
+    if ($search !== '') {
+        $recettes = $this->recetteModel->searchByTitre($search);
+    } else {
+        $recettes = $this->recetteModel->all();
     }
+
+    $this->render('front/home', [
+        'pageTitle' => 'NutriVert | FrontOffice',
+        'recettes' => $recettes,
+        'search' => $search,
+    ]);
+}
 
     public function recetteDetail(int $id): void
     {
         $recette = $this->recetteModel->find($id);
+
         if (!$recette) {
             $this->redirect('index.php?page=front_home');
+            return;
         }
 
         $this->render('front/recette_detail', [

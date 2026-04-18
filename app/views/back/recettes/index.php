@@ -7,6 +7,22 @@
         <a class="btn-green" href="index.php?page=back_recette_create_full">Ajouter une recette complète</a>
     </p>
 
+    <form method="GET" action="index.php" class="search-form">
+        <input type="hidden" name="page" value="back_recettes">
+
+        <label for="search">Recherche par titre</label>
+        <input
+            type="text"
+            id="search"
+            name="search"
+            value="<?php echo htmlspecialchars($search ?? ''); ?>"
+            placeholder="Entrez le titre de la recette"
+        >
+
+        <button type="submit" class="btn-green">Rechercher</button>
+        <a href="index.php?page=back_recettes" class="btn-ghost">Réinitialiser</a>
+    </form>
+
     <table class="data-table">
         <thead>
             <tr>

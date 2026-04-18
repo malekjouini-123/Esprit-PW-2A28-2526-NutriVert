@@ -13,13 +13,22 @@ class RecetteController extends BaseController
         $this->pdo = $pdo;
     }
 
-    public function index(): void
-    {
-        $this->render('back/recettes/index', [
-            'pageTitle' => 'BackOffice | Recettes',
-            'recettes' => $this->recetteModel->all(),
-        ]);
+public function index(): void
+{
+    $search = trim($_GET['search'] ?? '');
+
+    if ($search !== '') {
+        $recettes = $this->recetteModel->searchByTitre($search);
+    } else {
+        $recettes = $this->recetteModel->all();
     }
+
+    $this->render('back/recettes/index', [
+        'pageTitle' => 'BackOffice | Recettes',
+        'recettes' => $recettes,
+        'search' => $search,
+    ]);
+}
 
     public function create(): void
     {

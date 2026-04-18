@@ -7,11 +7,32 @@
         <a class="btn-green" href="index.php?page=back_instruction_create">Ajouter une instruction</a>
     </p>
 
+    <form method="GET" action="index.php" class="search-form">
+        <input type="hidden" name="page" value="back_instructions">
+
+        <label for="id_recette">Recherche par ID recette</label>
+        <input
+            type="text"
+            id="id_recette"
+            name="id_recette"
+            value="<?php echo htmlspecialchars($searchIdRecette ?? ''); ?>"
+            placeholder="Entrez l'ID de la recette"
+        >
+
+        <button type="submit" class="btn-green">Rechercher</button>
+        <a href="index.php?page=back_instructions" class="btn-ghost">Réinitialiser</a>
+    </form>
+
+    <?php if (!empty($errorSearch)): ?>
+        <div class="error-banner"><?php echo htmlspecialchars($errorSearch); ?></div>
+    <?php endif; ?>
+
     <table class="data-table">
         <thead>
             <tr>
                 <th>ID</th>
                 <th>ID Recette</th>
+                <th>Titre recette</th>
                 <th>Étape</th>
                 <th>Description</th>
                 <th>Actions</th>
@@ -23,6 +44,7 @@
                     <tr>
                         <td><?php echo htmlspecialchars($instruction['id_instruction']); ?></td>
                         <td><?php echo htmlspecialchars($instruction['id_recette']); ?></td>
+                        <td><?php echo htmlspecialchars($instruction['recette_titre'] ?? ''); ?></td>
                         <td><?php echo htmlspecialchars($instruction['etape']); ?></td>
                         <td><?php echo htmlspecialchars($instruction['description']); ?></td>
                         <td>
@@ -39,7 +61,7 @@
                 <?php endforeach; ?>
             <?php else : ?>
                 <tr>
-                    <td colspan="5">Aucune instruction trouvée.</td>
+                    <td colspan="6">Aucune instruction trouvée.</td>
                 </tr>
             <?php endif; ?>
         </tbody>

@@ -480,3 +480,25 @@ textarea {
 .btn-confirm:hover {
     background: #c9302c;
 }
+.search-form {
+    display: flex;
+    align-items: end;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-bottom: 20px;
+    background: #ffffff;
+    padding: 16px;
+    border-radius: 16px;
+    border: 1px solid #d7ecd0;
+    box-shadow: 0 6px 16px rgba(0,0,0,0.06);
+}
+
+.search-form label {
+    margin-top: 0;
+    margin-bottom: 6px;
+}
+
+.search-form input {
+    min-width: 250px;
+    max-width: 320px;
+}
