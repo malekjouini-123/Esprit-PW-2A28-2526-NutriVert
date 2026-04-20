@@ -1,39 +1,49 @@
-document.addEventListener("DOMContentLoaded", function () {
-    // Small client-side checks for required and numeric fields.
-    document.querySelectorAll("form.needs-validation").forEach(function (form) {
-        form.addEventListener("submit", function (event) {
-            const requiredFields = form.querySelectorAll("[data-required]");
-            const numberFields = form.querySelectorAll("[data-number]");
-            let valid = true;
-            let message = "";
+// Nutrivert App.js — Micro-interactions & UX
+document.addEventListener('DOMContentLoaded', () => {
 
-            requiredFields.forEach(function (field) {
-                if (!field.value || !field.value.toString().trim()) {
-                    valid = false;
-                    message = "Please fill in all required fields.";
-                }
-            });
-
-            numberFields.forEach(function (field) {
-                const value = field.value.trim();
-                if (!/^\d+$/.test(value) || parseInt(value, 10) <= 0) {
-                    valid = false;
-                    message = "Numeric fields must contain positive numbers.";
-                }
-            });
-
-            if (!valid) {
-                event.preventDefault();
-                alert(message);
-            }
-        });
+  // Delete confirmations
+  document.querySelectorAll('[data-confirm]').forEach(el => {
+    el.addEventListener('click', e => {
+      if (!confirm('Are you sure you want to delete this item?')) e.preventDefault();
     });
+  });
 
-    document.querySelectorAll("[data-confirm]").forEach(function (link) {
-        link.addEventListener("click", function (event) {
-            if (!confirm("Are you sure you want to delete this item?")) {
-                event.preventDefault();
-            }
-        });
+  // Auto-dismiss flash messages after 3 seconds
+  document.querySelectorAll('.flash-message').forEach(flash => {
+    setTimeout(() => {
+      flash.classList.add('fade-out');
+      flash.addEventListener('animationend', () => flash.remove());
+    }, 3000);
+  });
+
+  // Smooth scroll for anchor links (skip bare "#" placeholders)
+  document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+    anchor.addEventListener('click', function(e) {
+      const href = this.getAttribute('href');
+      if (!href || href === '#') return; // skip dummy placeholder links
+      const target = document.querySelector(href);
+      if (target) {
+        e.preventDefault();
+        target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
     });
+  });
+
+  // Staggered card entrance animation
+  const cards = document.querySelectorAll('.card-rich, .stat-card-vivid');
+  cards.forEach((card, i) => {
+    card.style.opacity = '0';
+    card.style.transform = 'translateY(20px)';
+    setTimeout(() => {
+      card.style.transition = 'all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1)';
+      card.style.opacity = '1';
+      card.style.transform = 'translateY(0)';
+    }, 80 * i);
+  });
+
+  // Table row hover sound-like feedback (subtle scale)
+  document.querySelectorAll('tr').forEach(row => {
+    row.style.transition = 'all 0.2s ease';
+  });
+
 });

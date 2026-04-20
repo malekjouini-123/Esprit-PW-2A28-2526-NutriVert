@@ -6,7 +6,7 @@ require_once __DIR__ . '/../config/database.php';
 class Coaching
 {
     private PDO $pdo;
-    private array $allowedSortColumns = ['duration_weeks', 'difficulty_level', 'created_at'];
+    private array $allowedSortColumns = ['duration_weeks', 'difficulty_level', 'created_at', 'title'];
 
     public function __construct()
     {
@@ -70,10 +70,11 @@ class Coaching
     {
         $stmt = $this->pdo->prepare(
             'SELECT * FROM coaching_programs
-             WHERE title LIKE :keyword
+             WHERE title LIKE :keyword1 OR description LIKE :keyword2
              ORDER BY created_at DESC'
         );
-        $stmt->execute(['keyword' => '%' . $keyword . '%']);
+        $kw = '%' . $keyword . '%';
+        $stmt->execute(['keyword1' => $kw, 'keyword2' => $kw]);
 
         return $stmt->fetchAll();
     }

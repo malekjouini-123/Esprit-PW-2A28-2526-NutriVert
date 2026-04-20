@@ -61,29 +61,47 @@ class ExerciseController
         $filterCoachingId = filter_input(INPUT_GET, 'coaching_id', FILTER_VALIDATE_INT);
         $filterCoachingId = $filterCoachingId !== false && $filterCoachingId !== null ? $filterCoachingId : 0;
 
-        $keyword = trim((string)($_GET['keyword'] ?? ''));
-        $sortColumn = trim((string)($_GET['sort_column'] ?? ''));
-        $sortOrder = trim((string)($_GET['sort_order'] ?? 'desc'));
+        $search = trim((string)($_GET['search'] ?? ''));
+        $sort   = trim((string)($_GET['sort'] ?? ''));
 
-        if ($keyword !== '') {
-            $exercises = $this->exerciseModel->search($keyword);
+        // Map UI sort keys to [column, order] — avoids explode() breaking on multi-word columns.
+        $sortMap = [
+            'name_asc'   => ['name',        'asc'],
+            'sets_asc'   => ['sets',         'asc'],
+            'reps_desc'  => ['reps',         'desc'],
+        ];
+        [$sortColumn, $sortOrder] = $sortMap[$sort] ?? ['', 'desc'];
+
+        if ($search !== '' && $sortColumn !== '') {
+            // Search first, then filter by program if needed, then sort in-memory.
+            $exercises = $this->exerciseModel->search($search);
+            if ($filterCoachingId > 0) {
+                $exercises = array_values(array_filter(
+                    $exercises,
+                    static fn(array $ex): bool => (int)$ex['coaching_id'] === $filterCoachingId
+                ));
+            }
+            $exercises = $this->sortRows($exercises, $sortColumn, $sortOrder);
+        } elseif ($search !== '') {
+            $exercises = $this->exerciseModel->search($search);
+            if ($filterCoachingId > 0) {
+                $exercises = array_values(array_filter(
+                    $exercises,
+                    static fn(array $ex): bool => (int)$ex['coaching_id'] === $filterCoachingId
+                ));
+            }
         } elseif ($sortColumn !== '') {
             $exercises = $this->exerciseModel->sort($sortColumn, $sortOrder);
+            if ($filterCoachingId > 0) {
+                $exercises = array_values(array_filter(
+                    $exercises,
+                    static fn(array $ex): bool => (int)$ex['coaching_id'] === $filterCoachingId
+                ));
+            }
         } elseif ($filterCoachingId > 0) {
             $exercises = $this->exerciseModel->getByCoaching($filterCoachingId);
         } else {
             $exercises = $this->exerciseModel->getAll();
-        }
-
-        if ($filterCoachingId > 0 && ($keyword !== '' || $sortColumn !== '')) {
-            $exercises = array_values(array_filter(
-                $exercises,
-                static fn(array $exercise): bool => (int)$exercise['coaching_id'] === $filterCoachingId
-            ));
-        }
-
-        if ($keyword !== '' && $sortColumn !== '') {
-            $exercises = $this->sortRows($exercises, $sortColumn, $sortOrder);
         }
 
         $flashMessage = $this->consumeFlash();
@@ -96,6 +114,7 @@ class ExerciseController
         $coachingPrograms = $this->coachingModel->getAll();
         $filterCoachingId = filter_input(INPUT_GET, 'coaching_id', FILTER_VALIDATE_INT);
         $filterCoachingId = $filterCoachingId !== false && $filterCoachingId !== null ? $filterCoachingId : 0;
+        $redirectTarget = trim((string)($_GET['redirect'] ?? ''));
         $flashMessage = $this->consumeFlash();
 
         include __DIR__ . '/../views/front/exercises_create.php';
@@ -117,6 +136,7 @@ class ExerciseController
 
         $coachingPrograms = $this->coachingModel->getAll();
         $filterCoachingId = (int)$editingExercise['coaching_id'];
+        $redirectTarget = trim((string)($_GET['redirect'] ?? ''));
         $flashMessage = $this->consumeFlash();
         include __DIR__ . '/../views/front/exercises_edit.php';
     }
@@ -158,7 +178,9 @@ class ExerciseController
         $id = $this->getIdFromGet();
         if ($id === null) {
             $this->setFlash('Invalid exercise ID.');
-            $this->redirectBackToExercises(null, $data['coaching_id']);
+            $fallbackCoachingId = filter_input(INPUT_GET, 'coaching_id', FILTER_VALIDATE_INT);
+            $fallbackCoachingId = $fallbackCoachingId !== false && $fallbackCoachingId !== null ? (int)$fallbackCoachingId : 0;
+            $this->redirectBackToExercises(null, $fallbackCoachingId);
         }
 
         $existing = $this->exerciseModel->getById($id);
@@ -221,6 +243,7 @@ class ExerciseController
         $sets = filter_var($input['sets'] ?? null, FILTER_VALIDATE_INT);
         $reps = filter_var($input['reps'] ?? null, FILTER_VALIDATE_INT);
         $restTime = trim(strip_tags((string)($input['rest_time'] ?? '')));
+        $videoUrl = trim((string)($input['video_url'] ?? ''));
 
         if ($coachingId === false || $coachingId <= 0 || !$this->coachingModel->getById((int)$coachingId)) {
             $errors[] = 'Please select a valid coaching program.';
@@ -242,13 +265,18 @@ class ExerciseController
             $errors[] = 'Rest time is required.';
         }
 
+        if ($videoUrl !== '' && !filter_var($videoUrl, FILTER_VALIDATE_URL)) {
+            $errors[] = 'Video URL must be a valid URL (e.g. https://youtube.com/...).';
+        }
+
         return [[
             'coaching_id' => (int)($coachingId ?: 0),
-            'name' => $name,
+            'name'        => $name,
             'description' => $description,
-            'sets' => (int)($sets ?: 0),
-            'reps' => (int)($reps ?: 0),
-            'rest_time' => $restTime,
+            'sets'        => (int)($sets ?: 0),
+            'reps'        => (int)($reps ?: 0),
+            'rest_time'   => $restTime,
+            'video_url'   => $videoUrl,
         ], $errors];
     }
 
@@ -318,7 +346,7 @@ class ExerciseController
     private function sortRows(array $rows, string $column, string $order): array
     {
         $safeOrder = strtolower($order) === 'asc' ? 1 : -1;
-        $safeColumn = in_array($column, ['sets', 'reps', 'created_at'], true) ? $column : 'created_at';
+        $safeColumn = in_array($column, ['sets', 'reps', 'created_at', 'name'], true) ? $column : 'created_at';
 
         usort($rows, static function (array $a, array $b) use ($safeColumn, $safeOrder): int {
             return (($a[$safeColumn] <=> $b[$safeColumn]) * $safeOrder);
@@ -365,7 +393,9 @@ class ExerciseController
 
     private function redirectBackToExercises(?int $editId = null, int $coachingId = 0): void
     {
-        if (($_GET['redirect'] ?? '') === 'dashboard') {
+        $redirect = trim((string)($_GET['redirect'] ?? ''));
+
+        if ($redirect === 'dashboard') {
             $url = 'index.php?controller=dashboard&action=index';
             if ($editId !== null) {
                 $url .= '&view=exercises_edit&id=' . $editId;
@@ -378,12 +408,38 @@ class ExerciseController
             $this->redirect($url);
         }
 
+        if ($redirect === 'exercises') {
+            $url = 'index.php?controller=exercise&action=index';
+            if ($coachingId > 0) {
+                $url .= '&coaching_id=' . $coachingId;
+            }
+            $this->redirect($url);
+        }
+
+        if ($redirect === 'coaching') {
+            if ($editId !== null) {
+                $url = 'index.php?controller=exercise&action=edit&id=' . $editId;
+                if ($coachingId > 0) {
+                    $url .= '&coaching_id=' . $coachingId;
+                }
+                $url .= '&redirect=coaching';
+                $this->redirect($url);
+            }
+
+            $this->redirect('index.php?controller=coaching&action=index');
+        }
+
+        if ($editId !== null) {
+            $url = 'index.php?controller=exercise&action=edit&id=' . $editId;
+            if ($coachingId > 0) {
+                $url .= '&coaching_id=' . $coachingId;
+            }
+            $this->redirect($url);
+        }
+
         $url = 'index.php?controller=exercise&action=index';
         if ($coachingId > 0) {
             $url .= '&coaching_id=' . $coachingId;
-        }
-        if ($editId !== null) {
-            $url .= '&action=edit&id=' . $editId;
         }
         $this->redirect($url);
     }

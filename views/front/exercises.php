@@ -1,138 +1,163 @@
 <?php
 $e = static fn($value): string => htmlspecialchars((string)$value, ENT_QUOTES, 'UTF-8');
 $currentCoachingId = (int)($filterCoachingId ?? 0);
+
+// Find the current program name
+$currentProgram = null;
+foreach ($coachingPrograms as $cp) {
+    if ((int)$cp['id'] === $currentCoachingId) {
+        $currentProgram = $cp;
+        break;
+    }
+}
+$programTitle = $currentProgram ? $currentProgram['title'] : 'All Programs';
 ?>
 <!DOCTYPE html>
-<html lang="fr">
+<html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NutriVert | Exercises</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <style>
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { font-family: 'Inter', sans-serif; background: #f6f8f7; color: #1f2937; }
-        header { background: #fff; border-bottom: 1px solid #d9e2dd; padding: 1rem 1.2rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.8rem; }
-        .logo { font-weight: 700; color: #14532d; }
-        nav { display: flex; gap: 0.5rem; flex-wrap: wrap; }
-        nav a { text-decoration: none; color: #374151; font-size: 0.9rem; font-weight: 600; padding: 0.45rem 0.7rem; border-radius: 8px; }
-        nav a:hover { background: #edf2ef; }
-        .nav-admin { background: #166534; color: #fff; }
-        .nav-admin:hover { background: #14532d; color: #fff; }
-        .wrapper { max-width: 1120px; margin: 0 auto; padding: 1.1rem; }
-        .panel { background: #fff; border: 1px solid #d9e2dd; border-radius: 12px; padding: 1rem; margin-bottom: 1rem; }
-        .title { color: #14532d; font-size: 1.1rem; margin-bottom: 0.7rem; }
-        .toolbar { display: flex; flex-wrap: wrap; gap: 0.5rem; justify-content: space-between; align-items: center; margin-bottom: 0.8rem; }
-        .filter { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 0.6rem; }
-        input, select { width: 100%; border: 1px solid #cfd8d3; border-radius: 8px; padding: 0.6rem 0.7rem; font-size: 0.9rem; font-family: inherit; }
-        .btn { border: 1px solid #166534; background: #166534; color: #fff; text-decoration: none; border-radius: 8px; padding: 0.5rem 0.8rem; font-size: 0.84rem; font-weight: 600; display: inline-flex; align-items: center; gap: 0.3rem; cursor: pointer; }
-        .btn:hover { background: #14532d; }
-        .btn-light { background: #fff; color: #166534; }
-        .flash { margin-bottom: 1rem; padding: 0.75rem 0.85rem; border: 1px solid #a7f3d0; border-radius: 10px; background: #ecfdf5; color: #065f46; font-size: 0.88rem; font-weight: 600; }
-        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 0.8rem; }
-        .card { background: #fff; border: 1px solid #d9e2dd; border-radius: 12px; overflow: hidden; }
-        .card img { width: 100%; height: 170px; object-fit: cover; }
-        .placeholder { width: 100%; height: 170px; display: grid; place-items: center; background: #eef2ef; color: #6b7280; }
-        .content { padding: 0.9rem; }
-        .content h3 { color: #14532d; font-size: 1rem; margin-bottom: 0.45rem; }
-        .content p { color: #4b5563; font-size: 0.86rem; margin-bottom: 0.3rem; }
-        .actions { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-top: 0.5rem; }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Nutrivert - <?= $e($programTitle) ?> Exercises</title>
+  <link rel="stylesheet" href="assets/css/style.css?v=<?= time() ?>">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 </head>
 <body>
-<header>
-    <div class="logo">NutriVert</div>
-    <nav>
-        <a href="index.php?controller=coaching&action=index">Back to Coaching Programs</a>
-        <a href="index.php?controller=exercise&action=index">Exercises</a>
-        <a class="nav-admin" href="index.php?controller=dashboard&action=index">Admin Dashboard</a>
-    </nav>
-</header>
+<nav class="navbar">
+  <div class="logo">
+    <i class="fas fa-seedling"></i>
+    <i class="fas fa-brain"></i>
+    <span>Nutrivert</span>
+  </div>
+  <div class="nav-links">
+    <a href="#">Home</a>
+    <a href="index.php?controller=coaching&action=index" class="active">Programs</a>
+    <a href="#">Nutrition</a>
+    <a href="#">Community</a>
+    <a href="#">About</a>
+  </div>
+  <div class="nav-right" style="margin-left: 20px;">
+    <a href="index.php?controller=dashboard&action=index" class="nav-hidden-btn" title="Admin">
+      <i class="fas fa-user-shield"></i>
+    </a>
+  </div>
+</nav>
 
-<div class="wrapper">
-    <?php if (!empty($flashMessage)): ?>
-        <div class="flash"><?= $e($flashMessage) ?></div>
-    <?php endif; ?>
-
-    <section class="panel">
-        <div class="toolbar">
-            <h1 class="title">Exercises<?= $currentCoachingId > 0 ? ' - Program #' . $currentCoachingId : '' ?></h1>
-            <div style="display:flex; gap:0.5rem; flex-wrap:wrap;">
-                <a class="btn" href="index.php?controller=exercise&action=create<?= $currentCoachingId > 0 ? '&coaching_id=' . $currentCoachingId : '' ?>"><i class="fas fa-plus"></i> Add Exercise</a>
-                <a class="btn btn-light" href="index.php?controller=coaching&action=index">Back to Coaching Programs</a>
-            </div>
-        </div>
-
-        <form method="get" class="filter">
-            <input type="hidden" name="page" value="exercises">
-            <input type="hidden" name="action" value="index">
-            <select name="coaching_id">
-                <option value="0">All programs</option>
-                <?php foreach ($coachingPrograms as $program): ?>
-                    <option value="<?= (int)$program['id'] ?>" <?= $currentCoachingId === (int)$program['id'] ? 'selected' : '' ?>>
-                        <?= $e($program['title']) ?>
-                    </option>
-                <?php endforeach; ?>
-            </select>
-            <input type="text" name="keyword" placeholder="Search by exercise" value="<?= $e($keyword ?? '') ?>">
-            <select name="sort_column">
-                <option value="">Sort by</option>
-                <option value="sets" <?= (($sortColumn ?? '') === 'sets') ? 'selected' : '' ?>>Sets</option>
-                <option value="reps" <?= (($sortColumn ?? '') === 'reps') ? 'selected' : '' ?>>Reps</option>
-                <option value="created_at" <?= (($sortColumn ?? '') === 'created_at') ? 'selected' : '' ?>>Date</option>
-            </select>
-            <select name="sort_order">
-                <option value="asc" <?= (($sortOrder ?? '') === 'asc') ? 'selected' : '' ?>>ASC</option>
-                <option value="desc" <?= (($sortOrder ?? 'desc') === 'desc') ? 'selected' : '' ?>>DESC</option>
-            </select>
-            <button type="submit" class="btn"><i class="fas fa-filter"></i> Filter</button>
-            <a class="btn btn-light" href="index.php?controller=exercise&action=index<?= $currentCoachingId > 0 ? '&coaching_id=' . $currentCoachingId : '' ?>">Reset</a>
-        </form>
-    </section>
-
-    <section class="grid">
-        <?php if ($exercises === []): ?>
-            <article class="card">
-                <div class="content">
-                    <h3>No exercises found</h3>
-                    <p>Try another filter or add a new exercise.</p>
-                </div>
-            </article>
-        <?php endif; ?>
-
-        <?php foreach ($exercises as $exercise): ?>
-            <article class="card">
-                <?php if (!empty($exercise['image'])): ?>
-                    <img src="<?= $e($exercise['image']) ?>" alt="<?= $e($exercise['name']) ?>">
-                <?php else: ?>
-                    <div class="placeholder"><i class="fas fa-dumbbell"></i></div>
-                <?php endif; ?>
-                <div class="content">
-                    <h3><?= $e($exercise['name']) ?></h3>
-                    <p><strong>Program:</strong> <?= $e($exercise['coaching_title'] ?? '') ?></p>
-                    <p><?= nl2br($e($exercise['description'])) ?></p>
-                    <p><strong>Sets/Reps:</strong> <?= (int)$exercise['sets'] ?>/<?= (int)$exercise['reps'] ?></p>
-                    <div class="actions">
-                        <a class="btn btn-light" href="index.php?controller=exercise&action=edit&id=<?= (int)$exercise['id'] ?><?= $currentCoachingId > 0 ? '&coaching_id=' . $currentCoachingId : '' ?>"><i class="fas fa-pen"></i> Edit</a>
-                        <a class="btn btn-light" href="index.php?controller=exercise&action=delete&id=<?= (int)$exercise['id'] ?><?= $currentCoachingId > 0 ? '&coaching_id=' . $currentCoachingId : '' ?>" data-confirm><i class="fas fa-trash"></i> Delete</a>
-                    </div>
-                </div>
-            </article>
-        <?php endforeach; ?>
-    </section>
+<div class="hero">
+  <h1>✨ Exercises - <?= $e($programTitle) ?> ✨</h1>
 </div>
 
-<script>
-    document.querySelectorAll('[data-confirm]').forEach(link => {
-        link.addEventListener('click', event => {
-            if (!confirm('Confirm delete?')) {
-                event.preventDefault();
-            }
-        });
-    });
-</script>
+<div class="container" style="padding-top: 20px;">
+  <?php if (!empty($flashMessage)): ?>
+    <div class="flash-message" id="flash-auto">
+      <i class="fas fa-check-circle" style="color: var(--c-primary)"></i>
+      <?= $e($flashMessage) ?>
+    </div>
+  <?php endif; ?>
+
+  <div class="section-card">
+    <div class="section-title">
+        <i class="fas fa-dumbbell"></i>
+        <span>🏋️ Liste des exercices</span>
+    </div>
+    
+    <div class="flex justify-between items-center mb-8" style="background: white; padding: 2rem; border-radius: 28px; box-shadow: var(--shadow-sm); border: 1.5px solid var(--c-border);">
+      <div>
+        <?php if ($currentProgram): ?>
+          <p style="font-size:0.85rem; font-weight:700; text-transform:uppercase; letter-spacing:0.1em; color:var(--coral); margin-bottom:0.4rem;"><?= $e($programTitle) ?></p>
+        <?php endif; ?>
+        <h2 style="font-size: 1.5rem; font-weight: 700; color: var(--deep); letter-spacing: -0.02em;">Gérer les Exercices</h2>
+        <p class="text-muted" style="margin-top: 0.25rem;"><?= count($exercises) ?> exercice<?= count($exercises) !== 1 ? 's' : '' ?> dans ce programme</p>
+      </div>
+      <div class="flex gap-2">
+        <a class="btn btn-gradient" href="index.php?controller=exercise&action=create&coaching_id=<?= $currentCoachingId ?>&redirect=exercises">
+          <i class="fas fa-plus"></i> Ajouter un Exercice
+        </a>
+        <a class="btn btn-soft" href="index.php?controller=coaching&action=index" style="border-radius: 60px;">
+          <i class="fas fa-arrow-left"></i> Retour
+        </a>
+      </div>
+    </div>
+
+    <!-- Search & Sort Bar -->
+    <form method="GET" action="index.php" class="flex gap-4 mb-8 items-center" style="background: #FEF7E8; padding: 1.5rem; border-radius: 28px; border: 1.5px dashed rgba(255,126,103,0.3);">
+      <input type="hidden" name="controller" value="exercise">
+      <input type="hidden" name="action" value="index">
+      <?php if ($currentCoachingId > 0): ?>
+        <input type="hidden" name="coaching_id" value="<?= $currentCoachingId ?>">
+      <?php endif; ?>
+      
+      <div style="flex: 2; position: relative;">
+        <i class="fas fa-search" style="position: absolute; left: 20px; top: 50%; transform: translateY(-50%); color: var(--coral);"></i>
+        <input type="text" name="search" placeholder="Rechercher par nom..." 
+               value="<?= $e($_GET['search'] ?? '') ?>" 
+               class="form-input" style="padding-left: 50px; background: white; border: none; box-shadow: 0 4px 12px rgba(0,0,0,0.03);">
+      </div>
+
+      <div style="flex: 1;">
+        <select name="sort" class="form-select" style="background: white; border: none; box-shadow: 0 4px 12px rgba(0,0,0,0.03);" onchange="this.form.submit()">
+          <option value="">Trier par défaut</option>
+          <option value="name_asc" <?= ($_GET['sort'] ?? '') === 'name_asc' ? 'selected' : '' ?>>Nom (A-Z)</option>
+          <option value="sets_asc" <?= ($_GET['sort'] ?? '') === 'sets_asc' ? 'selected' : '' ?>>Séries croissantes</option>
+          <option value="reps_desc" <?= ($_GET['sort'] ?? '') === 'reps_desc' ? 'selected' : '' ?>>Répétitions décroissantes</option>
+        </select>
+      </div>
+      
+      <button type="submit" class="btn btn-gradient" style="box-shadow: none; padding: 12px 20px;"><i class="fas fa-filter"></i></button>
+      <?php if (!empty($_GET['search']) || !empty($_GET['sort'])): ?>
+        <a href="index.php?controller=exercise&action=index<?= $currentCoachingId > 0 ? '&coaching_id='.$currentCoachingId : '' ?>" class="btn btn-soft" style="box-shadow: none; padding: 12px 20px;" title="Reset"><i class="fas fa-times"></i></a>
+      <?php endif; ?>
+    </form>
+
+    <div style="overflow-x: auto;">
+    <table>
+      <table style="width: 100%; border-collapse: collapse; text-align: left;">
+        <thead><tr>
+          <th style="background: #FEF7E8; padding: 1.3rem 1.5rem; color: #6B7C68; font-weight: 700; text-transform: uppercase; font-size: 0.75rem; letter-spacing: 0.08em; border-bottom: 2px dashed rgba(255,126,103,0.15); border-top-left-radius: 20px;">Photo</th>
+          <th style="background: #FEF7E8; padding: 1.3rem 1.5rem; color: #6B7C68; font-weight: 700; text-transform: uppercase; font-size: 0.75rem; letter-spacing: 0.08em; border-bottom: 2px dashed rgba(255,126,103,0.15);">Nom</th>
+          <th style="background: #FEF7E8; padding: 1.3rem 1.5rem; color: #6B7C68; font-weight: 700; text-transform: uppercase; font-size: 0.75rem; letter-spacing: 0.08em; border-bottom: 2px dashed rgba(255,126,103,0.15);">Séries / Rép</th>
+          <th style="background: #FEF7E8; padding: 1.3rem 1.5rem; color: #6B7C68; font-weight: 700; text-transform: uppercase; font-size: 0.75rem; letter-spacing: 0.08em; border-bottom: 2px dashed rgba(255,126,103,0.15);">Repos</th>
+          <th style="background: #FEF7E8; padding: 1.3rem 1.5rem; color: #6B7C68; font-weight: 700; text-transform: uppercase; font-size: 0.75rem; letter-spacing: 0.08em; border-bottom: 2px dashed rgba(255,126,103,0.15);">Vidéo</th>
+          <th style="background: #FEF7E8; padding: 1.3rem 1.5rem; color: #6B7C68; font-weight: 700; text-transform: uppercase; font-size: 0.75rem; letter-spacing: 0.08em; border-bottom: 2px dashed rgba(255,126,103,0.15); border-top-right-radius: 20px; text-align:right;">Actions</th>
+        </tr></thead>
+        <tbody>
+          <?php if ($exercises === []): ?>
+            <tr><td colspan="6" class="text-center text-muted" style="padding:3rem;">Aucun exercice pour ce programme.</td></tr>
+          <?php endif; ?>
+          <?php foreach ($exercises as $exercise): ?>
+            <tr style="border-bottom: 1px solid rgba(125,207,182,0.12); transition: background 0.2s;">
+              <td style="padding: 1rem 1.5rem;">
+                <?php if (!empty($exercise['image'])): ?>
+                  <img src="<?= $e($exercise['image']) ?>" alt="<?= $e($exercise['name']) ?>" style="width:60px; height:60px; object-fit:cover; border-radius:12px; border:2px solid rgba(255,126,103,0.2); box-shadow:0 2px 8px rgba(0,0,0,0.08); cursor:pointer; transition:transform 0.2s;" onclick="this.style.transform=this.style.transform?'':'scale(3) translateX(-40%)';" title="Cliquer pour zoomer">
+                <?php else: ?>
+                  <div style="width:60px; height:60px; border-radius:12px; background:#f5f5f5; border:2px dashed #ddd; display:flex; align-items:center; justify-content:center;"><i class="fas fa-image" style="color:#ccc; font-size:1.2rem;"></i></div>
+                <?php endif; ?>
+              </td>
+              <td style="padding: 1.3rem 1.5rem; font-weight:700; color:var(--c-text);"><?= $e($exercise['name']) ?></td>
+              <td style="padding: 1.3rem 1.5rem;"><strong class="info-badge" style="background: white; border: 1px solid rgba(0,0,0,0.05); border-radius: 60px; padding: 4px 12px;"><?= (int)$exercise['sets'] ?>x<?= (int)$exercise['reps'] ?></strong></td>
+              <td style="padding: 1.3rem 1.5rem; color: #6B7C68;"><?= $e($exercise['rest_time']) ?></td>
+              <td style="padding: 1.3rem 1.5rem;">
+                <?php if (!empty($exercise['video_url'])): ?>
+                  <a href="<?= $e($exercise['video_url']) ?>" target="_blank" rel="noopener noreferrer" class="btn-icon" title="Watch Video" style="color: var(--coral); background: white; border: 1px solid rgba(255,126,103,0.2);">
+                    <i class="fas fa-video"></i>
+                  </a>
+                <?php else: ?>
+                  <span class="text-muted" style="font-size:0.85rem;">—</span>
+                <?php endif; ?>
+              </td>
+              <td style="padding: 1.3rem 1.5rem; text-align:right;"><div class="flex gap-2" style="justify-content:flex-end;">
+                <a href="index.php?controller=exercise&action=edit&id=<?= (int)$exercise['id'] ?>&coaching_id=<?= $currentCoachingId ?>&redirect=exercises" class="btn-icon" title="Edit"><i class="fas fa-edit"></i></a>
+                <a href="index.php?controller=exercise&action=delete&id=<?= (int)$exercise['id'] ?>&redirect=exercises&coaching_id=<?= $currentCoachingId ?>" data-confirm class="btn-icon danger" title="Delete"><i class="fas fa-trash"></i></a>
+              </div></td>
+            </tr>
+          <?php endforeach; ?>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+<footer>
+  <i class="fas fa-leaf"></i> Nutrivert – Nutrition intelligente, durable & solidaire | Marketplace d'ingrédients frais
+</footer>
+<script src="assets/js/app.js" defer></script>
 </body>
 </html>

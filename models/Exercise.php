@@ -6,7 +6,7 @@ require_once __DIR__ . '/../config/database.php';
 class Exercise
 {
     private PDO $pdo;
-    private array $allowedSortColumns = ['sets', 'reps', 'created_at'];
+    private array $allowedSortColumns = ['sets', 'reps', 'created_at', 'name'];
 
     public function __construct()
     {
@@ -42,18 +42,19 @@ class Exercise
     public function create(array $data): bool
     {
         $stmt = $this->pdo->prepare(
-            'INSERT INTO exercises (coaching_id, name, description, sets, reps, rest_time, image)
-             VALUES (:coaching_id, :name, :description, :sets, :reps, :rest_time, :image)'
+            'INSERT INTO exercises (coaching_id, name, description, sets, reps, rest_time, video_url, image)
+             VALUES (:coaching_id, :name, :description, :sets, :reps, :rest_time, :video_url, :image)'
         );
 
         return $stmt->execute([
             'coaching_id' => $data['coaching_id'],
-            'name' => $data['name'],
+            'name'        => $data['name'],
             'description' => $data['description'],
-            'sets' => $data['sets'],
-            'reps' => $data['reps'],
-            'rest_time' => $data['rest_time'],
-            'image' => $data['image'],
+            'sets'        => $data['sets'],
+            'reps'        => $data['reps'],
+            'rest_time'   => $data['rest_time'],
+            'video_url'   => $data['video_url'] ?? '',
+            'image'       => $data['image'],
         ]);
     }
 
@@ -63,37 +64,39 @@ class Exercise
             $stmt = $this->pdo->prepare(
                 'UPDATE exercises
                  SET coaching_id = :coaching_id, name = :name, description = :description, sets = :sets,
-                     reps = :reps, rest_time = :rest_time, image = :image
+                     reps = :reps, rest_time = :rest_time, video_url = :video_url, image = :image
                  WHERE id = :id'
             );
 
             return $stmt->execute([
-                'id' => $id,
+                'id'          => $id,
                 'coaching_id' => $data['coaching_id'],
-                'name' => $data['name'],
+                'name'        => $data['name'],
                 'description' => $data['description'],
-                'sets' => $data['sets'],
-                'reps' => $data['reps'],
-                'rest_time' => $data['rest_time'],
-                'image' => $data['image'],
+                'sets'        => $data['sets'],
+                'reps'        => $data['reps'],
+                'rest_time'   => $data['rest_time'],
+                'video_url'   => $data['video_url'] ?? '',
+                'image'       => $data['image'],
             ]);
         }
 
         $stmt = $this->pdo->prepare(
             'UPDATE exercises
              SET coaching_id = :coaching_id, name = :name, description = :description, sets = :sets,
-                 reps = :reps, rest_time = :rest_time
+                 reps = :reps, rest_time = :rest_time, video_url = :video_url
              WHERE id = :id'
         );
 
         return $stmt->execute([
-            'id' => $id,
+            'id'          => $id,
             'coaching_id' => $data['coaching_id'],
-            'name' => $data['name'],
+            'name'        => $data['name'],
             'description' => $data['description'],
-            'sets' => $data['sets'],
-            'reps' => $data['reps'],
-            'rest_time' => $data['rest_time'],
+            'sets'        => $data['sets'],
+            'reps'        => $data['reps'],
+            'rest_time'   => $data['rest_time'],
+            'video_url'   => $data['video_url'] ?? '',
         ]);
     }
 

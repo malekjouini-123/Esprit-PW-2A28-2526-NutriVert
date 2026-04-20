@@ -1,90 +1,66 @@
 <?php
 $e = static fn($value): string => htmlspecialchars((string)$value, ENT_QUOTES, 'UTF-8');
-$currentCoachingId = (int)($editingExercise['coaching_id'] ?? (int)($filterCoachingId ?? 0));
+$coachingId = (int)$coachingId;
 ?>
 <!DOCTYPE html>
-<html lang="fr">
+<html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Edit Exercise</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <style>
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { font-family: 'Inter', sans-serif; background: #f6f8f7; color: #1f2937; }
-        .wrap { max-width: 760px; margin: 2rem auto; padding: 0 1rem; }
-        .card { background: #fff; border: 1px solid #d9e2dd; border-radius: 12px; padding: 1rem; }
-        h1 { color: #14532d; font-size: 1.3rem; margin-bottom: 1rem; }
-        .flash { margin-bottom: 1rem; padding: 0.75rem 0.85rem; border: 1px solid #a7f3d0; border-radius: 10px; background: #ecfdf5; color: #065f46; font-size: 0.88rem; font-weight: 600; }
-        .group { margin-bottom: 0.7rem; }
-        label { display: block; font-size: 0.84rem; margin-bottom: 0.3rem; font-weight: 600; color: #374151; }
-        input, textarea, select { width: 100%; border: 1px solid #cfd8d3; border-radius: 8px; padding: 0.62rem 0.7rem; font-size: 0.9rem; font-family: inherit; }
-        textarea { resize: vertical; min-height: 100px; }
-        .thumb { max-width: 120px; border-radius: 8px; border: 1px solid #d9e2dd; }
-        .actions { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-top: 0.8rem; }
-        .btn { border: 1px solid #166534; background: #166534; color: #fff; text-decoration: none; border-radius: 8px; padding: 0.5rem 0.85rem; font-size: 0.84rem; font-weight: 600; cursor: pointer; }
-        .btn-light { background: #fff; color: #166534; }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Nutrivert - Edit Exercise</title>
+  <link rel="stylesheet" href="assets/css/style.css?v=<?= time() ?>">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 </head>
 <body>
-<div class="wrap">
-    <div class="card">
-        <h1>Edit Exercise</h1>
-
-        <?php if (!empty($flashMessage)): ?>
-            <div class="flash"><?= $e($flashMessage) ?></div>
-        <?php endif; ?>
-
-        <form method="post" enctype="multipart/form-data" action="index.php?controller=exercise&action=update&id=<?= (int)$editingExercise['id'] ?>">
-            <div class="group">
-                <label>Coaching program *</label>
-                <select name="coaching_id" required>
-                    <option value="">Choose</option>
-                    <?php foreach ($coachingPrograms as $program): ?>
-                        <option value="<?= (int)$program['id'] ?>" <?= $currentCoachingId === (int)$program['id'] ? 'selected' : '' ?>>
-                            <?= $e($program['title']) ?>
-                        </option>
-                    <?php endforeach; ?>
-                </select>
-            </div>
-            <div class="group">
-                <label>Name *</label>
-                <input type="text" name="name" required value="<?= $e($editingExercise['name'] ?? '') ?>">
-            </div>
-            <div class="group">
-                <label>Description *</label>
-                <textarea name="description" required><?= $e($editingExercise['description'] ?? '') ?></textarea>
-            </div>
-            <div class="group">
-                <label>Sets *</label>
-                <input type="number" name="sets" min="1" required value="<?= $e($editingExercise['sets'] ?? '') ?>">
-            </div>
-            <div class="group">
-                <label>Reps *</label>
-                <input type="number" name="reps" min="1" required value="<?= $e($editingExercise['reps'] ?? '') ?>">
-            </div>
-            <div class="group">
-                <label>Rest time *</label>
-                <input type="text" name="rest_time" required value="<?= $e($editingExercise['rest_time'] ?? '') ?>">
-            </div>
-            <div class="group">
-                <label>Image (optional)</label>
-                <input type="file" name="image" accept=".jpg,.jpeg,.png">
-            </div>
-            <?php if (!empty($editingExercise['image'])): ?>
-                <div class="group">
-                    <label>Current image</label>
-                    <img class="thumb" src="<?= $e($editingExercise['image']) ?>" alt="<?= $e($editingExercise['name']) ?>">
-                </div>
-            <?php endif; ?>
-            <div class="actions">
-                <button type="submit" class="btn">Update</button>
-                <a href="index.php?controller=exercise&action=index&coaching_id=<?= $currentCoachingId ?>" class="btn btn-light">Back to Exercises</a>
-            </div>
-        </form>
+<nav class="navbar">
+  <div class="logo">
+    <i class="fas fa-seedling"></i>
+    <i class="fas fa-brain"></i>
+    <span>Nutrivert</span>
+  </div>
+  <div class="nav-links">
+    <a href="#">Home</a>
+    <a href="index.php?controller=coaching&action=index" class="active">Programs</a>
+    <a href="#">Nutrition</a>
+    <a href="#">Community</a>
+    <a href="#">About</a>
+  </div>
+  <div class="nav-right" style="margin-left: 20px;">
+    <a href="index.php?controller=dashboard&action=index" class="nav-hidden-btn" title="Admin">
+      <i class="fas fa-user-shield"></i>
+    </a>
+  </div>
+</nav>
+<div class="container" style="padding-top: 40px; padding-bottom: 60px;">
+  <div class="section-card" style="max-width: 650px; margin: 0 auto;">
+    <div class="section-title" style="justify-content: center; margin-bottom: 2rem;">
+        <i class="fas fa-dumbbell" style="font-size: 2.5rem;"></i>
+        <span style="font-size: 2rem;">Éditer l'Exercice</span>
     </div>
+    
+    <form method="post" enctype="multipart/form-data" action="index.php?controller=exercise&action=update&id=<?= (int)$editingExercise['id'] ?>&redirect=<?= htmlspecialchars($redirectTarget ?: 'exercises', ENT_QUOTES) ?>&coaching_id=<?= (int)($filterCoachingId ?? 0) ?>">
+      <input type="hidden" name="coaching_id" value="<?= $coachingId ?>">
+      <div class="form-group"><label class="form-label">Nom de l'exercice</label><input type="text" name="name" class="form-input" required value="<?= $e($editingExercise['name'] ?? '') ?>"></div>
+      <div class="form-group"><label class="form-label">Instructions / Description</label><textarea name="description" class="form-textarea" required rows="3"><?= $e($editingExercise['description'] ?? '') ?></textarea></div>
+      <div class="grid grid-2" style="gap:1rem;"><div class="form-group"><label class="form-label">Séries (Sets)</label><input type="number" name="sets" class="form-input" min="1" required value="<?= $e($editingExercise['sets'] ?? '') ?>"></div><div class="form-group"><label class="form-label">Répétitions (Reps)</label><input type="number" name="reps" class="form-input" min="1" required value="<?= $e($editingExercise['reps'] ?? '') ?>"></div></div>
+      <div class="form-group"><label class="form-label">Temps de repos</label><input type="text" name="rest_time" class="form-input" required value="<?= $e($editingExercise['rest_time'] ?? '') ?>"></div>
+      <div class="form-group">
+        <label class="form-label">URL de la Vidéo <span class="text-muted" style="font-size:0.8rem; font-weight:normal;">(optionnel)</span></label>
+        <div style="position:relative;">
+          <i class="fas fa-video" style="position:absolute; left:1rem; top:50%; transform:translateY(-50%); pointer-events:none; color:var(--coral);"></i>
+          <input type="url" name="video_url" class="form-input" placeholder="https://youtube.com/watch?v=..." style="padding-left:2.8rem;" value="<?= $e($editingExercise['video_url'] ?? '') ?>">
+        </div>
+      </div>
+      <div class="form-group"><label class="form-label">Image de Démonstration</label><input type="file" name="image" class="form-input" accept=".jpg,.jpeg,.png"></div>
+      <?php if (!empty($editingExercise['image'])): ?><div class="form-group"><label class="form-label text-muted" style="font-size:0.85rem;">Actuelle</label><img src="<?= $e($editingExercise['image']) ?>" alt="<?= $e($editingExercise['name']) ?>" style="max-width:150px; border-radius:16px; border:2px solid var(--c-border); display:block; margin-top:0.5rem;"></div><?php endif; ?>
+      <div class="flex gap-4" style="margin-top: 2rem;"><button type="submit" class="btn btn-gradient w-full" style="border-radius: 60px;">Enregistrer les modifications</button><a href="index.php?controller=coaching&action=index" class="btn btn-soft w-full text-center" style="border-radius: 60px;">Annuler</a></div>
+    </form>
+  </div>
 </div>
+<footer>
+  <i class="fas fa-leaf"></i> Nutrivert – Nutrition intelligente, durable & solidaire | Marketplace d'ingrédients frais
+</footer>
+<script src="assets/js/app.js" defer></script>
+<script src="assets/js/validation.js" defer></script>
 </body>
 </html>

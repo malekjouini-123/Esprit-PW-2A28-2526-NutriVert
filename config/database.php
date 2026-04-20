@@ -1,4 +1,5 @@
 <?php
+declare(strict_types=1);
 // Database configuration
 define('DB_HOST', 'localhost');
 define('DB_NAME', 'nutrivert');
@@ -7,7 +8,7 @@ define('DB_PASS', '');
 define('DB_CHARSET', 'utf8mb4');
 
 // Get database connection
-function getDB() {
+function getDB(): PDO {
     static $pdo = null;
     
     if ($pdo === null) {
@@ -20,10 +21,10 @@ function getDB() {
             ];
             $pdo = new PDO($dsn, DB_USER, DB_PASS, $options);
         } catch (PDOException $e) {
-            die("Database connection failed: " . htmlspecialchars($e->getMessage()));
+            http_response_code(500);
+            exit('Database connection failed.');
         }
     }
     
     return $pdo;
 }
-?>

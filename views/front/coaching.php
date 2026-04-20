@@ -2,114 +2,157 @@
 $e = static fn($value): string => htmlspecialchars((string)$value, ENT_QUOTES, 'UTF-8');
 ?>
 <!DOCTYPE html>
-<html lang="fr">
+<html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NutriVert | Coaching Programs</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <style>
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { font-family: 'Inter', sans-serif; background: #f6f8f7; color: #1f2937; }
-        header { background: #fff; border-bottom: 1px solid #d9e2dd; padding: 1rem 1.2rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.8rem; }
-        .logo { font-weight: 700; color: #14532d; }
-        nav { display: flex; gap: 0.5rem; flex-wrap: wrap; }
-        nav a { text-decoration: none; color: #374151; font-size: 0.9rem; font-weight: 600; padding: 0.45rem 0.7rem; border-radius: 8px; }
-        nav a:hover { background: #edf2ef; }
-        .nav-admin { background: #166534; color: #fff; }
-        .nav-admin:hover { background: #14532d; color: #fff; }
-        .wrapper { max-width: 1120px; margin: 0 auto; padding: 1.1rem; }
-        .panel { background: #fff; border: 1px solid #d9e2dd; border-radius: 12px; padding: 1rem; margin-bottom: 1rem; }
-        .title { color: #14532d; font-size: 1.1rem; margin-bottom: 0.7rem; }
-        .toolbar { display: flex; flex-wrap: wrap; gap: 0.5rem; justify-content: space-between; align-items: center; margin-bottom: 0.8rem; }
-        .filter { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 0.6rem; }
-        input, select { width: 100%; border: 1px solid #cfd8d3; border-radius: 8px; padding: 0.6rem 0.7rem; font-size: 0.9rem; font-family: inherit; }
-        .btn { border: 1px solid #166534; background: #166534; color: #fff; text-decoration: none; border-radius: 8px; padding: 0.5rem 0.8rem; font-size: 0.84rem; font-weight: 600; display: inline-flex; align-items: center; gap: 0.3rem; cursor: pointer; }
-        .btn:hover { background: #14532d; }
-        .btn-light { background: #fff; color: #166534; }
-        .flash { margin-bottom: 1rem; padding: 0.75rem 0.85rem; border: 1px solid #a7f3d0; border-radius: 10px; background: #ecfdf5; color: #065f46; font-size: 0.88rem; font-weight: 600; }
-        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 0.8rem; }
-        .card { background: #fff; border: 1px solid #d9e2dd; border-radius: 12px; padding: 0.9rem; }
-        .card h3 { color: #14532d; font-size: 1rem; margin-bottom: 0.45rem; }
-        .card p { color: #4b5563; font-size: 0.88rem; margin-bottom: 0.35rem; }
-        .actions { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-top: 0.5rem; }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Nutrivert - Coaching Programs</title>
+  <link rel="stylesheet" href="assets/css/style.css?v=<?= time() ?>">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 </head>
 <body>
-<header>
-    <div class="logo">NutriVert</div>
-    <nav>
-        <a href="index.php?controller=coaching&action=index">User View</a>
-        <a href="index.php?controller=exercise&action=index">Exercises</a>
-        <a class="nav-admin" href="index.php?controller=dashboard&action=index">Admin Dashboard</a>
-    </nav>
-</header>
 
-<div class="wrapper">
-    <?php if (!empty($flashMessage)): ?>
-        <div class="flash"><?= $e($flashMessage) ?></div>
-    <?php endif; ?>
+<nav class="navbar">
+  <div class="logo">
+    <i class="fas fa-seedling"></i>
+    <i class="fas fa-brain"></i>
+    <span>Nutrivert</span>
+  </div>
+  <div class="nav-links">
+    <a href="#" class="nav-link">Home</a>
+    <a href="index.php?controller=coaching&action=index" class="nav-link active">Programs</a>
+    <a href="#" class="nav-link">Nutrition</a>
+    <a href="#" class="nav-link">Community</a>
+    <a href="#" class="nav-link">About</a>
+  </div>
+  <div class="nav-right" style="margin-left: 20px;">
+    <a href="index.php?controller=dashboard&action=index" class="nav-hidden-btn" title="Admin">
+      <i class="fas fa-user-shield"></i>
+    </a>
+  </div>
+  <div class="logo">
+  <img src="assets/logo web.png" alt="Nutrivert Logo" style="height:40px; width:auto; margin-right:10px;">
+  <span>Nutrivert</span>
+</div>
+</nav>
 
-    <section class="panel">
-        <div class="toolbar">
-            <h1 class="title">Coaching Programs</h1>
-            <a class="btn" href="index.php?controller=coaching&action=create"><i class="fas fa-plus"></i> Add Coaching Program</a>
-        </div>
-
-        <form method="get" class="filter">
-            <input type="hidden" name="page" value="coaching">
-            <input type="hidden" name="action" value="index">
-            <input type="text" name="keyword" placeholder="Search by title" value="<?= $e($keyword ?? '') ?>">
-            <select name="sort_column">
-                <option value="">Sort by</option>
-                <option value="duration_weeks" <?= (($sortColumn ?? '') === 'duration_weeks') ? 'selected' : '' ?>>Duration</option>
-                <option value="difficulty_level" <?= (($sortColumn ?? '') === 'difficulty_level') ? 'selected' : '' ?>>Difficulty</option>
-                <option value="created_at" <?= (($sortColumn ?? '') === 'created_at') ? 'selected' : '' ?>>Date</option>
-            </select>
-            <select name="sort_order">
-                <option value="asc" <?= (($sortOrder ?? '') === 'asc') ? 'selected' : '' ?>>ASC</option>
-                <option value="desc" <?= (($sortOrder ?? 'desc') === 'desc') ? 'selected' : '' ?>>DESC</option>
-            </select>
-            <button type="submit" class="btn"><i class="fas fa-filter"></i> Filter</button>
-            <a class="btn btn-light" href="index.php?controller=coaching&action=index">Reset</a>
-        </form>
-    </section>
-
-    <section class="grid">
-        <?php if ($coachingPrograms === []): ?>
-            <article class="card">
-                <h3>No coaching programs</h3>
-                <p>There are no programs to display.</p>
-            </article>
-        <?php endif; ?>
-
-        <?php foreach ($coachingPrograms as $program): ?>
-            <article class="card">
-                <h3><?= $e($program['title']) ?></h3>
-                <p><?= nl2br($e($program['description'])) ?></p>
-                <p><strong>Duration:</strong> <?= (int)$program['duration_weeks'] ?> weeks</p>
-                <p><strong>Difficulty:</strong> <?= $e($program['difficulty_level']) ?></p>
-                <div class="actions">
-                    <a class="btn btn-light" href="index.php?controller=exercise&action=index&coaching_id=<?= (int)$program['id'] ?>"><i class="fas fa-eye"></i> View</a>
-                    <a class="btn btn-light" href="index.php?controller=coaching&action=edit&id=<?= (int)$program['id'] ?>"><i class="fas fa-pen"></i> Edit</a>
-                    <a class="btn btn-light" href="index.php?controller=coaching&action=delete&id=<?= (int)$program['id'] ?>" data-confirm><i class="fas fa-trash"></i> Delete</a>
-                </div>
-            </article>
-        <?php endforeach; ?>
-    </section>
+<div class="hero">
+  <h1>✨ Manger malin, zéro gaspillage ✨</h1>
+  <p>Nutrivert — intelligence nutritionnelle & marketplace durable</p>
 </div>
 
-<script>
-    document.querySelectorAll('[data-confirm]').forEach(link => {
-        link.addEventListener('click', event => {
-            if (!confirm('Confirm delete?')) {
-                event.preventDefault();
-            }
-        });
-    });
-</script>
+<div class="container">
+  <?php if (!empty($flashMessage)): ?>
+    <div class="flash-message" id="flash-auto">
+      <i class="fas fa-check-circle" style="color: var(--c-primary)"></i>
+      <?= $e($flashMessage) ?>
+    </div>
+  <?php endif; ?>
+
+  <div id="programs-section" class="section-card">
+    <div class="section-title">
+        <i class="fas fa-chalkboard-user"></i>
+        <span>🎯 Coaching personnalisé — choisis ton objectif</span>
+    </div>
+    <div class="flex justify-between items-center mb-8" style="background: white; padding: 2rem; border-radius: 28px; box-shadow: var(--shadow-sm); border: 1.5px solid var(--c-border);">
+      <div>
+        <h2 style="font-size: 1.5rem; font-weight: 700; color: var(--deep); letter-spacing: -0.02em;">Vos Programmes</h2>
+        <p class="text-muted" style="margin-top: 0.25rem;">Gérez vos programmes de nutrition et d'entraînement.</p>
+      </div>
+      <a href="index.php?controller=coaching&action=create" class="btn btn-gradient">
+        <i class="fas fa-plus"></i>
+        Créer un Programme
+      </a>
+    </div>
+
+    <!-- Search & Sort Bar -->
+    <form method="GET" action="index.php" class="flex gap-4 mb-8 items-center" style="background: #FEF7E8; padding: 1.5rem; border-radius: 28px; border: 1.5px dashed rgba(255,126,103,0.3);">
+      <input type="hidden" name="controller" value="coaching">
+      <input type="hidden" name="action" value="index">
+      
+      <div style="flex: 2; position: relative;">
+        <i class="fas fa-search" style="position: absolute; left: 20px; top: 50%; transform: translateY(-50%); color: var(--coral);"></i>
+        <input type="text" name="search" placeholder="Rechercher (titre ou description)..." 
+               value="<?= $e($_GET['search'] ?? '') ?>" 
+               class="form-input" style="padding-left: 50px; background: white; border: none; box-shadow: 0 4px 12px rgba(0,0,0,0.03);">
+      </div>
+
+      <div style="flex: 1;">
+        <select name="sort" class="form-select" style="background: white; border: none; box-shadow: 0 4px 12px rgba(0,0,0,0.03);" onchange="this.form.submit()">
+          <option value="">Trier par défaut</option>
+          <option value="title_asc" <?= ($_GET['sort'] ?? '') === 'title_asc' ? 'selected' : '' ?>>Titre (A-Z)</option>
+          <option value="duration_weeks_asc" <?= ($_GET['sort'] ?? '') === 'duration_weeks_asc' ? 'selected' : '' ?>>Durée croissante</option>
+          <option value="duration_weeks_desc" <?= ($_GET['sort'] ?? '') === 'duration_weeks_desc' ? 'selected' : '' ?>>Durée décroissante</option>
+        </select>
+      </div>
+      
+      <button type="submit" class="btn btn-gradient" style="box-shadow: none; padding: 12px 20px;"><i class="fas fa-filter"></i></button>
+      <?php if (!empty($_GET['search']) || !empty($_GET['sort'])): ?>
+        <a href="index.php?controller=coaching&action=index" class="btn btn-soft" style="box-shadow: none; padding: 12px 20px;" title="Reset"><i class="fas fa-times"></i></a>
+      <?php endif; ?>
+    </form>
+
+    <?php if ($coachingPrograms === []): ?>
+      <div class="coach-wrapper text-center text-muted" style="padding: 6rem 2rem; border: 2px dashed rgba(125,207,182,0.3); border-radius: 28px; display: block;">
+        <i class="fas fa-folder-open mb-8" style="font-size: 3rem; color: var(--mint); opacity: 0.5;"></i>
+        <h3 style="font-size: 1.3rem; font-weight: 700; color: var(--c-text);">Aucun programme disponible</h3>
+        <p style="margin-top: 0.5rem;">Votre bibliothèque est vide. Commençons par créer votre premier programme.</p>
+      </div>
+    <?php else: ?>
+      <div class="coach-wrapper">
+      <?php
+        $faIcons = ['fa-heart-pulse', 'fa-bolt', 'fa-dumbbell', 'fa-leaf', 'fa-carrot', 'fa-fire'];
+      ?>
+      <?php foreach ($coachingPrograms as $i => $program): ?>
+        <?php
+          $programExercises = $exercisesByCoaching[(int)$program['id']] ?? [];
+          $dif = strtolower($program['difficulty_level'] ?? '');
+          if ($dif === 'hard') $badgeHtml = '<span class="badge-rich" style="background:rgba(239,68,68,0.1); color:#ef4444; border:1px solid rgba(239,68,68,0.2);">Difficile</span>';
+          elseif ($dif === 'medium') $badgeHtml = '<span class="badge-rich" style="background:rgba(245,158,11,0.1); color:#f59e0b; border:1px solid rgba(245,158,11,0.2);">Moyen</span>';
+          else $badgeHtml = '<span class="badge-rich" style="background:rgba(16,185,129,0.1); color:#10b981; border:1px solid rgba(16,185,129,0.2);">Facile</span>';
+        ?>
+        <div class="coach-option" style="flex: 1 1 calc(33.333% - 24px); min-width: 300px; text-align: left; position: relative;">
+          <div class="flex justify-between items-center" style="margin-bottom: 1.5rem;">
+            <i class="fas <?= $faIcons[$i % count($faIcons)] ?>" style="font-size: 2rem; color: var(--coral);"></i>
+          </div>
+
+          <h3 style="font-size: 1.35rem; font-weight: 700; margin-bottom: 0.5rem; color: var(--c-text);"><?= $e($program['title']) ?></h3>
+          <p class="text-muted" style="font-size: 0.95rem; margin-bottom: 1rem; min-height: 40px;"><?= nl2br($e($program['description'])) ?></p>
+
+          <div class="flex gap-2" style="margin-bottom: 1.5rem;">
+            <span class="info-badge" style="font-size: 0.8rem; padding: 4px 12px; margin: 0; box-shadow: none; border: 1px solid rgba(0,0,0,0.05);"><?= (int)$program['duration_weeks'] ?> sem</span>
+            <?= $badgeHtml ?>
+          </div>
+
+          <div style="margin-bottom: 1.5rem;">
+            <a href="index.php?controller=exercise&action=index&coaching_id=<?= (int)$program['id'] ?>" class="btn btn-soft w-full" style="justify-content: center; gap: 0.6rem; border-radius: 40px;">
+              <i class="fas fa-list-check"></i>
+              Voir les exercices
+              <span class="info-badge" style="margin-left: auto; font-size: 0.7rem; padding: 2px 8px; box-shadow:none; border:1px solid #eee;"><?= count($programExercises) ?></span>
+            </a>
+          </div>
+
+          <div class="flex gap-2 mt-auto" style="padding-top: 1.5rem; border-top: 2px dashed rgba(255,126,103,0.15);">
+            <a href="index.php?controller=coaching&action=export&id=<?= (int)$program['id'] ?>" class="btn-primary w-full" style="text-align: center; text-decoration: none; padding: 10px 15px; display: inline-flex; justify-content: center; align-items: center; gap: 6px;">
+              <i class="fas fa-file-pdf"></i> PDF
+            </a>
+            <a href="index.php?controller=coaching&action=edit&id=<?= (int)$program['id'] ?>" class="btn-icon" title="Edit Program" style="background: white; border: 1px solid var(--c-border); flex-shrink:0;">
+              <i class="fas fa-edit"></i>
+            </a>
+            <a href="index.php?controller=coaching&action=delete&id=<?= (int)$program['id'] ?>" data-confirm class="btn-icon danger" title="Delete Program" style="flex-shrink:0;">
+              <i class="fas fa-trash"></i>
+            </a>
+          </div>
+        </div>
+      <?php endforeach; ?>
+      </div>
+    <?php endif; ?>
+  </div>
+</div>
+<footer>
+  <i class="fas fa-leaf"></i> Nutrivert – Nutrition intelligente, durable & solidaire | Marketplace d'ingrédients frais
+</footer>
+
+<script src="assets/js/app.js" defer></script>
 </body>
 </html>

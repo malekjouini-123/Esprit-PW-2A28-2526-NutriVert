@@ -59,21 +59,36 @@ class CoachingController
 
     private function renderIndex(): void
     {
-        $keyword = trim((string)($_GET['keyword'] ?? ''));
-        $sortColumn = trim((string)($_GET['sort_column'] ?? ''));
-        $sortOrder = trim((string)($_GET['sort_order'] ?? 'desc'));
+        $search = trim((string)($_GET['search'] ?? ''));
+        $sort   = trim((string)($_GET['sort'] ?? ''));
 
-        if ($keyword !== '') {
-            $coachingPrograms = $this->coachingModel->search($keyword);
+        // Map UI sort keys to [column, order] — avoids explode() breaking on multi-word columns.
+        $sortMap = [
+            'title_asc'           => ['title',          'asc'],
+            'duration_weeks_asc'  => ['duration_weeks',  'asc'],
+            'duration_weeks_desc' => ['duration_weeks',  'desc'],
+        ];
+        [$sortColumn, $sortOrder] = $sortMap[$sort] ?? ['', 'desc'];
+
+        if ($search !== '' && $sortColumn !== '') {
+            // Search first, then sort in-memory.
+            $coachingPrograms = $this->coachingModel->search($search);
+            $coachingPrograms = $this->sortRows($coachingPrograms, $sortColumn, $sortOrder);
+        } elseif ($search !== '') {
+            $coachingPrograms = $this->coachingModel->search($search);
         } elseif ($sortColumn !== '') {
             $coachingPrograms = $this->coachingModel->sort($sortColumn, $sortOrder);
         } else {
             $coachingPrograms = $this->coachingModel->getAll();
         }
 
-        // If both are provided, keep filtering in SQL and sort in memory.
-        if ($keyword !== '' && $sortColumn !== '') {
-            $coachingPrograms = $this->sortRows($coachingPrograms, $sortColumn, $sortOrder);
+        $exercisesByCoaching = [];
+        foreach ($this->exerciseModel->getAll() as $exercise) {
+            $coachingId = (int)$exercise['coaching_id'];
+            if (!isset($exercisesByCoaching[$coachingId])) {
+                $exercisesByCoaching[$coachingId] = [];
+            }
+            $exercisesByCoaching[$coachingId][] = $exercise;
         }
 
         $flashMessage = $this->consumeFlash();
@@ -153,6 +168,17 @@ class CoachingController
             $this->redirectBackToCoaching();
         }
 
+        $exercises = $this->exerciseModel->getByCoaching($id);
+        foreach ($exercises as $exercise) {
+            if (!empty($exercise['image'])) {
+                $absolutePath = __DIR__ . '/../' . $exercise['image'];
+                if (is_file($absolutePath)) {
+                    @unlink($absolutePath);
+                }
+            }
+            $this->exerciseModel->delete((int)$exercise['id']);
+        }
+
         $this->coachingModel->delete($id);
         $this->setFlash('Coaching program deleted successfully.');
         $this->redirectBackToCoaching();
@@ -172,71 +198,74 @@ class CoachingController
             $this->redirectBackToCoaching();
         }
 
-        if (!$this->loadFpdf()) {
-            $this->setFlash('FPDF not found. Install it in /vendor/fpdf/fpdf.php or /fpdf/fpdf.php.');
-            $this->redirectBackToCoaching();
-        }
-
         $exercises = $this->exerciseModel->getByCoaching($id);
 
-        // Ensure no prior output corrupts PDF download.
         if (ob_get_length()) {
             ob_clean();
         }
 
-        $pdf = new FPDF();
-        $pdf->AddPage();
-        $pdf->SetMargins(14, 14, 14);
-        $pdf->SetAutoPageBreak(true, 15);
-        $pdf->SetTextColor(30, 30, 30);
-        $pdf->SetDrawColor(180, 180, 180);
-        $pdf->SetFillColor(245, 245, 245);
+        require_once __DIR__ . '/../vendor/autoload.php';
+        $options = new \Dompdf\Options();
+        $options->set('defaultFont', 'DejaVu Sans');
+        $options->set('isHtml5ParserEnabled', true);
+        $dompdf = new \Dompdf\Dompdf($options);
 
-        $pdf->SetFont('Arial', 'B', 19);
-        $pdf->Cell(0, 12, $this->pdfText((string)$program['title']), 0, 1);
-        $pdf->Ln(1);
+        $e = static fn($value): string => htmlspecialchars((string)$value, ENT_QUOTES, 'UTF-8');
 
-        $pdf->SetFont('Arial', 'B', 12);
-        $pdf->Cell(0, 8, $this->pdfText('Description'), 0, 1);
-        $pdf->SetFont('Arial', '', 11);
-        $pdf->MultiCell(0, 7, $this->pdfText((string)($program['description'] ?: 'No description.')));
-        $pdf->Ln(2);
-
-        $pdf->SetFont('Arial', '', 11);
-        $pdf->Cell(0, 7, $this->pdfText('Duration: ' . (int)$program['duration_weeks'] . ' weeks'), 0, 1);
-        $pdf->Cell(0, 7, $this->pdfText('Difficulty: ' . ucfirst((string)$program['difficulty_level'])), 0, 1);
-        $pdf->Ln(3);
-        $pdf->Line(14, $pdf->GetY(), 196, $pdf->GetY());
-        $pdf->Ln(4);
-
-        $pdf->SetFont('Arial', 'B', 14);
-        $pdf->Cell(0, 9, $this->pdfText('Exercises'), 0, 1);
-        $pdf->Ln(1);
+        $html = '<!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset="UTF-8">
+            <style>
+                body { font-family: sans-serif; color: #2D3E2B; }
+                h1 { color: #FF7E67; font-size: 24px; border-bottom: 2px solid #7DCFB6; padding-bottom: 10px; }
+                p { font-size: 14px; line-height: 1.5; color: #4A5B4A; }
+                .badges { margin: 15px 0; font-size: 12px; }
+                .badge { display: inline-block; padding: 4px 10px; background: #ebf5df; border: 1px solid #7DCFB6; border-radius: 12px; margin-right: 10px; font-weight: bold; color: #2D3E2B; }
+                table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+                th { background: #FEF7E8; color: #FF7E67; padding: 12px; text-align: left; font-size: 13px; text-transform: uppercase; border-bottom: 2px dashed rgba(255,126,103,0.3); }
+                td { padding: 12px; border-bottom: 1px solid #eee; font-size: 13px; }
+            </style>
+        </head>
+        <body>
+            <h1>' . $e($program['title']) . '</h1>
+            <p>' . nl2br($e($program['description'] ?: 'Aucune description fournie.')) . '</p>
+            <div class="badges">
+                <span class="badge">Durée: ' . (int)$program['duration_weeks'] . ' semaines</span>
+                <span class="badge">Niveau: ' . ucfirst($e($program['difficulty_level'])) . '</span>
+            </div>
+            
+            <h2 style="margin-top: 30px; font-size: 18px; color: #4A6B4A;">Liste des Exercices</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Nom de l&apos;exercice</th>
+                        <th>Séries x Rép.</th>
+                        <th>Temps de repos</th>
+                        <th>Description</th>
+                    </tr>
+                </thead>
+                <tbody>';
 
         if ($exercises === []) {
-            $pdf->SetFont('Arial', '', 11);
-            $pdf->Cell(0, 7, $this->pdfText('No exercises linked to this coaching program.'), 0, 1);
+            $html .= '<tr><td colspan="4" style="text-align: center; color: #888; padding: 30px;">Aucun exercice lié à ce programme.</td></tr>';
         } else {
-            $index = 1;
-            foreach ($exercises as $exercise) {
-                if ($pdf->GetY() > 250) {
-                    $pdf->AddPage();
-                }
-
-                $pdf->SetFont('Arial', 'B', 12);
-                $pdf->Cell(0, 8, $this->pdfText('Exercise ' . $index . ': ' . (string)$exercise['name']), 1, 1, 'L', true);
-
-                $pdf->SetFont('Arial', '', 11);
-                $pdf->Cell(0, 7, $this->pdfText('- Sets: ' . (int)$exercise['sets']), 'LR', 1);
-                $pdf->Cell(0, 7, $this->pdfText('- Reps: ' . (int)$exercise['reps']), 'LR', 1);
-                $pdf->Cell(0, 7, $this->pdfText('- Rest time: ' . (string)$exercise['rest_time']), 'LR', 1);
-                $pdf->MultiCell(0, 7, $this->pdfText('- Description: ' . (string)($exercise['description'] ?: 'No description.')), 'LRB');
-                $pdf->Ln(3);
-                $index++;
+            foreach ($exercises as $ex) {
+                $html .= '<tr>
+                    <td style="font-weight: bold; color: #4A6B4A;">' . $e($ex['name']) . '</td>
+                    <td><strong style="color: coral;">' . (int)$ex['sets'] . ' x ' . (int)$ex['reps'] . '</strong></td>
+                    <td>' . $e($ex['rest_time']) . '</td>
+                    <td>' . nl2br($e($ex['description'] ?: '-')) . '</td>
+                </tr>';
             }
         }
 
-        $pdf->Output('D', 'coaching_program.pdf');
+        $html .= '</tbody></table></body></html>';
+
+        $dompdf->setPaper('A4', 'portrait');
+        $dompdf->loadHtml($html);
+        $dompdf->render();
+        $dompdf->stream('Programme_' . preg_replace('/[^A-Za-z0-9_\-]/', '_', $program['title']) . '.pdf', ["Attachment" => true]);
         exit;
     }
 
@@ -268,39 +297,11 @@ class CoachingController
         ], $errors];
     }
 
-    private function loadFpdf(): bool
-    {
-        if (class_exists('FPDF')) {
-            return true;
-        }
-
-        $paths = [
-            __DIR__ . '/../vendor/fpdf/fpdf.php',
-            __DIR__ . '/../vendor/setasign/fpdf/fpdf.php',
-            __DIR__ . '/../fpdf/fpdf.php',
-            'C:/xampp/htdocs/fpdf/fpdf.php',
-        ];
-
-        foreach ($paths as $path) {
-            if (file_exists($path)) {
-                require_once $path;
-                break;
-            }
-        }
-
-        return class_exists('FPDF');
-    }
-
-    private function pdfText(string $text): string
-    {
-        $converted = @iconv('UTF-8', 'windows-1252//TRANSLIT', $text);
-        return $converted !== false ? $converted : $text;
-    }
 
     private function sortRows(array $rows, string $column, string $order): array
     {
         $safeOrder = strtolower($order) === 'asc' ? 1 : -1;
-        $safeColumn = in_array($column, ['duration_weeks', 'difficulty_level', 'created_at'], true)
+        $safeColumn = in_array($column, ['duration_weeks', 'difficulty_level', 'created_at', 'title'], true)
             ? $column
             : 'created_at';
 
