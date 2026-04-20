@@ -25,8 +25,13 @@ class FrontController
 
         // Gestion du participant connecté (Suivi)
         $participant = null;
+        $participation_count = 0;
         if (isset($_SESSION['participant_email'])) {
             $participant = Inscription::findOneByEmail($_SESSION['participant_email']);
+            if ($participant) {
+                $user_inscriptions = Inscription::findByEmail($participant->email);
+                $participation_count = count($user_inscriptions);
+            }
         }
         
         if ($action === 'inscription') {
@@ -57,7 +62,7 @@ class FrontController
     }
 
     /**
-     * Gère la connexion utilisateur.
+     * Gère la connexion pour le suivi.
      */
     public function login(): void
     {
@@ -73,7 +78,7 @@ class FrontController
         
         if ($participant && $participant->mot_de_passe === $password) {
             $_SESSION['participant_email'] = $email;
-            header('Location: index.php?sub=events&login=success');
+            header('Location: index.php?sub=participants&login=success');
         } else {
             header('Location: index.php?sub=events&error=auth_failed');
         }
@@ -113,14 +118,83 @@ class FrontController
             'poids' => (float)($_POST['poids'] ?? 0),
             'taille' => (float)($_POST['taille'] ?? 0),
             'imc' => (float)($_POST['imc'] ?? 0),
-            'categorie_preferee' => (string)($_POST['categorie_preferee'] ?? '')
+            'categorie_preferee' => (string)($_POST['categorie_preferee'] ?? ''),
+            'objectif' => (string)($_POST['objectif'] ?? 'maintien'),
+            'face_id' => (string)($_POST['face_id'] ?? '')
         ];
 
         $inscription = new Inscription($data);
-        if ($inscription->save()) {
-            header('Location: index.php?sub=participants&success=inscribed&id=' . $inscription->id);
+        if ($data['id'] > 0) {
+            $existing = Inscription::findById($data['id']);
+            if ($existing && empty($data['mot_de_passe'])) {
+                $inscription->mot_de_passe = $existing->mot_de_passe;
+            }
+            $res = $inscription->update();
+        } else {
+            $res = $inscription->save();
+        }
+
+        if ($res) {
+            header('Location: index.php?sub=participants&success=inscribed&id=' . ($data['id'] > 0 ? $data['id'] : $inscription->id));
         } else {
             header('Location: index.php?sub=participants&error=failed');
+        }
+        exit;
+    }
+
+    /**
+     * Gère la sauvegarde d'un événement depuis le Front.
+     */
+    public function saveEvent(): void
+    {
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') exit;
+        
+        $id = (int)($_POST['id'] ?? 0);
+        $data = [
+            'id' => $id,
+            'titre' => (string)($_POST['titre'] ?? ''),
+            'categorie' => (string)($_POST['categorie'] ?? ''),
+            'description' => (string)($_POST['description'] ?? ''),
+            'date_evenement' => (string)($_POST['date_evenement'] ?? ''),
+            'lieu' => (string)($_POST['lieu'] ?? ''),
+            'prix_participation' => (float)($_POST['prix'] ?? 0),
+            'capacite_max' => (int)($_POST['capacite'] ?? 0),
+            'statut' => (string)($_POST['statut'] ?? 'Actif'),
+            'image_url' => (string)($_POST['image_url'] ?? '')
+        ];
+
+        $event = new Evenement($data);
+        $res = ($id > 0) ? $event->update() : $event->save();
+
+        if ($res) {
+            header('Location: index.php?sub=events&success=saved&id=' . ($id > 0 ? $id : $event->id));
+        } else {
+            header('Location: index.php?sub=events&error=save_failed');
+        }
+        exit;
+    }
+
+    /**
+     * Gère la sauvegarde d'une catégorie depuis le Front.
+     */
+    public function saveCategory(): void
+    {
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') exit;
+        
+        $id = (int)($_POST['id'] ?? 0);
+        $data = [
+            'id' => $id > 0 ? $id : 0,
+            'nom' => (string)($_POST['nom'] ?? ''),
+            'description' => (string)($_POST['description'] ?? ''),
+            'atelier' => (string)($_POST['atelier'] ?? ''),
+            'images' => (array)($_POST['images'] ?? [])
+        ];
+
+        $category = new Category($data);
+        if ($category->save()) {
+            header('Location: index.php?sub=categories&success=saved&id=' . $category->id);
+        } else {
+            header('Location: index.php?sub=categories&error=save_failed');
         }
         exit;
     }

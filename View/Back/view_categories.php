@@ -204,6 +204,9 @@ declare(strict_types=1);
                     <button type="submit" class="btn-primary-green btn-generate" id="submitBtn">
                         <i class="fas fa-magic"></i> GÉNÉRER
                     </button>
+                    <button type="button" id="btnShow" onclick="scrollToCategories()" style="width:100%; padding:1.2rem; font-size:1rem; margin-top:0.5rem; display:flex; align-items:center; justify-content:center; gap:10px; background:#3498db; color:white; border:none; border-radius:1rem; cursor:pointer; font-weight:700;">
+                        <i class="fas fa-eye"></i> AFFICHER
+                    </button>
                 </form>
             </div>
 
@@ -386,9 +389,15 @@ declare(strict_types=1);
                 return;
             }
 
-            // Si on utilise le bouton principal (submitBtn), on force la création d'un nouveau
-            if (e.submitter && e.submitter.id === "submitBtn") {
+            // Si on utilise le bouton MODIFIER, on change l'action du formulaire
+            if (e.submitter && e.submitter.id === "btnUpdate") {
+                catForm.action = "admin.php?action=save_category";
+            }
+
+            // Si on utilise le bouton principal (submitBtn) et qu'on n'est pas en mode édition
+            if (e.submitter && e.submitter.id === "submitBtn" && formTitle.textContent !== "Modifier la Catégorie") {
                 categoryIdInput.value = "0";
+                catForm.action = "admin.php?action=save_category";
             }
         });
 
@@ -398,6 +407,9 @@ declare(strict_types=1);
             formTitle.textContent = "Détails de la Catégorie";
             submitBtn.innerHTML = '<i class="fas fa-magic"></i> GÉNÉRER';
             submitBtn.style.background = "#2ecc71";
+            
+            const btnUpdate = document.getElementById('btnUpdate');
+            if (btnUpdate) btnUpdate.remove();
             
             imgOpts.forEach(opt => {
                 opt.classList.remove('selected');
@@ -429,8 +441,19 @@ declare(strict_types=1);
             submitBtn.innerHTML = '<i class="fas fa-plus"></i> ENREGISTRER (NOUVEAU)';
             submitBtn.style.background = "#27ae60";
             
-            // Bouton de confirmation de modification (optionnel si vous voulez un bouton séparé comme les autres)
-            // Pour rester cohérent, on va s'assurer que le submit crée un nouveau si on utilise le bouton principal
+            // Bouton de confirmation de modification
+            let btnUpdate = document.getElementById('btnUpdate');
+            if (!btnUpdate) {
+                btnUpdate = document.createElement('button');
+                btnUpdate.id = 'btnUpdate';
+                btnUpdate.type = 'submit';
+                btnUpdate.className = 'btn-primary-green';
+                btnUpdate.style.background = '#f1c40f';
+                btnUpdate.style.marginTop = '0.5rem';
+                btnUpdate.style.width = '100%';
+                btnUpdate.innerHTML = '<i class="fas fa-edit"></i> MODIFIER';
+                submitBtn.parentNode.insertBefore(btnUpdate, submitBtn.nextSibling);
+            }
             
             // Update image selector
             imgOpts.forEach(opt => {
@@ -493,6 +516,13 @@ declare(strict_types=1);
             if (event.target == catModal) closeCatModal();
             if (event.target == eventModal) if(window.closeEventModal) window.closeEventModal();
             if (event.target == participantModal) if(window.closeModal) window.closeModal();
+        };
+
+        window.scrollToCategories = () => {
+            const section = document.getElementById('categoryGrid');
+            if (section) {
+                section.scrollIntoView({ behavior: 'smooth' });
+            }
         };
 
         renderCategories();

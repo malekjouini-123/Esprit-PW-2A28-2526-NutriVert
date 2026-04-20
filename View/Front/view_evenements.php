@@ -223,16 +223,13 @@ declare(strict_types=1);
 
         <!-- Builder & Fiche side by side -->
         <div class="builder-grid">
-            <div class="form-box glass-card" <?php if ($participant) echo 'style="opacity: 0.5; pointer-events: none;"'; ?> style="grid-column: span 2; max-width: 800px; margin: 0 auto; width: 100%;">
+            <div class="form-box glass-card" style="grid-column: span 2; max-width: 800px; margin: 0 auto; width: 100%;">
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
                     <h2 style="margin:0;"><i class="fas fa-plus-circle"></i> <span id="formTitle">Créer un Événement</span></h2>
                     <button type="button" onclick="resetEventForm()" style="background:#95a5a6; color:white; border:none; padding:0.5rem 1rem; border-radius:0.8rem; cursor:pointer; font-weight:700; font-size:0.8rem;">
                         <i class="fas fa-sync-alt"></i> RÉINITIALISER
                     </button>
                 </div>
-                <?php if ($participant): ?>
-                    <p style="font-size: 0.85rem; color: #7f8c8d; margin-bottom: 1rem;"><i class="fas fa-info-circle"></i> Le mode création est désactivé car vous êtes connecté à votre suivi.</p>
-                <?php endif; ?>
                 <form id="offerForm" action="index.php?action=save_event" method="post">
                     <div class="form-group">
                         <label for="offerTitle">Titre de l'Événement</label>
@@ -269,7 +266,7 @@ declare(strict_types=1);
 
                     <div class="form-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.2rem;">
                         <div class="form-group" style="margin-bottom: 0;">
-                            <label for="offerPrice">Prix Mensuel (DT)</label>
+                            <label for="offerPrice">Prix Participation (DT)</label>
                             <input type="text" id="offerPrice" name="prix" class="form-control" placeholder="Ex: 49">
                             <span class="error-msg">Le prix doit être positif.</span>
                         </div>
@@ -319,10 +316,10 @@ declare(strict_types=1);
                         <button type="submit" class="btn-primary-green" id="submitBtn" style="flex: 2; padding: 1rem; font-size: 1rem; border-radius: 1rem; display: flex; align-items: center; justify-content: center; gap: 0.5rem;">
                             <i class="fas fa-save"></i> ENREGISTRER
                         </button>
-                        <button type="button" id="btnUpdate" onclick="handleEventUpdate()" style="flex: 1; padding: 1rem; border-radius: 1rem; font-weight: 700; border: none; cursor: pointer; background: #f1c40f; color: white; display: flex; align-items: center; justify-content: center;">
+                        <button type="submit" id="btnUpdate" style="flex: 1; padding: 1rem; border-radius: 1rem; font-weight: 700; border: none; cursor: pointer; background: #f1c40f; color: white; display: none; align-items: center; justify-content: center;">
                             <i class="fas fa-edit"></i> MODIFIER
                         </button>
-                        <button type="button" id="btnDelete" onclick="handleEventDelete()" style="flex: 1; padding: 1rem; border-radius: 1rem; font-weight: 700; border: none; cursor: pointer; background: #e74c3c; color: white; display: flex; align-items: center; justify-content: center;">
+                        <button type="button" id="btnDelete" onclick="handleEventDelete()" style="flex: 1; padding: 1rem; border-radius: 1rem; font-weight: 700; border: none; cursor: pointer; background: #e74c3c; color: white; display: none; align-items: center; justify-content: center;">
                             <i class="fas fa-trash"></i> SUPPRIMER
                         </button>
                         <button type="button" id="btnShow" onclick="scrollToEvents()" style="flex: 1; padding: 1rem; border-radius: 1rem; font-weight: 700; border: none; cursor: pointer; background: #3498db; color: white; display: flex; align-items: center; justify-content: center;">
@@ -371,20 +368,20 @@ declare(strict_types=1);
         <?php if (!$participant): ?>
             <section class="login-suivi-section">
                 <h2 style="font-size: 2rem; margin-bottom: 1rem;">Accéder à Mon Suivi</h2>
-                <p style="opacity: 0.8;">Entrez vos identifiants pour consulter votre fiche de progression</p>
+                <p style="opacity: 0.8;">Entrez votre Gmail et mot de passe pour consulter votre fiche de progression</p>
                 <?php if (isset($_GET['error']) && $_GET['error'] === 'auth_failed'): ?>
-                    <p style="color: #ff7675; font-weight: 700; margin-top: 1rem;">Email ou mot de passe incorrect.</p>
+                    <p style="color: #ff7675; font-weight: 700; margin-top: 1rem;">Email Gmail ou mot de passe incorrect.</p>
                 <?php endif; ?>
                 <form class="login-form" id="loginForm" action="index.php?action=login_suivi" method="post">
                     <div class="form-group" style="margin-bottom: 0;">
                         <input type="text" id="loginEmail" name="email" class="login-input" placeholder="Votre Email Gmail..." style="width: 100%;">
-                        <span class="error-msg" style="color: #ff7675; margin-left: 1.5rem;">Email invalide.</span>
+                        <span class="error-msg" style="color: #ff7675; margin-left: 1.5rem;">Email Gmail invalide.</span>
                     </div>
                     <div class="form-group" style="margin-bottom: 0;">
                         <input type="password" id="loginPass" name="password" class="login-input" placeholder="Votre Mot de Passe..." style="width: 100%;">
                         <span class="error-msg" style="color: #ff7675; margin-left: 1.5rem;">Mot de passe requis.</span>
                     </div>
-                    <button type="submit" class="btn-primary-green" style="padding: 1.2rem; margin-top: 1rem;">SE CONNECTER</button>
+                    <button type="submit" class="btn-primary-green" style="padding: 1.2rem; margin-top: 1rem;">ACCÉDER À MON SUIVI</button>
                 </form>
             </section>
         <?php endif; ?>
@@ -529,9 +526,6 @@ declare(strict_types=1);
         let localOffers = <?php echo json_encode($evenements); ?>;
 
         const offersContainer = document.querySelector('.offers-grid');
-        function renderLocalOffers() {
-            // Only dynamic offers from DB are rendered by PHP above
-        }
 
         offerForm.addEventListener('submit', (e) => {
             // form submits to index.php?action=save_event
@@ -548,23 +542,36 @@ declare(strict_types=1);
             if (!off) return;
 
             offerTitle.value = off.titre;
+            offerCat.value = off.categorie;
+            offerDate.value = off.date_evenement.substring(0, 16).replace(' ', 'T');
+            offerPrice.value = off.prix_participation;
+            offerCap.value = off.capacite_max;
+            offerStatut.value = off.statut;
             offerDesc.value = off.description;
-            offerDate.value = off.date_evenement.replace(' ', 'T');
             offerLieu.value = off.lieu;
             offerImg.value = off.image_url;
             eventIdInput.value = off.id;
             
             formTitle.textContent = "MODIFICATION EN COURS";
             
-            // Activer les boutons CRUD
-            if (btnUpdate) { btnUpdate.disabled = false; btnUpdate.style.opacity = "1"; }
-            if (btnDelete) { btnDelete.disabled = false; btnDelete.style.opacity = "1"; }
+            // Basculer la visibilité des boutons
+            submitBtn.style.display = "none";
+            btnUpdate.style.display = "flex";
+            btnDelete.style.display = "flex";
             
-            // Laisser le bouton principal pour permettre une NOUVELLE création
-            submitBtn.innerHTML = "<i class='fas fa-plus'></i> ENREGISTRER (NOUVEAU)";
-            submitBtn.disabled = false;
-            submitBtn.style.opacity = "1";
-            submitBtn.style.background = "#27ae60";
+            // Activer les boutons
+            btnUpdate.disabled = false;
+            btnDelete.disabled = false;
+            btnUpdate.style.opacity = "1";
+            btnDelete.style.opacity = "1";
+            
+            // Sync image selector
+            imgOptions.forEach(opt => {
+                opt.classList.remove('selected');
+                if (opt.getAttribute('data-img') === off.image_url) {
+                    opt.classList.add('selected');
+                }
+            });
 
             window.scrollTo({ top: offerForm.offsetTop - 150, behavior: 'smooth' });
         };
@@ -590,10 +597,15 @@ declare(strict_types=1);
                 return;
             }
 
-            // Si on clique sur le bouton submit (ENREGISTRER), on s'assure que c'est une nouvelle création
-            // Sauf si on a appelé explicitement handleEventUpdate()
-            if (e.submitter && e.submitter.id === "submitBtn") {
+            // Si on utilise le bouton MODIFIER, on s'assure que c'est bien l'action de mise à jour
+            if (e.submitter && e.submitter.id === "btnUpdate") {
+                offerForm.action = "index.php?action=save_event";
+            }
+
+            // Si on clique sur le bouton submit (ENREGISTRER) et qu'on n'est pas en mode édition
+            if (e.submitter && e.submitter.id === "submitBtn" && formTitle.textContent !== "MODIFICATION EN COURS") {
                 eventIdInput.value = "0";
+                offerForm.action = "index.php?action=save_event";
             }
         });
 
@@ -601,23 +613,15 @@ declare(strict_types=1);
             offerForm.reset();
             eventIdInput.value = "0";
             formTitle.textContent = "Créer un Événement";
-            submitBtn.innerHTML = "<i class='fas fa-save'></i> ENREGISTRER";
-            submitBtn.style.background = "#2ecc71";
-            submitBtn.disabled = false;
-            submitBtn.style.opacity = "1";
             
-            if (btnUpdate) { btnUpdate.disabled = true; btnUpdate.style.opacity = "0.5"; }
-            if (btnDelete) { btnDelete.disabled = true; btnDelete.style.opacity = "0.5"; }
+            // Restaurer la visibilité des boutons
+            submitBtn.style.display = "flex";
+            btnUpdate.style.display = "none";
+            btnDelete.style.display = "none";
             
-            imgOptions.forEach(o => o.classList.remove('selected'));
+            imgOptions.forEach(opt => opt.classList.remove('selected'));
             imgOptions[0].classList.add('selected');
             offerImg.value = imgOptions[0].getAttribute('data-img');
-        };
-
-        window.handleEventUpdate = () => {
-            const id = parseInt(eventIdInput.value);
-            if (id === 0) return;
-            offerForm.submit();
         };
 
         window.handleEventDelete = () => {
@@ -645,10 +649,6 @@ declare(strict_types=1);
                 <div style="display:flex; flex-direction:column; gap:5px;">
                     <span style="font-size:0.8rem; font-weight:800; color:#7f8c8d; text-transform:uppercase;">Catégorie</span>
                     <span style="font-size:1.1rem; font-weight:700; color:#2c3e50;">${ev.categorie || "N/A"}</span>
-                </div>
-                <div style="display:flex; flex-direction:column; gap:5px;">
-                    <span style="font-size:0.8rem; font-weight:800; color:#7f8c8d; text-transform:uppercase;">ID Catégorie</span>
-                    <span style="font-size:1.1rem; font-weight:700; color:#2c3e50;">${ev.categorie_id || "N/A"}</span>
                 </div>
                 <div style="display:flex; flex-direction:column; gap:5px;">
                     <span style="font-size:0.8rem; font-weight:800; color:#7f8c8d; text-transform:uppercase;">Date</span>
@@ -703,8 +703,6 @@ declare(strict_types=1);
         if (lastId && urlParams.get('success') === 'saved') {
             setTimeout(() => showEventDetails(lastId), 500);
         }
-
-        renderLocalOffers();
     </script>
 </body>
 </html>

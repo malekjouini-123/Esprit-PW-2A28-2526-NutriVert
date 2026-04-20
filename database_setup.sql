@@ -1,5 +1,5 @@
--- SQL Script pour l'initialisation complète de la base de données NutriVert (Version Auto-Increment)
--- Date: 2026-04-14
+-- SQL Script pour l'initialisation complète de la base de données NutriVert (Version Mise à Jour)
+-- Date: 2026-04-20
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 START TRANSACTION;
@@ -51,6 +51,8 @@ CREATE TABLE IF NOT EXISTS inscriptions (
     taille FLOAT NOT NULL,
     imc FLOAT NOT NULL,
     categorie_preferee VARCHAR(100),
+    objectif VARCHAR(100) DEFAULT 'maintien',
+    face_id TEXT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB;
 
@@ -69,8 +71,8 @@ INSERT INTO evenements (titre, categorie, description, date_evenement, lieu, pri
 ('Atelier Cuisine Détox', 'Cuisine', 'Apprenez à cuisiner des plats légers et revitalisants.', '2026-06-15 14:30:00', 'Lyon', 35.00, 20, 'Actif', 'https://images.unsplash.com/photo-1556910103-1c02745aae4d?auto=format&fit=crop&w=800');
 
 -- Données pour 'inscriptions' (Participants)
-INSERT INTO inscriptions (evenement_id, nom, prenom, email, mot_de_passe, telephone, lieu, date_naissance, poids, taille, imc, categorie_preferee) VALUES 
-(1, 'Dupont', 'Jean', 'jean.dupont@email.com', 'password123', '0601020304', 'Paris', '1990-05-15', 75.5, 180, 23.3, 'Nutrition'),
-(1, 'Martin', 'Sophie', 'sophie.martin@email.com', 'sophie2026', '0705060708', 'Lyon', '1995-10-22', 62.0, 165, 22.8, 'Cuisine');
+INSERT INTO inscriptions (evenement_id, nom, prenom, email, mot_de_passe, telephone, lieu, date_naissance, poids, taille, imc, categorie_preferee, objectif, face_id) VALUES 
+(1, 'Dupont', 'Jean', 'jean.dupont@email.com', 'password123', '0601020304', 'Paris', '1990-05-15', 75.5, 180, 23.3, 'Nutrition', 'perte', 'FACE_SAMPLE_001'),
+(1, 'Martin', 'Sophie', 'sophie.martin@email.com', 'sophie2026', '0705060708', 'Lyon', '1995-10-22', 62.0, 165, 22.8, 'Cuisine', 'maintien', 'FACE_SAMPLE_002');
 
 COMMIT;

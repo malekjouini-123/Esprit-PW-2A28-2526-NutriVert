@@ -114,10 +114,12 @@ declare(strict_types=1);
         tr:hover { background: rgba(200, 230, 181, 0.1); }
 
         .action-btns { display: flex; gap: 0.5rem; }
-        .btn-mini-edit { background: #f1c40f; color: white; border: none; padding: 0.4rem 0.8rem; border-radius: 0.6rem; cursor: pointer; transition: 0.2s; }
-        .btn-mini-delete { background: #e74c3c; color: white; border: none; padding: 0.4rem 0.8rem; border-radius: 0.6rem; cursor: pointer; transition: 0.2s; }
-        .btn-mini-edit:hover { background: #d4ac0d; transform: scale(1.1); }
-        .btn-mini-delete:hover { background: #c0392b; transform: scale(1.1); }
+        .btn-mini-edit { background: #f1c40f; color: white; border: none; padding: 0.8rem; border-radius: 1rem; cursor: pointer; transition: 0.2s; display: flex; align-items: center; justify-content: center; min-width: 45px; height: 60px; }
+        .btn-mini-delete { background: #e74c3c; color: white; border: none; padding: 0.8rem; border-radius: 1rem; cursor: pointer; transition: 0.2s; display: flex; align-items: center; justify-content: center; min-width: 45px; height: 60px; }
+        .btn-mini-show { background: #27ae60; color: white; border: none; padding: 0.8rem; border-radius: 1rem; cursor: pointer; transition: 0.2s; display: flex; align-items: center; justify-content: center; min-width: 45px; height: 60px; }
+        .btn-mini-edit:hover { background: #d4ac0d; transform: scale(1.05); }
+        .btn-mini-delete:hover { background: #c0392b; transform: scale(1.05); }
+        .btn-mini-show:hover { background: #1e8449; transform: scale(1.05); }
 
         /* Modal Styles */
         .modal {
@@ -226,45 +228,115 @@ declare(strict_types=1);
             <a href="index.php?sub=events">Événements & Suivi</a>
             <a href="index.php?sub=categories">Catégories</a>
             <a href="index.php?sub=participants" class="active">Participants</a>
-            <a href="index.php?sub=participants" class="btn-primary-green">S'inscrire</a>
+            <a href="javascript:void(0)" onclick="scrollToRegistration()" class="btn-primary-green">S'inscrire</a>
         </nav>
     </header>
 
     <div class="container" style="margin-top: 3rem;">
         <?php if ($participant): ?>
-            <div class="glass-card" style="padding: 3rem; text-align: center; margin-bottom: 4rem;">
-                <h2 style="font-size: 2.5rem; color: #1f5e1a; margin-bottom: 1.5rem;">Bienvenue, <?= htmlspecialchars($participant->prenom) ?> !</h2>
-                <p style="font-size: 1.1rem; color: #2c4d24; margin-bottom: 2rem;">Voici vos informations de suivi nutritionnel.</p>
-                
-                <div class="detail-grid" style="text-align: left; max-width: 800px; margin: 0 auto; display: grid; grid-template-columns: 1fr 1fr; gap: 2rem;">
-                    <div class="detail-item">
-                        <span class="detail-label">Nom Complet</span>
-                        <span class="detail-value"><?= htmlspecialchars($participant->prenom . ' ' . $participant->nom) ?></span>
-                    </div>
-                    <div class="detail-item">
-                        <span class="detail-label">Email</span>
-                        <span class="detail-value"><?= htmlspecialchars($participant->email) ?></span>
-                    </div>
-                    <div class="detail-item">
-                        <span class="detail-label">Téléphone</span>
-                        <span class="detail-value"><?= htmlspecialchars($participant->telephone) ?></span>
-                    </div>
-                    <div class="detail-item">
-                        <span class="detail-label">Ville</span>
-                        <span class="detail-value"><?= htmlspecialchars($participant->lieu) ?></span>
-                    </div>
-                    <div class="detail-item">
-                        <span class="detail-label">Poids / Taille</span>
-                        <span class="detail-value"><?= $participant->poids ?> kg / <?= $participant->taille ?> cm</span>
-                    </div>
-                    <div class="detail-item">
-                        <span class="detail-label">IMC</span>
-                        <span class="detail-value" style="font-weight: 800; color: #27ae60;"><?= $participant->imc ?></span>
+            <!-- Nouvelle Interface de Suivi Participant NutriVert -->
+            <div class="glass-card" style="padding: 0; margin-bottom: 4rem; overflow: hidden; border: none; background: #fff;">
+                <!-- Header du Dashboard -->
+                <div style="background: linear-gradient(135deg, #1b5e20, #4caf50); padding: 3rem; color: white; position: relative;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 2rem;">
+                        <div>
+                            <h2 style="font-size: 2.8rem; font-weight: 800; margin: 0; letter-spacing: -1px;">Tableau de Bord 🌿</h2>
+                            <p style="font-size: 1.2rem; opacity: 0.9; margin-top: 0.5rem;">Bienvenue, <?= htmlspecialchars($participant->prenom) ?>. Votre parcours santé commence ici.</p>
+                        </div>
+                        <a href="index.php?action=logout" class="btn-primary-green" style="background: rgba(255,255,255,0.2); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.4); padding: 0.8rem 2rem;">
+                            <i class="fas fa-sign-out-alt"></i> Déconnexion
+                        </a>
                     </div>
                 </div>
 
-                <div style="margin-top: 3rem;">
-                    <a href="index.php?action=logout" class="btn-primary-green" style="background: #e74c3c;">Se déconnecter</a>
+                <div style="padding: 2.5rem; display: grid; grid-template-columns: 1fr 2fr; gap: 2.5rem;">
+                    <!-- Colonne Gauche : Profil & Stats -->
+                    <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+                        <div class="card" style="background: #f1f8e9; padding: 2rem; border-radius: 2rem; border: 1px solid #c8e6c9;">
+                            <div style="text-align: center; margin-bottom: 1.5rem;">
+                                <div style="width: 80px; height: 80px; background: #2e7d32; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 2rem; margin: 0 auto 1rem;">
+                                    <?= strtoupper(substr($participant->prenom, 0, 1)) ?>
+                                </div>
+                                <h3 style="color: #1b5e20; margin: 0;"><?= htmlspecialchars($participant->prenom . ' ' . $participant->nom) ?></h3>
+                                <span style="font-size: 0.85rem; color: #666;"><?= htmlspecialchars($participant->email) ?></span>
+                            </div>
+                            
+                            <div style="display: flex; flex-direction: column; gap: 1rem;">
+                                <div style="display: flex; justify-content: space-between; padding-bottom: 0.5rem; border-bottom: 1px solid rgba(0,0,0,0.05);">
+                                    <span style="font-weight: 700; color: #2e7d32; font-size: 0.8rem; text-transform: uppercase;">Objectif</span>
+                                    <span style="font-weight: 800; color: #1b5e20;"><?= $participant->objectif === 'perte' ? 'Perte de poids' : ($participant->objectif === 'muscle' ? 'Prise de muscle' : 'Maintien') ?></span>
+                                </div>
+                                <div style="display: flex; justify-content: space-between; padding-bottom: 0.5rem; border-bottom: 1px solid rgba(0,0,0,0.05);">
+                                    <span style="font-weight: 700; color: #2e7d32; font-size: 0.8rem; text-transform: uppercase;">Poids Actuel</span>
+                                    <span style="font-weight: 800; color: #1b5e20;"><?= $participant->poids ?> kg</span>
+                                </div>
+                                <div style="display: flex; justify-content: space-between;">
+                                    <span style="font-weight: 700; color: #2e7d32; font-size: 0.8rem; text-transform: uppercase;">Taille</span>
+                                    <span style="font-weight: 800; color: #1b5e20;"><?= $participant->taille ?> cm</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Badge IMC -->
+                        <?php 
+                            $imc = (float)$participant->imc;
+                            $imc_color = "#2ecc71";
+                            $imc_text = "Poids normal";
+                            if ($imc < 18.5) { $imc_color = "#3498db"; $imc_text = "Insuffisance pondérale"; }
+                            else if ($imc >= 25 && $imc < 30) { $imc_color = "#f1c40f"; $imc_text = "Surpoids"; }
+                            else if ($imc >= 30) { $imc_color = "#e74c3c"; $imc_text = "Obésité"; }
+                        ?>
+                        <div style="background: <?= $imc_color ?>; color: white; padding: 2rem; border-radius: 2rem; text-align: center; box-shadow: 0 10px 20px -5px <?= $imc_color ?>80;">
+                            <span style="font-size: 0.8rem; font-weight: 800; text-transform: uppercase; opacity: 0.9;">Votre IMC</span>
+                            <div style="font-size: 3.5rem; font-weight: 900; margin: 0.5rem 0;"><?= $imc ?></div>
+                            <span style="font-weight: 700; background: rgba(0,0,0,0.1); padding: 0.4rem 1.2rem; border-radius: 2rem; font-size: 0.9rem;"><?= $imc_text ?></span>
+                        </div>
+                    </div>
+
+                    <!-- Colonne Droite : Recommandations & Suivi -->
+                    <div style="display: flex; flex-direction: column; gap: 2rem;">
+                        <!-- Carte Conseils -->
+                        <div style="background: #fff; border: 1px solid #eee; border-radius: 2rem; padding: 2rem; box-shadow: 0 10px 30px rgba(0,0,0,0.05);">
+                            <h3 style="color: #1b5e20; margin-bottom: 1.5rem; display: flex; align-items: center; gap: 0.8rem;">
+                                <i class="fas fa-lightbulb" style="color: #f1c40f;"></i> Conseils Personnalisés
+                            </h3>
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
+                                <div style="background: #fdfaf0; padding: 1.5rem; border-radius: 1.5rem; border-left: 4px solid #f1c40f;">
+                                    <h4 style="color: #b7950b; font-size: 0.9rem; margin-bottom: 0.5rem;">ALIMENTATION</h4>
+                                    <p style="font-size: 0.95rem; color: #444; line-height: 1.5;">
+                                        <?php if ($participant->objectif === 'perte'): ?>
+                                            Privilégiez les légumes verts et les protéines maigres. Évitez les sucres raffinés le soir.
+                                        <?php elseif ($participant->objectif === 'muscle'): ?>
+                                            Augmentez votre apport en glucides complexes et protéines (2g/kg). Hydratation maximale !
+                                        <?php else: ?>
+                                            Maintenez une assiette équilibrée : 1/2 légumes, 1/4 protéines, 1/4 céréales complètes.
+                                        <?php endif; ?>
+                                    </p>
+                                </div>
+                                <div style="background: #edf7ff; padding: 1.5rem; border-radius: 1.5rem; border-left: 4px solid #3498db;">
+                                    <h4 style="color: #2874a6; font-size: 0.9rem; margin-bottom: 0.5rem;">ACTIVITÉ PHYSIQUE</h4>
+                                    <p style="font-size: 0.95rem; color: #444; line-height: 1.5;">
+                                        <?php if ($participant->objectif === 'perte'): ?>
+                                            45 min de cardio modéré 3 fois par semaine pour stimuler le métabolisme.
+                                        <?php elseif ($participant->objectif === 'muscle'): ?>
+                                            Priorisez les exercices de force et laissez 48h de repos entre chaque groupe musculaire.
+                                        <?php else: ?>
+                                            Marchez au moins 10 000 pas par jour pour garder un cœur en pleine forme.
+                                        <?php endif; ?>
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Prochain Événement -->
+                        <div style="background: linear-gradient(to right, #ffffff, #f9fdf9); border: 1px solid #e0f2f1; border-radius: 2rem; padding: 2rem; display: flex; align-items: center; justify-content: space-between;">
+                            <div>
+                                <h3 style="color: #004d40; margin-bottom: 0.5rem;"><i class="fas fa-calendar-check" style="color: #4caf50;"></i> Prochain Atelier</h3>
+                                <p style="color: #555; margin: 0;">Inscrit à l'événement #<?= $participant->evenement_id ?: "En attente" ?></p>
+                            </div>
+                            <a href="index.php?sub=events" class="btn-primary-green" style="background: #004d40;">Voir mes événements</a>
+                        </div>
+                    </div>
                 </div>
             </div>
         <?php endif; ?>
@@ -273,7 +345,7 @@ declare(strict_types=1);
             <div class="main-grid">
                 <div class="form-side">
                     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
-                        <h2 style="margin:0;"><i class="fas fa-user-plus"></i> Inscription Participant</h2>
+                        <h2 style="margin:0;"><i class="fas fa-user-plus"></i> <span id="formTitle">Inscription Participant</span></h2>
                         <button type="button" onclick="resetForm()" style="background:#95a5a6; color:white; border:none; padding:0.5rem 1rem; border-radius:0.8rem; cursor:pointer; font-weight:700; font-size:0.8rem;">
                             <i class="fas fa-sync-alt"></i> RÉINITIALISER
                         </button>
@@ -309,6 +381,18 @@ declare(strict_types=1);
                                     <option value="Bien-être">Bien-être</option>
                                 </select>
                                 <span class="error-msg">Sélectionnez une préférence.</span>
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-field">
+                                <label for="objectif">Objectif Nutritionnel</label>
+                                <select name="objectif" id="objectif">
+                                    <option value="maintien" <?= ($participant->objectif ?? '') === 'maintien' ? 'selected' : '' ?>>Maintien du poids</option>
+                                    <option value="perte" <?= ($participant->objectif ?? '') === 'perte' ? 'selected' : '' ?>>Perte de poids</option>
+                                    <option value="muscle" <?= ($participant->objectif ?? '') === 'muscle' ? 'selected' : '' ?>>Prise de muscle</option>
+                                </select>
+                                <span class="error-msg">Choisissez un objectif.</span>
                             </div>
                         </div>
 
@@ -370,7 +454,20 @@ declare(strict_types=1);
                             </div>
                         </div>
 
-                        <div class="imc-box">
+                        <div class="form-row">
+                        <div class="form-field">
+                            <label for="face_id">Face ID (Empreinte faciale)</label>
+                            <div style="display: flex; gap: 0.5rem;">
+                                <input type="text" id="face_id" name="face_id" placeholder="ID de reconnaissance faciale" readonly style="flex: 1;">
+                                <button type="button" onclick="simulateFaceScan()" style="background: #27ae60; color: white; border: none; padding: 0.5rem 1rem; border-radius: 1rem; cursor: pointer; font-weight: 700; font-size: 0.8rem;">
+                                    <i class="fas fa-camera"></i> SCANNER
+                                </button>
+                            </div>
+                            <span class="error-msg">Reconnaissance faciale requise.</span>
+                        </div>
+                    </div>
+
+                    <div class="imc-box">
                             <input type="hidden" name="imc" id="imc_input" value="0">
                             <span class="imc-lbl">Indice de Masse Corporelle (IMC)</span>
                             <span class="imc-val" id="imc_display">--</span>
@@ -381,10 +478,10 @@ declare(strict_types=1);
                             <button type="submit" class="btn-primary-green" id="submitBtn" style="flex: 2; padding: 1rem; font-size: 1rem; border-radius: 1rem; display: flex; align-items: center; justify-content: center; gap: 0.5rem;">
                                 <i class="fas fa-save"></i> ENREGISTRER
                             </button>
-                            <button type="button" id="btnUpdate" onclick="handleFormUpdate()" style="flex: 1; padding: 1rem; border-radius: 1rem; font-weight: 700; border: none; cursor: pointer; background: #f1c40f; color: white; display: flex; align-items: center; justify-content: center;">
+                            <button type="submit" id="btnUpdate" style="flex: 1; padding: 1rem; border-radius: 1rem; font-weight: 700; border: none; cursor: pointer; background: #f1c40f; color: white; display: none; align-items: center; justify-content: center;">
                                 <i class="fas fa-edit"></i> MODIFIER
                             </button>
-                            <button type="button" id="btnDelete" onclick="handleFormDelete()" style="flex: 1; padding: 1rem; border-radius: 1rem; font-weight: 700; border: none; cursor: pointer; background: #e74c3c; color: white; display: flex; align-items: center; justify-content: center;">
+                            <button type="button" id="btnDelete" onclick="handleFormDelete()" style="flex: 1; padding: 1rem; border-radius: 1rem; font-weight: 700; border: none; cursor: pointer; background: #e74c3c; color: white; display: none; align-items: center; justify-content: center;">
                                 <i class="fas fa-trash"></i> SUPPRIMER
                             </button>
                             <button type="button" id="btnShow" onclick="handleFormShow()" style="flex: 1; padding: 1rem; border-radius: 1rem; font-weight: 700; border: none; cursor: pointer; background: #3498db; color: white; display: flex; align-items: center; justify-content: center;">
@@ -411,6 +508,7 @@ declare(strict_types=1);
                             <th>Poids (kg)</th>
                             <th>Taille (cm)</th>
                             <th>IMC</th>
+                            <th>Face ID</th>
                             <th>Événement</th>
                             <th>Catégorie</th>
                             <th>Actions</th>
@@ -437,6 +535,26 @@ declare(strict_types=1);
         </div>
     </div>
 
+    <!-- Modal Caméra Face ID -->
+    <div id="cameraModal" class="modal">
+        <div class="modal-content" style="max-width: 500px; text-align: center;">
+            <div class="modal-header">
+                <h3><i class="fas fa-camera"></i> Scan Face ID</h3>
+                <span class="close-modal" onclick="closeCamera()"><i class="fas fa-times"></i></span>
+            </div>
+            <div style="position: relative; border-radius: 1.5rem; overflow: hidden; background: #000; margin-bottom: 1.5rem; aspect-ratio: 4/3;">
+                <video id="video" width="100%" height="100%" autoplay playsinline style="object-fit: cover;"></video>
+                <div id="scan-overlay" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: 2px solid #2ecc71; box-shadow: inset 0 0 100px rgba(46, 204, 113, 0.2); pointer-events: none; display: none;">
+                    <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 250px; height: 250px; border: 2px dashed #2ecc71; border-radius: 50%;"></div>
+                </div>
+            </div>
+            <div id="camera-status" style="margin-bottom: 1rem; font-weight: 600; color: #2e7d32;">Veuillez centrer votre visage</div>
+            <button type="button" id="captureBtn" onclick="captureFace()" class="btn-primary-green" style="width: 100%; padding: 1rem;">
+                <i class="fas fa-fingerprint"></i> ENREGISTRER L'EMPREINTE
+            </button>
+        </div>
+    </div>
+
     <script>
         const form = document.getElementById('mainRegisterForm');
         const participantsContainer = document.getElementById('participantsList');
@@ -446,11 +564,23 @@ declare(strict_types=1);
         const btnUpdate = document.getElementById('btnUpdate');
         const btnDelete = document.getElementById('btnDelete');
         const btnShow = document.getElementById('btnShow');
+        const formTitle = document.getElementById('formTitle');
 
         // Validation JS
         form.addEventListener('submit', function(e) {
             let isValid = true;
             
+            // Si on utilise le bouton MODIFIER, on change l'action du formulaire
+            if (e.submitter && e.submitter.id === "btnUpdate") {
+                form.action = "index.php?action=update_participant";
+            }
+            
+            // Si on clique sur le bouton submit (ENREGISTRER) et qu'on n'est pas en mode édition
+            if (e.submitter && e.submitter.id === "submitBtn" && formTitle.textContent !== "MODIFICATION EN COURS") {
+                participantIdInput.value = "0";
+                form.action = "index.php?action=save_inscription";
+            }
+
             // Reset errors
             document.querySelectorAll('.form-field').forEach(f => f.classList.remove('has-error'));
 
@@ -550,6 +680,13 @@ declare(strict_types=1);
         if (btnUpdate) btnUpdate.style.opacity = "0.5";
         if (btnDelete) btnDelete.style.opacity = "0.5";
 
+        function scrollToRegistration() {
+            const formSection = document.querySelector('.form-side');
+            if (formSection) {
+                formSection.scrollIntoView({ behavior: 'smooth' });
+            }
+        }
+
         function scrollToParticipants() {
             const section = document.querySelector('.participants-section');
             if (section) {
@@ -575,19 +712,77 @@ declare(strict_types=1);
                     <td>${p.poids}</td>
                     <td>${p.taille}</td>
                     <td style="font-weight:700;">${p.imc}</td>
+                    <td><code style="font-size:0.75rem; background:#f0f9ea; padding:0.2rem 0.4rem; border-radius:0.4rem; color:#1b5e20;">${p.face_id || "N/A"}</code></td>
                     <td>${p.evenement_id || "Non spécifié"}</td>
                     <td><span class="cat-card-workshop" style="padding:0.2rem 0.8rem; font-size:0.75rem;">${p.categorie_preferee}</span></td>
                     <td>
-                        <div class="action-btns">
-                            <button class="btn-mini-edit" onclick="editParticipant(${idx})" title="Modifier"><i class="fas fa-edit"></i></button>
-                            <button class="btn-mini-delete" onclick="deleteParticipant(${idx})" title="Supprimer"><i class="fas fa-trash"></i></button>
-                            <button class="btn-primary-green" style="padding: 0.4rem 0.8rem; font-size: 0.8rem;" onclick="showParticipantDetails(${idx})" title="Afficher"><i class="fas fa-eye"></i></button>
+                        <div class="action-btns" style="display: flex; gap: 8px;">
+                            <button class="btn-mini-edit" onclick="editParticipant(${idx})" title="Modifier" style="background: #f1c40f; color: white; border: none; padding: 0.8rem; border-radius: 12px; cursor: pointer; display: flex; align-items: center; justify-content: center; width: 45px; height: 65px;">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button class="btn-mini-delete" onclick="deleteParticipant(${idx})" title="Supprimer">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                            <button class="btn-mini-show" onclick="showParticipantDetails(${idx})" title="Afficher">
+                                <i class="fas fa-eye"></i>
+                            </button>
                         </div>
                     </td>
                 `;
                 participantsContainer.appendChild(tr);
             });
         }
+
+        window.simulateFaceScan = async () => {
+            const modal = document.getElementById('cameraModal');
+            const video = document.getElementById('video');
+            const overlay = document.getElementById('scan-overlay');
+            const status = document.getElementById('camera-status');
+            
+            modal.style.display = 'flex';
+            overlay.style.display = 'block';
+            
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+                video.srcObject = stream;
+                window.cameraStream = stream;
+            } catch (err) {
+                console.error("Erreur caméra:", err);
+                alert("Impossible d'accéder à la caméra. Vérifiez vos permissions.");
+                closeCamera();
+            }
+        };
+
+        window.closeCamera = () => {
+            const modal = document.getElementById('cameraModal');
+            const video = document.getElementById('video');
+            
+            if (window.cameraStream) {
+                window.cameraStream.getTracks().forEach(track => track.stop());
+            }
+            video.srcObject = null;
+            modal.style.display = 'none';
+        };
+
+        window.captureFace = () => {
+            const faceInput = document.getElementById('face_id');
+            const status = document.getElementById('camera-status');
+            const captureBtn = document.getElementById('captureBtn');
+            
+            status.textContent = "Analyse de l'empreinte...";
+            captureBtn.disabled = true;
+            captureBtn.style.opacity = "0.7";
+            
+            setTimeout(() => {
+                const randomId = "FACE_" + Math.random().toString(36).substr(2, 9).toUpperCase();
+                faceInput.value = randomId;
+                alert("Empreinte faciale enregistrée avec succès !");
+                closeCamera();
+                captureBtn.disabled = false;
+                captureBtn.style.opacity = "1";
+                status.textContent = "Veuillez centrer votre visage";
+            }, 2000);
+        };
 
         window.showParticipantDetails = (idx) => {
             const p = participantsData[idx];
@@ -647,6 +842,10 @@ declare(strict_types=1);
                     <span class="detail-label">Catégorie</span>
                     <span class="detail-value">${p.categorie_preferee}</span>
                 </div>
+                <div class="detail-item detail-full" style="background: #f0f9ea; padding: 1rem; border-radius: 1rem; border: 1px solid #4cae4c;">
+                    <span class="detail-label"><i class="fas fa-fingerprint"></i> Face ID</span>
+                    <span class="detail-value" style="font-family: monospace; color: #1b5e20;">${p.face_id || "Non enregistré"}</span>
+                </div>
             `;
             
             modal.style.display = 'flex';
@@ -685,28 +884,30 @@ declare(strict_types=1);
             form.lieu.value = p.lieu;
             form.poids.value = p.poids;
             form.taille.value = p.taille;
+            form.objectif.value = p.objectif || 'maintien';
+            form.face_id.value = p.face_id || '';
             
             // Calculer IMC
             calculateIMC();
             
             // Préparer pour la mise à jour
             participantIdInput.value = p.id;
-            submitBtn.innerHTML = "<i class='fas fa-plus'></i> ENREGISTRER (NOUVEAU)";
-            submitBtn.style.background = "#27ae60";
-            submitBtn.disabled = false;
-            submitBtn.style.opacity = "1";
+            formTitle.textContent = "MODIFICATION EN COURS";
+            
+            // Basculer la visibilité des boutons
+            submitBtn.style.display = "none";
+            btnUpdate.style.display = "flex";
+            btnDelete.style.display = "flex";
+            
+            // Activer les boutons
+            btnUpdate.disabled = false;
+            btnDelete.disabled = false;
+            btnUpdate.style.opacity = "1";
+            btnDelete.style.opacity = "1";
             
             // Le mot de passe n'est plus requis pour la modification
             form.mot_de_passe.setAttribute('data-not-required', 'true');
             form.mot_de_passe.placeholder = "(Inchangé si vide)";
-            
-            // Activer les boutons CRUD
-            if (btnUpdate) { 
-                btnUpdate.disabled = false; 
-                btnUpdate.style.opacity = "1";
-                btnUpdate.innerHTML = "<i class='fas fa-sync'></i> CONFIRMER MODIF";
-            }
-            if (btnDelete) { btnDelete.disabled = false; btnDelete.style.opacity = "1"; }
             
             // Scroll to form
             window.scrollTo({ top: form.offsetTop - 150, behavior: 'smooth' });
@@ -734,24 +935,14 @@ declare(strict_types=1);
                 return;
             }
 
-            if (e.submitter && e.submitter.id === "submitBtn") {
-                participantIdInput.value = "0";
-            }
         });
-
-        window.handleFormUpdate = () => {
-            const id = parseInt(participantIdInput.value);
-            if (id === 0) return;
-            
-            form.action = "index.php?action=update_participant";
-            form.submit();
-        };
 
         window.handleFormDelete = () => {
             const id = parseInt(participantIdInput.value);
             if (id === 0) return;
-            if (confirm("Voulez-vous vraiment supprimer ce participant ?")) {
-                window.location.href = `index.php?action=delete_participant&id=${id}`;
+            
+            if (confirm("Voulez-vous vraiment supprimer cette inscription ?")) {
+                window.location.href = "index.php?action=delete_participant&id=" + id;
             }
         };
 
@@ -768,20 +959,25 @@ declare(strict_types=1);
         window.resetForm = () => {
             form.reset();
             participantIdInput.value = "0";
-            submitBtn.innerHTML = "<i class='fas fa-save'></i> ENREGISTRER";
-            submitBtn.style.background = "#2ecc71";
-            submitBtn.disabled = false;
-            submitBtn.style.opacity = "1";
+            formTitle.textContent = "Inscription Participant";
+            
+            // Restaurer la visibilité des boutons
+            submitBtn.style.display = "flex";
+            btnUpdate.style.display = "none";
+            btnDelete.style.display = "none";
             
             form.mot_de_passe.removeAttribute('data-not-required');
             form.mot_de_passe.placeholder = "••••••••";
             
-            if (btnUpdate) { btnUpdate.disabled = true; btnUpdate.style.opacity = "0.5"; btnUpdate.innerHTML = "<i class='fas fa-edit'></i> MODIFIER"; }
-            if (btnDelete) { btnDelete.disabled = true; btnDelete.style.opacity = "0.5"; }
+            btnUpdate.disabled = true;
+            btnDelete.disabled = true;
+            btnUpdate.style.opacity = "0.5";
+            btnDelete.style.opacity = "0.5";
             
             document.getElementById('imc_display').textContent = "--";
             document.getElementById('imc_status').textContent = "";
             document.getElementById('imc_input').value = "0";
+            if (document.getElementById('face_id')) document.getElementById('face_id').value = "";
         };
 
         function calculateIMC() {

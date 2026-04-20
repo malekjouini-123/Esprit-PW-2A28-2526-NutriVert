@@ -19,6 +19,8 @@ class Inscription
     public float $taille;
     public float $imc;
     public string $categorie_preferee;
+    public string $objectif;
+    public string $face_id;
     public string $created_at;
 
     public function __construct(array $data = [])
@@ -36,6 +38,8 @@ class Inscription
         $this->taille = (float)($data['taille'] ?? 0);
         $this->imc = (float)($data['imc'] ?? 0);
         $this->categorie_preferee = (string)($data['categorie_preferee'] ?? '');
+        $this->objectif = (string)($data['objectif'] ?? 'maintien');
+        $this->face_id = (string)($data['face_id'] ?? '');
         $this->created_at = (string)($data['created_at'] ?? '');
     }
 
@@ -60,8 +64,8 @@ class Inscription
         $pdo = nv_pdo();
         $stmt = $pdo->prepare("
             INSERT INTO inscriptions 
-            (evenement_id, nom, prenom, email, mot_de_passe, telephone, lieu, date_naissance, poids, taille, imc, categorie_preferee) 
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            (evenement_id, nom, prenom, email, mot_de_passe, telephone, lieu, date_naissance, poids, taille, imc, categorie_preferee, objectif, face_id) 
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         ");
         
         $res = $stmt->execute([
@@ -76,7 +80,9 @@ class Inscription
             $this->poids,
             $this->taille,
             $this->imc,
-            $this->categorie_preferee
+            $this->categorie_preferee,
+            $this->objectif,
+            $this->face_id
         ]);
 
         if ($res) {
@@ -113,10 +119,11 @@ class Inscription
     public function update(): bool
     {
         $this->calculateIMC();
+        
         $pdo = nv_pdo();
         $stmt = $pdo->prepare("
             UPDATE inscriptions 
-            SET evenement_id = ?, nom = ?, prenom = ?, email = ?, mot_de_passe = ?, telephone = ?, lieu = ?, date_naissance = ?, poids = ?, taille = ?, imc = ?, categorie_preferee = ?
+            SET evenement_id = ?, nom = ?, prenom = ?, email = ?, mot_de_passe = ?, telephone = ?, lieu = ?, date_naissance = ?, poids = ?, taille = ?, imc = ?, categorie_preferee = ?, objectif = ?, face_id = ?
             WHERE id = ?
         ");
         
@@ -133,6 +140,8 @@ class Inscription
             $this->taille,
             $this->imc,
             $this->categorie_preferee,
+            $this->objectif,
+            $this->face_id,
             $this->id
         ]);
     }

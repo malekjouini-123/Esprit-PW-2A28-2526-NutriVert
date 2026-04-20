@@ -114,10 +114,12 @@ declare(strict_types=1);
         tr:hover { background: rgba(200, 230, 181, 0.1); }
 
         .action-btns { display: flex; gap: 0.5rem; }
-        .btn-mini-edit { background: #f1c40f; color: white; border: none; padding: 0.4rem 0.8rem; border-radius: 0.6rem; cursor: pointer; transition: 0.2s; }
-        .btn-mini-delete { background: #e74c3c; color: white; border: none; padding: 0.4rem 0.8rem; border-radius: 0.6rem; cursor: pointer; transition: 0.2s; }
-        .btn-mini-edit:hover { background: #d4ac0d; transform: scale(1.1); }
-        .btn-mini-delete:hover { background: #c0392b; transform: scale(1.1); }
+        .btn-mini-edit { background: #f1c40f; color: white; border: none; padding: 0.8rem; border-radius: 1rem; cursor: pointer; transition: 0.2s; display: flex; align-items: center; justify-content: center; min-width: 45px; height: 60px; }
+        .btn-mini-delete { background: #e74c3c; color: white; border: none; padding: 0.8rem; border-radius: 1rem; cursor: pointer; transition: 0.2s; display: flex; align-items: center; justify-content: center; min-width: 45px; height: 60px; }
+        .btn-mini-show { background: #27ae60; color: white; border: none; padding: 0.8rem; border-radius: 1rem; cursor: pointer; transition: 0.2s; display: flex; align-items: center; justify-content: center; min-width: 45px; height: 60px; }
+        .btn-mini-edit:hover { background: #d4ac0d; transform: scale(1.05); }
+        .btn-mini-delete:hover { background: #c0392b; transform: scale(1.05); }
+        .btn-mini-show:hover { background: #1e8449; transform: scale(1.05); }
 
         /* Modal Styles */
         .modal {
@@ -235,7 +237,7 @@ declare(strict_types=1);
             <div class="main-grid">
                 <div class="form-side">
                     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
-                        <h2 style="margin:0;"><i class="fas fa-user-plus"></i> Inscription Participant</h2>
+                        <h2 style="margin:0;"><i class="fas fa-user-plus"></i> <span id="formTitle">Inscription Participant</span></h2>
                         <button type="button" onclick="resetForm()" style="background:#95a5a6; color:white; border:none; padding:0.5rem 1rem; border-radius:0.8rem; cursor:pointer; font-weight:700; font-size:0.8rem;">
                             <i class="fas fa-sync-alt"></i> RÉINITIALISER
                         </button>
@@ -270,6 +272,18 @@ declare(strict_types=1);
                                     <option value="Bien-être">Bien-être</option>
                                 </select>
                                 <span class="error-msg">Sélectionnez une préférence.</span>
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-field">
+                                <label for="objectif">Objectif Nutritionnel</label>
+                                <select name="objectif" id="objectif">
+                                    <option value="maintien">Maintien du poids</option>
+                                    <option value="perte">Perte de poids</option>
+                                    <option value="muscle">Prise de muscle</option>
+                                </select>
+                                <span class="error-msg">Choisissez un objectif.</span>
                             </div>
                         </div>
 
@@ -331,7 +345,20 @@ declare(strict_types=1);
                             </div>
                         </div>
 
-                        <div class="imc-box">
+                        <div class="form-row">
+                        <div class="form-field">
+                            <label for="face_id">Face ID (Empreinte faciale)</label>
+                            <div style="display: flex; gap: 0.5rem;">
+                                <input type="text" id="face_id" name="face_id" placeholder="ID de reconnaissance faciale" readonly style="flex: 1;">
+                                <button type="button" onclick="simulateFaceScan()" style="background: #27ae60; color: white; border: none; padding: 0.5rem 1rem; border-radius: 1rem; cursor: pointer; font-weight: 700; font-size: 0.8rem;">
+                                    <i class="fas fa-camera"></i> SCANNER
+                                </button>
+                            </div>
+                            <span class="error-msg">Reconnaissance faciale requise.</span>
+                        </div>
+                    </div>
+
+                    <div class="imc-box">
                             <input type="hidden" name="imc" id="imc_input" value="0">
                             <span class="imc-lbl">Indice de Masse Corporelle (IMC)</span>
                             <span class="imc-val" id="imc_display">--</span>
@@ -342,7 +369,7 @@ declare(strict_types=1);
                             <button type="submit" class="btn-primary-green" id="submitBtn" style="flex: 2; padding: 1rem; font-size: 1rem; border-radius: 1rem; display: flex; align-items: center; justify-content: center; gap: 0.5rem;">
                                 <i class="fas fa-save"></i> ENREGISTRER
                             </button>
-                            <button type="button" id="btnUpdate" onclick="handleFormUpdate()" style="flex: 1; padding: 1rem; border-radius: 1rem; font-weight: 700; border: none; cursor: pointer; background: #f1c40f; color: white; display: flex; align-items: center; justify-content: center;">
+                            <button type="submit" id="btnUpdate" style="flex: 1; padding: 1rem; border-radius: 1rem; font-weight: 700; border: none; cursor: pointer; background: #f1c40f; color: white; display: none; align-items: center; justify-content: center;">
                                 <i class="fas fa-edit"></i> MODIFIER
                             </button>
                             <button type="button" id="btnDelete" onclick="handleFormDelete()" style="flex: 1; padding: 1rem; border-radius: 1rem; font-weight: 700; border: none; cursor: pointer; background: #e74c3c; color: white; display: flex; align-items: center; justify-content: center;">
@@ -369,6 +396,7 @@ declare(strict_types=1);
                             <th>Poids (kg)</th>
                             <th>Taille (cm)</th>
                             <th>IMC</th>
+                            <th>Face ID</th>
                             <th>Événement</th>
                             <th>Catégorie</th>
                             <th>Actions</th>
@@ -395,6 +423,26 @@ declare(strict_types=1);
         </div>
     </div>
 
+    <!-- Modal Caméra Face ID -->
+    <div id="cameraModal" class="modal">
+        <div class="modal-content" style="max-width: 500px; text-align: center;">
+            <div class="modal-header">
+                <h3><i class="fas fa-camera"></i> Scan Face ID</h3>
+                <span class="close-modal" onclick="closeCamera()"><i class="fas fa-times"></i></span>
+            </div>
+            <div style="position: relative; border-radius: 1.5rem; overflow: hidden; background: #000; margin-bottom: 1.5rem; aspect-ratio: 4/3;">
+                <video id="video" width="100%" height="100%" autoplay playsinline style="object-fit: cover;"></video>
+                <div id="scan-overlay" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: 2px solid #2ecc71; box-shadow: inset 0 0 100px rgba(46, 204, 113, 0.2); pointer-events: none; display: none;">
+                    <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 250px; height: 250px; border: 2px dashed #2ecc71; border-radius: 50%;"></div>
+                </div>
+            </div>
+            <div id="camera-status" style="margin-bottom: 1rem; font-weight: 600; color: #2e7d32;">Veuillez centrer votre visage</div>
+            <button type="button" id="captureBtn" onclick="captureFace()" class="btn-primary-green" style="width: 100%; padding: 1rem;">
+                <i class="fas fa-fingerprint"></i> ENREGISTRER L'EMPREINTE
+            </button>
+        </div>
+    </div>
+
     <script>
         const form = document.getElementById('mainRegisterForm');
         const participantsContainer = document.getElementById('participantsList');
@@ -404,11 +452,23 @@ declare(strict_types=1);
         const btnUpdate = document.getElementById('btnUpdate');
         const btnDelete = document.getElementById('btnDelete');
         const btnShow = document.getElementById('btnShow');
+        const formTitle = document.getElementById('formTitle');
 
         // Validation JS
         form.addEventListener('submit', function(e) {
             let isValid = true;
             
+            // Si on utilise le bouton MODIFIER, on change l'action du formulaire
+            if (e.submitter && e.submitter.id === "btnUpdate") {
+                form.action = "admin.php?action=update_participant";
+            }
+            
+            // Si on clique sur le bouton submit (ENREGISTRER) et qu'on n'est pas en mode édition
+            if (e.submitter && e.submitter.id === "submitBtn" && formTitle.textContent !== "MODIFICATION EN COURS") {
+                participantIdInput.value = "0";
+                form.action = "admin.php?action=save_participant";
+            }
+
             // Reset errors
             document.querySelectorAll('.form-field').forEach(f => f.classList.remove('has-error'));
 
@@ -533,19 +593,77 @@ declare(strict_types=1);
                     <td>${p.poids}</td>
                     <td>${p.taille}</td>
                     <td style="font-weight:700;">${p.imc}</td>
+                    <td><code style="font-size:0.75rem; background:#f0f9ea; padding:0.2rem 0.4rem; border-radius:0.4rem; color:#1b5e20;">${p.face_id || "N/A"}</code></td>
                     <td>${p.evenement_id || "Non spécifié"}</td>
                     <td><span class="cat-card-workshop" style="padding:0.2rem 0.8rem; font-size:0.75rem;">${p.categorie_preferee}</span></td>
                     <td>
-                        <div class="action-btns">
-                            <button class="btn-mini-edit" onclick="editParticipant(${idx})" title="Modifier"><i class="fas fa-edit"></i></button>
-                            <button class="btn-mini-delete" onclick="deleteParticipant(${idx})" title="Supprimer"><i class="fas fa-trash"></i></button>
-                            <button class="btn-primary-green" style="padding: 0.4rem 0.8rem; font-size: 0.8rem;" onclick="showParticipantDetails(${idx})" title="Afficher"><i class="fas fa-eye"></i></button>
+                        <div class="action-btns" style="display: flex; gap: 8px;">
+                            <button class="btn-mini-edit" onclick="editParticipant(${idx})" title="Modifier" style="background: #f1c40f; color: white; border: none; padding: 0.8rem; border-radius: 12px; cursor: pointer; display: flex; align-items: center; justify-content: center; width: 45px; height: 65px;">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button class="btn-mini-delete" onclick="deleteParticipant(${idx})" title="Supprimer">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                            <button class="btn-mini-show" onclick="showParticipantDetails(${idx})" title="Afficher">
+                                <i class="fas fa-eye"></i>
+                            </button>
                         </div>
                     </td>
                 `;
                 participantsContainer.appendChild(tr);
             });
         }
+
+        window.simulateFaceScan = async () => {
+            const modal = document.getElementById('cameraModal');
+            const video = document.getElementById('video');
+            const overlay = document.getElementById('scan-overlay');
+            const status = document.getElementById('camera-status');
+            
+            modal.style.display = 'flex';
+            overlay.style.display = 'block';
+            
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+                video.srcObject = stream;
+                window.cameraStream = stream;
+            } catch (err) {
+                console.error("Erreur caméra:", err);
+                alert("Impossible d'accéder à la caméra. Vérifiez vos permissions.");
+                closeCamera();
+            }
+        };
+
+        window.closeCamera = () => {
+            const modal = document.getElementById('cameraModal');
+            const video = document.getElementById('video');
+            
+            if (window.cameraStream) {
+                window.cameraStream.getTracks().forEach(track => track.stop());
+            }
+            video.srcObject = null;
+            modal.style.display = 'none';
+        };
+
+        window.captureFace = () => {
+            const faceInput = document.getElementById('face_id');
+            const status = document.getElementById('camera-status');
+            const captureBtn = document.getElementById('captureBtn');
+            
+            status.textContent = "Analyse de l'empreinte...";
+            captureBtn.disabled = true;
+            captureBtn.style.opacity = "0.7";
+            
+            setTimeout(() => {
+                const randomId = "FACE_" + Math.random().toString(36).substr(2, 9).toUpperCase();
+                faceInput.value = randomId;
+                alert("Empreinte faciale enregistrée avec succès !");
+                closeCamera();
+                captureBtn.disabled = false;
+                captureBtn.style.opacity = "1";
+                status.textContent = "Veuillez centrer votre visage";
+            }, 2000);
+        };
 
         window.showParticipantDetails = (idx) => {
             const p = participantsData[idx];
@@ -605,6 +723,10 @@ declare(strict_types=1);
                     <span class="detail-label">Catégorie</span>
                     <span class="detail-value">${p.categorie_preferee}</span>
                 </div>
+                <div class="detail-item detail-full" style="background: #f0f9ea; padding: 1rem; border-radius: 1rem; border: 1px solid #4cae4c;">
+                    <span class="detail-label"><i class="fas fa-fingerprint"></i> Face ID</span>
+                    <span class="detail-value" style="font-family: monospace; color: #1b5e20;">${p.face_id || "Non enregistré"}</span>
+                </div>
             `;
             
             modal.style.display = 'flex';
@@ -643,12 +765,15 @@ declare(strict_types=1);
             form.lieu.value = p.lieu;
             form.poids.value = p.poids;
             form.taille.value = p.taille;
+            form.objectif.value = p.objectif || 'maintien';
+            form.face_id.value = p.face_id || '';
             
             // Calculer IMC
             calculateIMC();
             
             // Préparer pour la mise à jour
             participantIdInput.value = p.id;
+            formTitle.textContent = "MODIFICATION EN COURS";
             submitBtn.innerHTML = "<i class='fas fa-plus'></i> ENREGISTRER (NOUVEAU)";
             submitBtn.style.background = "#27ae60";
             submitBtn.disabled = false;
@@ -663,46 +788,26 @@ declare(strict_types=1);
                 btnUpdate.disabled = false; 
                 btnUpdate.style.opacity = "1";
                 btnUpdate.innerHTML = "<i class='fas fa-sync'></i> CONFIRMER MODIF";
+                btnUpdate.style.display = "flex";
             }
-            if (btnDelete) { btnDelete.disabled = false; btnDelete.style.opacity = "1"; }
+            if (btnDelete) { 
+                btnDelete.disabled = false; 
+                btnDelete.style.opacity = "1";
+                btnDelete.style.display = "flex";
+            }
             
             // Scroll to form
             window.scrollTo({ top: form.offsetTop - 150, behavior: 'smooth' });
         };
 
-        // Si on clique sur le bouton principal (ENREGISTRER), on remet l'ID à 0 pour créer un nouveau
-        form.addEventListener('submit', (e) => {
-            // Validation personnalisée (remplace HTML5 required)
-            const fields = [
-                { id: 'nom', label: 'Nom' },
-                { id: 'prenom', label: 'Prénom' },
-                { id: 'email', label: 'Email' },
-                { id: 'telephone', label: 'Téléphone' }
-            ];
 
-            let errors = [];
-            fields.forEach(f => {
-                const val = document.getElementById(f.id).value.trim();
-                if (!val) errors.push(f.label);
-            });
-
-            if (errors.length > 0) {
-                e.preventDefault();
-                alert("Veuillez remplir les champs suivants : " + errors.join(", "));
-                return;
-            }
-
-            if (e.submitter && e.submitter.id === "submitBtn") {
-                participantIdInput.value = "0";
-            }
-        });
 
         window.handleFormUpdate = () => {
             const id = parseInt(participantIdInput.value);
             if (id === 0) return;
             
-            form.action = "index.php?action=update_participant";
-            form.submit();
+            form.action = "admin.php?action=update_participant";
+            form.requestSubmit(btnUpdate);
         };
 
         window.handleFormDelete = () => {
@@ -726,6 +831,7 @@ declare(strict_types=1);
         window.resetForm = () => {
             form.reset();
             participantIdInput.value = "0";
+            formTitle.textContent = "Inscription Participant";
             submitBtn.innerHTML = "<i class='fas fa-save'></i> ENREGISTRER";
             submitBtn.style.background = "#2ecc71";
             submitBtn.disabled = false;
@@ -734,12 +840,22 @@ declare(strict_types=1);
             form.mot_de_passe.removeAttribute('data-not-required');
             form.mot_de_passe.placeholder = "••••••••";
             
-            if (btnUpdate) { btnUpdate.disabled = true; btnUpdate.style.opacity = "0.5"; btnUpdate.innerHTML = "<i class='fas fa-edit'></i> MODIFIER"; }
-            if (btnDelete) { btnDelete.disabled = true; btnDelete.style.opacity = "0.5"; }
+            if (btnUpdate) { 
+                btnUpdate.disabled = true; 
+                btnUpdate.style.opacity = "0.5"; 
+                btnUpdate.innerHTML = "<i class='fas fa-edit'></i> MODIFIER"; 
+                btnUpdate.style.display = "none";
+            }
+            if (btnDelete) { 
+                btnDelete.disabled = true; 
+                btnDelete.style.opacity = "0.5"; 
+                btnDelete.style.display = "none";
+            }
             
             document.getElementById('imc_display').textContent = "--";
             document.getElementById('imc_status').textContent = "";
             document.getElementById('imc_input').value = "0";
+            if (document.getElementById('face_id')) document.getElementById('face_id').value = "";
         };
 
         function calculateIMC() {

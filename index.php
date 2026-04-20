@@ -12,9 +12,6 @@ $controller = new FrontController();
 $action = $_GET['action'] ?? '';
 
 switch ($action) {
-    case 'login_suivi':
-        $controller->login();
-        break;
     case 'logout':
         $controller->logout();
         break;
@@ -25,18 +22,17 @@ switch ($action) {
         $controller->saveInscription(); // Utilise la même logique
         break;
     case 'delete_participant':
-        $id = (int)($_GET['id'] ?? 0);
-        Inscription::delete($id);
-        header('Location: index.php?sub=participants&success=deleted');
-        exit;
+        $controller->deleteInscription();
+        break;
+    case 'login_suivi':
+        $controller->login();
+        break;
     case 'save_event':
-        // Logique temporaire pour le front si besoin
-        header('Location: index.php');
-        exit;
+        $controller->saveEvent();
+        break;
     case 'save_category':
-        // Logique temporaire pour le front si besoin
-        header('Location: index.php');
-        exit;
+        $controller->saveCategory();
+        break;
     case 'delete_event':
         $id = (int)($_GET['id'] ?? 0);
         Evenement::delete($id);

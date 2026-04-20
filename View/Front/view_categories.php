@@ -201,9 +201,20 @@ declare(strict_types=1);
                         </div>
                         <span class="error-msg">Sélectionnez au moins une image.</span>
                     </div>
-                    <button type="submit" class="btn-primary-green btn-generate" id="submitBtn">
-                        <i class="fas fa-magic"></i> GÉNÉRER
-                    </button>
+                    <div class="crud-actions" style="display: flex; gap: 0.8rem; margin-top: 1.5rem; align-items: stretch;">
+                        <button type="submit" class="btn-primary-green btn-generate" id="submitBtn" style="flex: 2; padding: 1rem; font-size: 1rem; border-radius: 1rem; display: flex; align-items: center; justify-content: center; gap: 0.5rem;">
+                            <i class="fas fa-magic"></i> GÉNÉRER
+                        </button>
+                        <button type="submit" id="btnUpdate" style="flex: 1; padding: 1rem; border-radius: 1rem; font-weight: 700; border: none; cursor: pointer; background: #f1c40f; color: white; display: none; align-items: center; justify-content: center; gap: 8px;">
+                            <i class="fas fa-edit"></i> MODIFIER
+                        </button>
+                        <button type="button" id="btnDelete" onclick="handleCatDelete()" style="flex: 1; padding: 1rem; border-radius: 1rem; font-weight: 700; border: none; cursor: pointer; background: #e74c3c; color: white; display: none; align-items: center; justify-content: center; gap: 8px;">
+                            <i class="fas fa-trash"></i> SUPPRIMER
+                        </button>
+                        <button type="button" id="btnShow" onclick="scrollToCategories()" style="flex: 1; padding: 1rem; border-radius: 1rem; font-weight: 700; border: none; cursor: pointer; background: #3498db; color: white; display: flex; align-items: center; justify-content: center; gap: 8px;">
+                            <i class="fas fa-eye"></i> AFFICHER
+                        </button>
+                    </div>
                 </form>
             </div>
 
@@ -293,9 +304,11 @@ declare(strict_types=1);
 
         const catForm = document.getElementById('catForm');
         const categoryIdInput = document.getElementById('categoryId');
-        const customCatIdInput = null; // Supprimé
         const formTitle = document.getElementById('formTitle');
         const submitBtn = document.getElementById('submitBtn');
+        const btnUpdate = document.getElementById('btnUpdate');
+        const btnDelete = document.getElementById('btnDelete');
+        const btnShow = document.getElementById('btnShow');
         const imgOpts = document.querySelectorAll('.cat-img-opt');
 
         // Validation JS
@@ -386,9 +399,15 @@ declare(strict_types=1);
                 return;
             }
 
-            // Si on utilise le bouton principal (submitBtn), on force la création d'un nouveau
-            if (e.submitter && e.submitter.id === "submitBtn") {
+            // Si on utilise le bouton MODIFIER, on change l'action du formulaire
+            if (e.submitter && e.submitter.id === "btnUpdate") {
+                catForm.action = "index.php?action=save_category";
+            }
+            
+            // Si on utilise le bouton principal (submitBtn) et qu'on n'est pas en mode édition
+            if (e.submitter && e.submitter.id === "submitBtn" && formTitle.textContent !== "Modifier la Catégorie") {
                 categoryIdInput.value = "0";
+                catForm.action = "index.php?action=save_category";
             }
         });
 
@@ -396,8 +415,11 @@ declare(strict_types=1);
             catForm.reset();
             categoryIdInput.value = "0";
             formTitle.textContent = "Détails de la Catégorie";
-            submitBtn.innerHTML = '<i class="fas fa-magic"></i> GÉNÉRER';
-            submitBtn.style.background = "#2ecc71";
+            
+            // Basculer la visibilité des boutons
+            submitBtn.style.display = "flex";
+            btnUpdate.style.display = "none";
+            btnDelete.style.display = "none";
             
             imgOpts.forEach(opt => {
                 opt.classList.remove('selected');
@@ -416,6 +438,15 @@ declare(strict_types=1);
             }
         };
 
+        window.handleCatDelete = () => {
+            const id = parseInt(categoryIdInput.value);
+            if (id === 0) return;
+            
+            if (confirm("Voulez-vous vraiment supprimer cette catégorie ?")) {
+                window.location.href = "index.php?action=delete_category&id=" + id;
+            }
+        };
+
         window.editCat = (id) => {
             const cat = categoriesData.find(c => c.id == id);
             if (!cat) return;
@@ -426,12 +457,17 @@ declare(strict_types=1);
             categoryIdInput.value = cat.id;
             
             formTitle.textContent = "Modifier la Catégorie";
-            submitBtn.innerHTML = '<i class="fas fa-plus"></i> ENREGISTRER (NOUVEAU)';
-            submitBtn.style.background = "#27ae60";
             
-            // Bouton de confirmation de modification (optionnel si vous voulez un bouton séparé comme les autres)
-            // Pour rester cohérent, on va s'assurer que le submit crée un nouveau si on utilise le bouton principal
+            // Basculer la visibilité des boutons
+            submitBtn.style.display = "none";
+            btnUpdate.style.display = "flex";
+            btnDelete.style.display = "flex";
             
+            // Activer les boutons
+            btnUpdate.disabled = false;
+            btnDelete.disabled = false;
+            btnUpdate.style.opacity = "1";
+            btnDelete.style.opacity = "1";
             // Update image selector
             imgOpts.forEach(opt => {
                 const imgUrl = opt.getAttribute('data-img');
@@ -493,6 +529,13 @@ declare(strict_types=1);
             if (event.target == catModal) closeCatModal();
             if (event.target == eventModal) if(window.closeEventModal) window.closeEventModal();
             if (event.target == participantModal) if(window.closeModal) window.closeModal();
+        };
+
+        window.scrollToCategories = () => {
+            const section = document.getElementById('categoryGrid');
+            if (section) {
+                section.scrollIntoView({ behavior: 'smooth' });
+            }
         };
 
         renderCategories();

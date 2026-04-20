@@ -274,11 +274,14 @@ declare(strict_types=1);
                         <button type="submit" class="btn-primary-green" id="submitBtn" style="flex: 2; padding: 1rem; font-size: 1rem; border-radius: 1rem; display: flex; align-items: center; justify-content: center; gap: 0.5rem;">
                             <i class="fas fa-save"></i> ENREGISTRER
                         </button>
-                        <button type="button" id="btnUpdate" onclick="handleEventUpdate()" style="flex: 1; padding: 1rem; border-radius: 1rem; font-weight: 700; border: none; cursor: pointer; background: #f1c40f; color: white; display: flex; align-items: center; justify-content: center;">
+                        <button type="submit" id="btnUpdate" style="flex: 1; padding: 1rem; border-radius: 1rem; font-weight: 700; border: none; cursor: pointer; background: #f1c40f; color: white; display: none; align-items: center; justify-content: center;">
                             <i class="fas fa-edit"></i> MODIFIER
                         </button>
-                        <button type="button" id="btnDelete" onclick="handleEventDelete()" style="flex: 1; padding: 1rem; border-radius: 1rem; font-weight: 700; border: none; cursor: pointer; background: #e74c3c; color: white; display: flex; align-items: center; justify-content: center;">
+                        <button type="button" id="btnDelete" onclick="handleEventDelete()" style="flex: 1; padding: 1rem; border-radius: 1rem; font-weight: 700; border: none; cursor: pointer; background: #e74c3c; color: white; display: none; align-items: center; justify-content: center;">
                             <i class="fas fa-trash"></i> SUPPRIMER
+                        </button>
+                        <button type="button" id="btnShow" onclick="scrollToEvents()" style="flex: 1; padding: 1rem; border-radius: 1rem; font-weight: 700; border: none; cursor: pointer; background: #3498db; color: white; display: flex; align-items: center; justify-content: center;">
+                            <i class="fas fa-eye"></i> AFFICHER
                         </button>
                     </div>
                 </form>
@@ -482,17 +485,14 @@ declare(strict_types=1);
             offerImg.value = off.image_url;
             eventIdInput.value = off.id;
             
-            formTitle.textContent = "MODIFICATION EN COURS";
+            // Basculer la visibilité des boutons
+            submitBtn.style.display = "none";
+            btnUpdate.style.display = "flex";
+            btnDelete.style.display = "flex";
             
             // Activer les boutons CRUD
             if (btnUpdate) { btnUpdate.disabled = false; btnUpdate.style.opacity = "1"; }
             if (btnDelete) { btnDelete.disabled = false; btnDelete.style.opacity = "1"; }
-            
-            // Laisser le bouton principal pour permettre une NOUVELLE création
-            submitBtn.innerHTML = "<i class='fas fa-plus'></i> ENREGISTRER (NOUVEAU)";
-            submitBtn.disabled = false;
-            submitBtn.style.opacity = "1";
-            submitBtn.style.background = "#27ae60";
 
             window.scrollTo({ top: offerForm.offsetTop - 150, behavior: 'smooth' });
         };
@@ -518,10 +518,15 @@ declare(strict_types=1);
                 return;
             }
 
-            // Si on clique sur le bouton submit (ENREGISTRER), on s'assure que c'est une nouvelle création
-            // Sauf si on a appelé explicitement handleEventUpdate()
-            if (e.submitter && e.submitter.id === "submitBtn") {
+            // Si on utilise le bouton MODIFIER, on s'assure que c'est bien l'action de mise à jour
+            if (e.submitter && e.submitter.id === "btnUpdate") {
+                offerForm.action = "admin.php?action=save_event";
+            }
+
+            // Si on clique sur le bouton submit (ENREGISTRER) et qu'on n'est pas en mode édition
+            if (e.submitter && e.submitter.id === "submitBtn" && formTitle.textContent !== "MODIFICATION EN COURS") {
                 eventIdInput.value = "0";
+                offerForm.action = "admin.php?action=save_event";
             }
         });
 
@@ -529,10 +534,11 @@ declare(strict_types=1);
             offerForm.reset();
             eventIdInput.value = "0";
             formTitle.textContent = "Créer un Événement";
-            submitBtn.innerHTML = "<i class='fas fa-save'></i> ENREGISTRER";
-            submitBtn.style.background = "#2ecc71";
-            submitBtn.disabled = false;
-            submitBtn.style.opacity = "1";
+            
+            // Restaurer la visibilité des boutons
+            submitBtn.style.display = "flex";
+            btnUpdate.style.display = "none";
+            btnDelete.style.display = "none";
             
             if (btnUpdate) { btnUpdate.disabled = true; btnUpdate.style.opacity = "0.5"; }
             if (btnDelete) { btnDelete.disabled = true; btnDelete.style.opacity = "0.5"; }
@@ -540,12 +546,6 @@ declare(strict_types=1);
             imgOptions.forEach(o => o.classList.remove('selected'));
             imgOptions[0].classList.add('selected');
             offerImg.value = imgOptions[0].getAttribute('data-img');
-        };
-
-        window.handleEventUpdate = () => {
-            const id = parseInt(eventIdInput.value);
-            if (id === 0) return;
-            offerForm.submit();
         };
 
         window.handleEventDelete = () => {

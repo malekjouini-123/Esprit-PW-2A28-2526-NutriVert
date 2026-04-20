@@ -137,7 +137,9 @@ class BackController
             'poids' => (float)($_POST['poids'] ?? 0),
             'taille' => (float)($_POST['taille'] ?? 0),
             'imc' => (float)($_POST['imc'] ?? 0),
-            'categorie_preferee' => (string)($_POST['categorie_preferee'] ?? '')
+            'categorie_preferee' => (string)($_POST['categorie_preferee'] ?? ''),
+            'objectif' => (string)($_POST['objectif'] ?? 'maintien'),
+            'face_id' => (string)($_POST['face_id'] ?? '')
         ];
 
         $inscription = new Inscription($data);
