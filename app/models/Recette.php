@@ -1,93 +1,68 @@
 <?php
 class Recette
 {
-    private PDO $pdo;
+    private ?int $id_recette;
+    private string $titre;
+    private string $objectif;
+    private string $regime;
+    private int $duree;
 
-    public function __construct(PDO $pdo)
+    public function __construct(?int $id_recette = null, string $titre = '', string $objectif = '', string $regime = '', int $duree = 0)
     {
-        $this->pdo = $pdo;
+        $this->id_recette = $id_recette;
+        $this->titre = $titre;
+        $this->objectif = $objectif;
+        $this->regime = $regime;
+        $this->duree = $duree;
     }
 
-    public function all(): array
+    public function getIdRecette(): ?int
     {
-        $stmt = $this->pdo->query('SELECT * FROM recette ORDER BY id_recette DESC');
-        return $stmt->fetchAll();
+        return $this->id_recette;
     }
 
-    public function find(int $id): ?array
+    public function setIdRecette(?int $id_recette): void
     {
-        $stmt = $this->pdo->prepare('SELECT * FROM recette WHERE id_recette = :id');
-        $stmt->execute([':id' => $id]);
-        $recette = $stmt->fetch();
-        return $recette ?: null;
+        $this->id_recette = $id_recette;
     }
 
-    public function create(array $data): bool
+    public function getTitre(): string
     {
-        $stmt = $this->pdo->prepare('INSERT INTO recette (titre, objectif, regime, duree) VALUES (:titre, :objectif, :regime, :duree)');
-        return $stmt->execute([
-            ':titre' => $data['titre'],
-            ':objectif' => $data['objectif'],
-            ':regime' => $data['regime'],
-            ':duree' => $data['duree'],
-        ]);
+        return $this->titre;
     }
 
-    public function createAndReturnId(array $data): int
+    public function setTitre(string $titre): void
     {
-        $this->create($data);
-        return (int) $this->pdo->lastInsertId();
+        $this->titre = $titre;
     }
 
-    public function update(int $id, array $data): bool
+    public function getObjectif(): string
     {
-        $stmt = $this->pdo->prepare('UPDATE recette SET titre = :titre, objectif = :objectif, regime = :regime, duree = :duree WHERE id_recette = :id');
-        return $stmt->execute([
-            ':titre' => $data['titre'],
-            ':objectif' => $data['objectif'],
-            ':regime' => $data['regime'],
-            ':duree' => $data['duree'],
-            ':id' => $id,
-        ]);
+        return $this->objectif;
     }
 
-    public function delete(int $id): bool
+    public function setObjectif(string $objectif): void
     {
-        $stmt = $this->pdo->prepare('DELETE FROM recette WHERE id_recette = :id');
-        return $stmt->execute([':id' => $id]);
+        $this->objectif = $objectif;
     }
 
-    public function validate(array $data): array
+    public function getRegime(): string
     {
-        $errors = [];
-
-        if (($data['titre'] ?? '') === '' || mb_strlen(trim($data['titre'])) < 3) {
-            $errors['titre'] = 'Le titre doit contenir au moins 3 caractères.';
-        }
-
-        if (($data['objectif'] ?? '') === '' || mb_strlen(trim($data['objectif'])) < 5) {
-            $errors['objectif'] = 'L\'objectif doit contenir au moins 5 caractères.';
-        }
-
-        if (($data['regime'] ?? '') === '') {
-            $errors['regime'] = 'Le régime est obligatoire.';
-        }
-
-        if (($data['duree'] ?? '') === '' || !is_numeric($data['duree']) || (int)$data['duree'] <= 0) {
-            $errors['duree'] = 'La durée doit être un nombre positif.';
-        }
-
-        return $errors;
+        return $this->regime;
     }
-public function searchByTitre(string $titre): array
-{
-    $sql = "SELECT * FROM recette WHERE titre LIKE :titre ORDER BY id_recette DESC";
-    $stmt = $this->pdo->prepare($sql);
-    $stmt->execute([
-        ':titre' => '%' . $titre . '%'
-    ]);
-    return $stmt->fetchAll();
+
+    public function setRegime(string $regime): void
+    {
+        $this->regime = $regime;
+    }
+
+    public function getDuree(): int
+    {
+        return $this->duree;
+    }
+
+    public function setDuree(int $duree): void
+    {
+        $this->duree = $duree;
+    }
 }
-
-}
-

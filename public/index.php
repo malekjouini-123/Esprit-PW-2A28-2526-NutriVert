@@ -8,12 +8,9 @@ require_once __DIR__ . '/../app/controllers/RecetteController.php';
 require_once __DIR__ . '/../app/controllers/InstructionController.php';
 
 $pdo = Database::getConnection();
-$recetteModel = new Recette($pdo);
-$instructionModel = new Instruction($pdo);
-
-$homeController = new HomeController($recetteModel, $instructionModel);
-$recetteController = new RecetteController($recetteModel, $instructionModel, $pdo);
-$instructionController = new InstructionController($instructionModel, $recetteModel);
+$homeController = new HomeController($pdo);
+$recetteController = new RecetteController($pdo);
+$instructionController = new InstructionController($pdo);
 
 $page = $_GET['page'] ?? 'front_home';
 $id = isset($_GET['id']) ? (int) $_GET['id'] : 0;

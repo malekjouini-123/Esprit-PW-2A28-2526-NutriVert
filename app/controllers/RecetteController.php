@@ -2,33 +2,55 @@
 
 class RecetteController extends BaseController
 {
-    private Recette $recetteModel;
-    private Instruction $instructionModel;
     private PDO $pdo;
 
-    public function __construct(Recette $recetteModel, Instruction $instructionModel, PDO $pdo)
+    public function __construct(PDO $pdo)
     {
-        $this->recetteModel = $recetteModel;
-        $this->instructionModel = $instructionModel;
         $this->pdo = $pdo;
     }
 
-public function index(): void
-{
-    $search = trim($_GET['search'] ?? '');
+    private function validateRecette(array $data): array
+    {
+        $errors = [];
 
-    if ($search !== '') {
-        $recettes = $this->recetteModel->searchByTitre($search);
-    } else {
-        $recettes = $this->recetteModel->all();
+        if (($data['titre'] ?? '') === '' || mb_strlen(trim($data['titre'])) < 3) {
+            $errors['titre'] = 'Le titre doit contenir au moins 3 caractères.';
+        }
+
+        if (($data['objectif'] ?? '') === '' || mb_strlen(trim($data['objectif'])) < 5) {
+            $errors['objectif'] = 'L\'objectif doit contenir au moins 5 caractères.';
+        }
+
+        if (($data['regime'] ?? '') === '') {
+            $errors['regime'] = 'Le régime est obligatoire.';
+        }
+
+        if (($data['duree'] ?? '') === '' || !is_numeric($data['duree']) || (int) $data['duree'] <= 0) {
+            $errors['duree'] = 'La durée doit être un nombre positif.';
+        }
+
+        return $errors;
     }
 
-    $this->render('back/recettes/index', [
-        'pageTitle' => 'BackOffice | Recettes',
-        'recettes' => $recettes,
-        'search' => $search,
-    ]);
-}
+    public function index(): void
+    {
+        $search = trim($_GET['search'] ?? '');
+
+        if ($search !== '') {
+            $stmt = $this->pdo->prepare('SELECT * FROM recette WHERE titre LIKE :titre ORDER BY id_recette DESC');
+            $stmt->execute([':titre' => '%' . $search . '%']);
+            $recettes = $stmt->fetchAll();
+        } else {
+            $stmt = $this->pdo->query('SELECT * FROM recette ORDER BY id_recette DESC');
+            $recettes = $stmt->fetchAll();
+        }
+
+        $this->render('back/recettes/index', [
+            'pageTitle' => 'BackOffice | Recettes',
+            'recettes' => $recettes,
+            'search' => $search,
+        ]);
+    }
 
     public function create(): void
     {
@@ -49,7 +71,7 @@ public function index(): void
             'duree' => trim($_POST['duree'] ?? ''),
         ];
 
-        $errors = $this->recetteModel->validate($data);
+        $errors = $this->validateRecette($data);
 
         if (!empty($errors)) {
             $this->render('back/recettes/form', [
@@ -61,9 +83,12 @@ public function index(): void
             return;
         }
 
-        $this->recetteModel->create([
-            ...$data,
-            'duree' => (int) $data['duree'],
+        $stmt = $this->pdo->prepare('INSERT INTO recette (titre, objectif, regime, duree) VALUES (:titre, :objectif, :regime, :duree)');
+        $stmt->execute([
+            ':titre' => $data['titre'],
+            ':objectif' => $data['objectif'],
+            ':regime' => $data['regime'],
+            ':duree' => (int) $data['duree'],
         ]);
 
         $this->redirect('index.php?page=back_recettes');
@@ -71,7 +96,9 @@ public function index(): void
 
     public function edit(int $id): void
     {
-        $recette = $this->recetteModel->find($id);
+        $stmt = $this->pdo->prepare('SELECT * FROM recette WHERE id_recette = :id');
+        $stmt->execute([':id' => $id]);
+        $recette = $stmt->fetch();
 
         if (!$recette) {
             $this->redirect('index.php?page=back_recettes');
@@ -95,7 +122,7 @@ public function index(): void
             'duree' => trim($_POST['duree'] ?? ''),
         ];
 
-        $errors = $this->recetteModel->validate($data);
+        $errors = $this->validateRecette($data);
 
         if (!empty($errors)) {
             $data['id_recette'] = $id;
@@ -109,9 +136,13 @@ public function index(): void
             return;
         }
 
-        $this->recetteModel->update($id, [
-            ...$data,
-            'duree' => (int) $data['duree'],
+        $stmt = $this->pdo->prepare('UPDATE recette SET titre = :titre, objectif = :objectif, regime = :regime, duree = :duree WHERE id_recette = :id');
+        $stmt->execute([
+            ':titre' => $data['titre'],
+            ':objectif' => $data['objectif'],
+            ':regime' => $data['regime'],
+            ':duree' => (int) $data['duree'],
+            ':id' => $id,
         ]);
 
         $this->redirect('index.php?page=back_recettes');
@@ -119,7 +150,12 @@ public function index(): void
 
     public function delete(int $id): void
     {
-        $this->recetteModel->delete($id);
+        $stmtInstructions = $this->pdo->prepare('DELETE FROM instruction WHERE id_recette = :id_recette');
+        $stmtInstructions->execute([':id_recette' => $id]);
+
+        $stmtRecette = $this->pdo->prepare('DELETE FROM recette WHERE id_recette = :id');
+        $stmtRecette->execute([':id' => $id]);
+
         $this->redirect('index.php?page=back_recettes');
     }
 
@@ -152,7 +188,7 @@ public function index(): void
             'ingredient_produit' => $_POST['ingredient_produit'] ?? ['[]'],
         ];
 
-        $errors = $this->recetteModel->validate($old);
+        $errors = $this->validateRecette($old);
 
         $etapes = $old['etape'];
         $descriptions = $old['description'];
@@ -200,19 +236,24 @@ public function index(): void
         try {
             $this->pdo->beginTransaction();
 
-            $recetteId = $this->recetteModel->createAndReturnId([
-                'titre' => $old['titre'],
-                'objectif' => $old['objectif'],
-                'regime' => $old['regime'],
-                'duree' => (int) $old['duree'],
+            $stmtRecette = $this->pdo->prepare('INSERT INTO recette (titre, objectif, regime, duree) VALUES (:titre, :objectif, :regime, :duree)');
+            $stmtRecette->execute([
+                ':titre' => $old['titre'],
+                ':objectif' => $old['objectif'],
+                ':regime' => $old['regime'],
+                ':duree' => (int) $old['duree'],
             ]);
 
+            $recetteId = (int) $this->pdo->lastInsertId();
+
+            $stmtInstruction = $this->pdo->prepare('INSERT INTO instruction (id_recette, etape, description, ingredient_produit) VALUES (:id_recette, :etape, :description, :ingredient_produit)');
+
             foreach ($etapes as $index => $etape) {
-                $this->instructionModel->create([
-                    'id_recette' => $recetteId,
-                    'etape' => trim((string) $etape),
-                    'description' => trim((string) ($descriptions[$index] ?? '')),
-                    'ingredient_produit' => trim((string) ($ingredientsList[$index] ?? '[]')),
+                $stmtInstruction->execute([
+                    ':id_recette' => $recetteId,
+                    ':etape' => trim((string) $etape),
+                    ':description' => trim((string) ($descriptions[$index] ?? '')),
+                    ':ingredient_produit' => trim((string) ($ingredientsList[$index] ?? '[]')),
                 ]);
             }
 

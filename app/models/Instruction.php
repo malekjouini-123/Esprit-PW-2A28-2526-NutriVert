@@ -1,109 +1,68 @@
 <?php
 class Instruction
 {
-    private PDO $pdo;
+    private ?int $id_instruction;
+    private int $id_recette;
+    private string $etape;
+    private string $description;
+    private string $ingredient_produit;
 
-    public function __construct(PDO $pdo)
+    public function __construct(?int $id_instruction = null, int $id_recette = 0, string $etape = '', string $description = '', string $ingredient_produit = '[]')
     {
-        $this->pdo = $pdo;
+        $this->id_instruction = $id_instruction;
+        $this->id_recette = $id_recette;
+        $this->etape = $etape;
+        $this->description = $description;
+        $this->ingredient_produit = $ingredient_produit;
     }
 
-    public function all(): array
+    public function getIdInstruction(): ?int
     {
-        $sql = 'SELECT i.*, r.titre AS recette_titre FROM instruction i INNER JOIN recette r ON i.id_recette = r.id_recette ORDER BY i.id_instruction DESC';
-        return $this->pdo->query($sql)->fetchAll();
+        return $this->id_instruction;
     }
 
-    public function find(int $id): ?array
+    public function setIdInstruction(?int $id_instruction): void
     {
-        $stmt = $this->pdo->prepare('SELECT * FROM instruction WHERE id_instruction = :id');
-        $stmt->execute([':id' => $id]);
-        $instruction = $stmt->fetch();
-        return $instruction ?: null;
+        $this->id_instruction = $id_instruction;
     }
 
-    public function byRecette(int $idRecette): array
+    public function getIdRecette(): int
     {
-        $stmt = $this->pdo->prepare('SELECT * FROM instruction WHERE id_recette = :id_recette ORDER BY id_instruction ASC');
-        $stmt->execute([':id_recette' => $idRecette]);
-        return $stmt->fetchAll();
+        return $this->id_recette;
     }
 
-    public function create(array $data): bool
+    public function setIdRecette(int $id_recette): void
     {
-        $stmt = $this->pdo->prepare('INSERT INTO instruction (id_recette, etape, description, ingredient_produit) VALUES (:id_recette, :etape, :description, :ingredient_produit)');
-        return $stmt->execute([
-            ':id_recette' => $data['id_recette'],
-            ':etape' => $data['etape'],
-            ':description' => $data['description'],
-            ':ingredient_produit' => $data['ingredient_produit'],
-        ]);
+        $this->id_recette = $id_recette;
     }
 
-    public function update(int $id, array $data): bool
+    public function getEtape(): string
     {
-        $stmt = $this->pdo->prepare('UPDATE instruction SET id_recette = :id_recette, etape = :etape, description = :description, ingredient_produit = :ingredient_produit WHERE id_instruction = :id');
-        return $stmt->execute([
-            ':id_recette' => $data['id_recette'],
-            ':etape' => $data['etape'],
-            ':description' => $data['description'],
-            ':ingredient_produit' => $data['ingredient_produit'],
-            ':id' => $id,
-        ]);
+        return $this->etape;
     }
 
-    public function delete(int $id): bool
+    public function setEtape(string $etape): void
     {
-        $stmt = $this->pdo->prepare('DELETE FROM instruction WHERE id_instruction = :id');
-        return $stmt->execute([':id' => $id]);
+        $this->etape = $etape;
     }
 
-    public function deleteByRecette(int $idRecette): bool
+    public function getDescription(): string
     {
-        $stmt = $this->pdo->prepare('DELETE FROM instruction WHERE id_recette = :id_recette');
-        return $stmt->execute([':id_recette' => $idRecette]);
+        return $this->description;
     }
 
-    public function validate(array $data): array
+    public function setDescription(string $description): void
     {
-        $errors = [];
-
-        if (($data['id_recette'] ?? '') === '' || !is_numeric($data['id_recette'])) {
-            $errors['id_recette'] = 'La recette est obligatoire.';
-        }
-
-        if (($data['etape'] ?? '') === '' || mb_strlen(trim($data['etape'])) < 2) {
-            $errors['etape'] = 'L\'étape est obligatoire.';
-        }
-
-        if (($data['description'] ?? '') === '' || mb_strlen(trim($data['description'])) < 5) {
-            $errors['description'] = 'La description doit contenir au moins 5 caractères.';
-        }
-
-        if (($data['ingredient_produit'] ?? '') === '') {
-            $errors['ingredient_produit'] = 'Les ingrédients sont obligatoires.';
-        } else {
-            json_decode($data['ingredient_produit'], true);
-            if (json_last_error() !== JSON_ERROR_NONE) {
-                $errors['ingredient_produit'] = 'Le JSON des ingrédients est invalide.';
-            }
-        }
-
-        return $errors;
+        $this->description = $description;
     }
-public function searchByRecetteId(int $idRecette): array
-{
-    $sql = "SELECT i.*, r.titre AS recette_titre
-            FROM instruction i
-            INNER JOIN recette r ON i.id_recette = r.id_recette
-            WHERE i.id_recette = :id_recette
-            ORDER BY i.id_instruction DESC";
 
-    $stmt = $this->pdo->prepare($sql);
-    $stmt->execute([
-        ':id_recette' => $idRecette
-    ]);
+    public function getIngredientProduit(): string
+    {
+        return $this->ingredient_produit;
+    }
 
-    return $stmt->fetchAll();
-}
+    public function setIngredientProduit(string $ingredient_produit): void
+    {
+        $this->ingredient_produit = $ingredient_produit;
+    }
 }

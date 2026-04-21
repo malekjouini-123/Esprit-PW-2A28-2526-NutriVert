@@ -44,7 +44,9 @@
                         <td><?php echo htmlspecialchars($recette['regime']); ?></td>
                         <td><?php echo htmlspecialchars($recette['duree']); ?> min</td>
                         <td>
-                            <a class="btn-green" href="index.php?page=back_recette_edit&id=<?php echo $recette['id_recette']; ?>">Modifier</a>
+                            <a class="btn-green" href="index.php?page=back_recette_edit&id=<?php echo $recette['id_recette']; ?>">
+                                Modifier
+                            </a>
 
                             <button
                                 type="button"
