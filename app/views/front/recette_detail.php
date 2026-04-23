@@ -39,7 +39,7 @@
         </div>
 
         <p class="back-link-wrap">
-            <a href="index.php?page=front_home" class="btn-green">Retour aux recettes</a>
+            <a href="index.php?page=front_home" class="btn-green"><i class="fas fa-arrow-left"></i> Retour aux recettes</a>
         </p>
     </div>
 </div>

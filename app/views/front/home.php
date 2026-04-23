@@ -2,23 +2,25 @@
 
 <div class="container">
     <section class="hero-panel">
-        <h1 class="page-title">Nos recettes NutriVert</h1>
-        <p class="hero-text">Découvrez des recettes saines, durables et agréables à consulter.</p>
+        <h1 class="page-title">✨ Manger malin, zéro gaspillage ✨</h1>
+        <p class="hero-text">Nutrivert — intelligence nutritionnelle & recettes durables dans le style de votre template test3.</p>
     </section>
 
     <form method="GET" action="index.php" class="search-form">
         <input type="hidden" name="page" value="front_home">
 
-        <label for="search">Recherche par titre de recette</label>
-        <input
-            type="text"
-            id="search"
-            name="search"
-            value="<?php echo htmlspecialchars($search ?? ''); ?>"
-            placeholder="Rechercher une recette"
-        >
+        <div>
+            <label for="search">Recherche par titre de recette</label>
+            <input
+                type="text"
+                id="search"
+                name="search"
+                value="<?php echo htmlspecialchars($search ?? ''); ?>"
+                placeholder="Rechercher une recette"
+            >
+        </div>
 
-        <button type="submit" class="btn-green">Rechercher</button>
+        <button type="submit" class="btn-green"><i class="fas fa-search"></i> Rechercher</button>
         <a href="index.php?page=front_home" class="btn-ghost">Réinitialiser</a>
     </form>
 
@@ -32,7 +34,7 @@
                     <div class="recette-meta"><strong>Régime :</strong> <?php echo htmlspecialchars($recette['regime']); ?></div>
                     <div class="recette-meta"><strong>Durée :</strong> <?php echo (int) $recette['duree']; ?> min</div>
                     <div class="recette-actions">
-                        <a href="index.php?page=front_recette_detail&id=<?php echo (int) $recette['id_recette']; ?>" class="btn-green">Voir détails</a>
+                        <a href="index.php?page=front_recette_detail&id=<?php echo (int) $recette['id_recette']; ?>" class="btn-green"><i class="fas fa-utensils"></i> Voir détails</a>
                     </div>
                 </article>
             <?php endforeach; ?>
