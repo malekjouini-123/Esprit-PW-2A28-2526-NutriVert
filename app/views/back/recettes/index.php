@@ -1,7 +1,7 @@
 <?php require __DIR__ . '/../../partials/header.php'; ?>
 
 <div class="container">
-    <section class="hero-panel"><h1 class="page-title"><i class="fas fa-pen-fancy"></i> Modifier recette complète</h1><p class="hero-text">Choisissez une recette pour modifier toute la fiche dans une seule page.</p></section>
+    <section class="hero-panel"><h1 class="page-title"><i class="fas fa-pen-fancy"></i> Modifier recette completa</h1><p class="hero-text">Escolha uma receita para editar toda a ficha em uma única página.</p></section>
 
     <p>
         <a class="btn-green" href="index.php?page=back_recette_create_full"><i class="fas fa-plus-circle"></i> Ajouter une recette complète</a>
