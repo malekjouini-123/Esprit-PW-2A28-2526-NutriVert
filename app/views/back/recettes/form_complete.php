@@ -2,13 +2,13 @@
 
 <div class="container form-container">
     <div class="form-card wide-card">
-        <h1 class="page-title">Ajouter une recette avec ses étapes</h1>
+        <h1 class="page-title"><?php echo htmlspecialchars($formTitle ?? 'Ajouter une recette avec ses étapes'); ?></h1>
 
         <?php if (!empty($errors['global'])): ?>
             <div class="error-banner"><?php echo htmlspecialchars($errors['global']); ?></div>
         <?php endif; ?>
 
-        <form method="POST" action="index.php?page=back_recette_store_full" id="recetteInstructionForm">
+        <form method="POST" action="index.php?page=<?php echo htmlspecialchars($action ?? 'back_recette_store_full'); ?>" id="recetteInstructionForm" novalidate>
             <h2 class="section-subtitle">Informations recette</h2>
 
             <label for="titre">Titre</label>
@@ -65,6 +65,7 @@
                                     <th>Produit</th>
                                     <th>Quantité</th>
                                     <th>Image</th>
+                                    <th>Actions</th>
                                 </tr>
                             </thead>
                             <tbody></tbody>
@@ -88,7 +89,7 @@
                 <button type="button" id="add-step-btn" class="btn-green alt">+ Ajouter une étape</button>
                 <div>
                     <button type="submit" class="btn-green">Enregistrer</button>
-                    <a href="index.php?page=back_recettes" class="btn-ghost">Retour</a>
+                    <a href="index.php?page=back_recettes_full_edit" class="btn-ghost">Retour</a>
                 </div>
             </div>
         </form>
@@ -116,6 +117,7 @@ document.addEventListener('DOMContentLoaded', function () {
         const inlineError = stepBlock.querySelector('.ingredient-inline-error');
 
         let ingredients = [];
+        let editingIndex = -1;
 
         try {
             const initialValue = hiddenInput.value.trim();
@@ -129,10 +131,18 @@ document.addEventListener('DOMContentLoaded', function () {
             ingredients = [];
         }
 
+        function resetIngredientForm() {
+            nomInput.value = '';
+            quantiteInput.value = '';
+            imageInput.value = '';
+            editingIndex = -1;
+            addBtn.textContent = 'Ajouter';
+        }
+
         function renderIngredients() {
             tableBody.innerHTML = '';
 
-            ingredients.forEach((ingredient) => {
+            ingredients.forEach((ingredient, index) => {
                 const nom = ingredient.nom_produit ? ingredient.nom_produit : '';
                 const quantite = ingredient.quantite ? ingredient.quantite : '';
                 const image = ingredient.image ? ingredient.image : '';
@@ -142,6 +152,10 @@ document.addEventListener('DOMContentLoaded', function () {
                     <td>${escapeHtml(nom)}</td>
                     <td>${escapeHtml(quantite)}</td>
                     <td>${image !== '' ? `<img src="${escapeHtml(image)}" width="50" alt="">` : ''}</td>
+                    <td>
+                        <button type="button" class="btn-green alt btn-edit-ingredient" data-index="${index}">Modifier</button>
+                        <button type="button" class="btn-remove btn-delete-ingredient" data-index="${index}">Supprimer</button>
+                    </td>
                 `;
                 tableBody.appendChild(row);
             });
@@ -161,17 +175,60 @@ document.addEventListener('DOMContentLoaded', function () {
                 return;
             }
 
-            ingredients.push({
+            const ingredientData = {
                 nom_produit: nom,
                 quantite: quantite,
                 image: image
-            });
+            };
+
+            if (editingIndex >= 0) {
+                ingredients[editingIndex] = ingredientData;
+            } else {
+                ingredients.push(ingredientData);
+            }
 
             renderIngredients();
+            resetIngredientForm();
+        });
 
-            nomInput.value = '';
-            quantiteInput.value = '';
-            imageInput.value = '';
+        tableBody.addEventListener('click', function (event) {
+            const editBtn = event.target.closest('.btn-edit-ingredient');
+            const deleteBtn = event.target.closest('.btn-delete-ingredient');
+
+            if (editBtn) {
+                const index = parseInt(editBtn.getAttribute('data-index'), 10);
+                const ingredient = ingredients[index];
+
+                if (!ingredient) {
+                    return;
+                }
+
+                nomInput.value = ingredient.nom_produit ? ingredient.nom_produit : '';
+                quantiteInput.value = ingredient.quantite ? ingredient.quantite : '';
+                imageInput.value = ingredient.image ? ingredient.image : '';
+                editingIndex = index;
+                addBtn.textContent = 'Mettre à jour';
+                inlineError.textContent = '';
+                return;
+            }
+
+            if (deleteBtn) {
+                const index = parseInt(deleteBtn.getAttribute('data-index'), 10);
+
+                if (Number.isNaN(index)) {
+                    return;
+                }
+
+                ingredients.splice(index, 1);
+
+                if (editingIndex === index) {
+                    resetIngredientForm();
+                } else if (editingIndex > index) {
+                    editingIndex -= 1;
+                }
+
+                renderIngredients();
+            }
         });
 
         renderIngredients();
@@ -183,7 +240,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
     document.getElementById('add-step-btn').addEventListener('click', function () {
         const container = document.getElementById('steps-container');
-        const stepIndex = container.querySelectorAll('.step-block').length;
 
         const newStep = document.createElement('div');
         newStep.className = 'step-block';
@@ -214,6 +270,7 @@ document.addEventListener('DOMContentLoaded', function () {
                         <th>Produit</th>
                         <th>Quantité</th>
                         <th>Image</th>
+                        <th>Actions</th>
                     </tr>
                 </thead>
                 <tbody></tbody>

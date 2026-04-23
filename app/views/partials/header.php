@@ -22,8 +22,8 @@
     <nav class="site-nav">
         <a href="index.php?page=front_home">FrontOffice</a>
         <a href="index.php?page=back_dashboard">BackOffice</a>
-        <a href="index.php?page=back_recettes">Recettes</a>
-        <a href="index.php?page=back_instructions">Instructions</a>
+        <a href="index.php?page=back_recette_create_full">Ajouter recette complète</a>
+        <a href="index.php?page=back_recettes_full_edit">Modifier recette complète</a>
     </nav>
 </header>
 <main>

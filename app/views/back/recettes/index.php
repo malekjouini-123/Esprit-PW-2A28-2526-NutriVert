@@ -1,14 +1,14 @@
 <?php require __DIR__ . '/../../partials/header.php'; ?>
 
 <div class="container">
-    <h1 class="page-title">Gestion des recettes</h1>
+    <h1 class="page-title">Modifier recette complète</h1>
 
     <p>
         <a class="btn-green" href="index.php?page=back_recette_create_full">Ajouter une recette complète</a>
     </p>
 
     <form method="GET" action="index.php" class="search-form">
-        <input type="hidden" name="page" value="back_recettes">
+        <input type="hidden" name="page" value="back_recettes_full_edit">
 
         <label for="search">Recherche par titre</label>
         <input
@@ -20,7 +20,7 @@
         >
 
         <button type="submit" class="btn-green">Rechercher</button>
-        <a href="index.php?page=back_recettes" class="btn-ghost">Réinitialiser</a>
+        <a href="index.php?page=back_recettes_full_edit" class="btn-ghost">Réinitialiser</a>
     </form>
 
     <table class="data-table">
@@ -44,8 +44,8 @@
                         <td><?php echo htmlspecialchars($recette['regime']); ?></td>
                         <td><?php echo htmlspecialchars($recette['duree']); ?> min</td>
                         <td>
-                            <a class="btn-green" href="index.php?page=back_recette_edit&id=<?php echo $recette['id_recette']; ?>">
-                                Modifier
+                            <a class="btn-green" href="index.php?page=back_recette_edit_full&id=<?php echo $recette['id_recette']; ?>">
+                                Modifier recette complète
                             </a>
 
                             <button

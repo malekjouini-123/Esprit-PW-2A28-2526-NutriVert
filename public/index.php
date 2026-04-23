@@ -5,12 +5,10 @@ require_once __DIR__ . '/../app/models/Recette.php';
 require_once __DIR__ . '/../app/models/Instruction.php';
 require_once __DIR__ . '/../app/controllers/HomeController.php';
 require_once __DIR__ . '/../app/controllers/RecetteController.php';
-require_once __DIR__ . '/../app/controllers/InstructionController.php';
 
 $pdo = Database::getConnection();
 $homeController = new HomeController($pdo);
 $recetteController = new RecetteController($pdo);
-$instructionController = new InstructionController($pdo);
 
 $page = $_GET['page'] ?? 'front_home';
 $id = isset($_GET['id']) ? (int) $_GET['id'] : 0;
@@ -29,23 +27,8 @@ switch ($page) {
         require __DIR__ . '/../app/views/back/dashboard.php';
         break;
 
-    case 'back_recettes':
-        $recetteController->index();
-        break;
-    case 'back_recette_create':
-        $recetteController->create();
-        break;
-    case 'back_recette_store':
-        $recetteController->store();
-        break;
-    case 'back_recette_edit':
-        $recetteController->edit($id);
-        break;
-    case 'back_recette_update':
-        $recetteController->update($id);
-        break;
-    case 'back_recette_delete':
-        $recetteController->delete($id);
+    case 'back_recettes_full_edit':
+        $recetteController->indexFullEdit();
         break;
     case 'back_recette_create_full':
         $recetteController->createFull();
@@ -53,24 +36,14 @@ switch ($page) {
     case 'back_recette_store_full':
         $recetteController->storeFull();
         break;
-
-    case 'back_instructions':
-        $instructionController->index();
+    case 'back_recette_edit_full':
+        $recetteController->editFull($id);
         break;
-    case 'back_instruction_create':
-        $instructionController->create();
+    case 'back_recette_update_full':
+        $recetteController->updateFull($id);
         break;
-    case 'back_instruction_store':
-        $instructionController->store();
-        break;
-    case 'back_instruction_edit':
-        $instructionController->edit($id);
-        break;
-    case 'back_instruction_update':
-        $instructionController->update($id);
-        break;
-    case 'back_instruction_delete':
-        $instructionController->delete($id);
+    case 'back_recette_delete':
+        $recetteController->delete($id);
         break;
 
     default:
