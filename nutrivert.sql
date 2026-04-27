@@ -28,6 +28,8 @@ CREATE TABLE `produit` (
   `producteur` varchar(150) DEFAULT NULL,
   `prix` decimal(10,2) NOT NULL DEFAULT 0.00,
   `empreinte_co2` decimal(8,2) DEFAULT NULL COMMENT 'kg CO2 équivalent',
+  `combien` int(11) NOT NULL DEFAULT 0 COMMENT 'Quantité en stock (unités)',
+  `etoile` tinyint(1) NOT NULL DEFAULT 0 COMMENT 'Évaluation produit 0-5',
   `icone` varchar(64) DEFAULT 'fa-seedling' COMMENT 'classe Font Awesome sans préfixe',
   PRIMARY KEY (`id`),
   KEY `fk_produit_categorie` (`categorie_id`),
@@ -36,6 +38,7 @@ CREATE TABLE `produit` (
 
 CREATE TABLE `commande` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
+  `nom` varchar(180) NOT NULL DEFAULT 'Ma commande' COMMENT 'Libellé affiché (ex. course du marché)',
   `date_commande` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `statut` enum('en_attente','validee','livree','annulee') NOT NULL DEFAULT 'en_attente',
   `client_email` varchar(180) DEFAULT NULL,
@@ -63,8 +66,8 @@ INSERT INTO `categorie` (`nom`, `description`) VALUES
 ('Viandes', 'Volaille, bœuf, agneau…'),
 ('Épicerie', 'Céréales, huiles, conserves…');
 
-INSERT INTO `produit` (`categorie_id`, `nom`, `label`, `producteur`, `prix`, `empreinte_co2`, `icone`) VALUES
-((SELECT id FROM categorie WHERE nom = 'Légumes' LIMIT 1), 'Tomates anciennes', 'Bio, Local', 'Maraîcher du Sahel', 4.20, 0.35, 'fa-apple-alt'),
-((SELECT id FROM categorie WHERE nom = 'Fruits' LIMIT 1), 'Bananes équitable', 'Bio', 'Coop Sud', 5.50, 0.90, 'fa-lemon'),
-((SELECT id FROM categorie WHERE nom = 'Viandes' LIMIT 1), 'Poulet fermier', 'Local', 'Ferme des Vallées', 12.00, 2.10, 'fa-drumstick-bite'),
-((SELECT id FROM categorie WHERE nom = 'Épicerie' LIMIT 1), 'Huile d''olive vierge', 'Bio, Local', 'Moulin Vert', 18.50, 1.20, 'fa-bottle-droplet');
+INSERT INTO `produit` (`categorie_id`, `nom`, `label`, `producteur`, `prix`, `empreinte_co2`, `combien`, `etoile`, `icone`) VALUES
+((SELECT id FROM categorie WHERE nom = 'Légumes' LIMIT 1), 'Tomates anciennes', 'Bio, Local', 'Maraîcher du Sahel', 4.20, 0.35, 1, 4, 'fa-apple-alt'),
+((SELECT id FROM categorie WHERE nom = 'Fruits' LIMIT 1), 'Bananes équitable', 'Bio', 'Coop Sud', 5.50, 0.90, 40, 5, 'fa-lemon'),
+((SELECT id FROM categorie WHERE nom = 'Viandes' LIMIT 1), 'Poulet fermier', 'Local', 'Ferme des Vallées', 12.00, 2.10, 8, 4, 'fa-drumstick-bite'),
+((SELECT id FROM categorie WHERE nom = 'Épicerie' LIMIT 1), 'Huile d''olive vierge', 'Bio, Local', 'Moulin Vert', 18.50, 1.20, 0, 3, 'fa-bottle-droplet');

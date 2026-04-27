@@ -16,14 +16,13 @@ class ProduitController
 
     public function handle(): void
     {
-        $model = new Produit($this->pdo);
         $method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
 
         try {
             switch ($method) {
                 case 'GET':
                     $cat = isset($_GET['categorie_id']) ? (int) $_GET['categorie_id'] : 0;
-                    $rows = $model->findAll($cat > 0 ? $cat : null);
+                    $rows = $this->findAll($cat > 0 ? $cat : null);
                     nv_json($rows);
 
                 case 'POST':
@@ -31,16 +30,16 @@ class ProduitController
                     if ($data === null) {
                         nv_json(['error' => 'categorie_id, nom et quantité stock (combien) valides requis.'], 400);
                     }
-                    $id = $model->create(
-                        $data['categorie_id'],
-                        $data['nom'],
-                        $data['label'],
-                        $data['producteur'],
-                        $data['prix'],
-                        $data['empreinte_co2'],
-                        $data['combien'],
-                        $data['icone']
-                    );
+                    $produit = (new Produit())
+                        ->setCategorieId($data['categorie_id'])
+                        ->setNom($data['nom'])
+                        ->setLabel($data['label'])
+                        ->setProducteur($data['producteur'])
+                        ->setPrix($data['prix'])
+                        ->setEmpreinteCo2($data['empreinte_co2'])
+                        ->setCombien($data['combien'])
+                        ->setIcone($data['icone']);
+                    $id = $this->createProduit($produit);
                     nv_json(['ok' => true, 'id' => $id]);
 
                 case 'PUT':
@@ -52,17 +51,17 @@ class ProduitController
                     if ($data === null) {
                         nv_json(['error' => 'categorie_id, nom et quantité stock (combien) valides requis.'], 400);
                     }
-                    $affected = $model->update(
-                        $id,
-                        $data['categorie_id'],
-                        $data['nom'],
-                        $data['label'],
-                        $data['producteur'],
-                        $data['prix'],
-                        $data['empreinte_co2'],
-                        $data['combien'],
-                        $data['icone']
-                    );
+                    $produit = (new Produit())
+                        ->setId($id)
+                        ->setCategorieId($data['categorie_id'])
+                        ->setNom($data['nom'])
+                        ->setLabel($data['label'])
+                        ->setProducteur($data['producteur'])
+                        ->setPrix($data['prix'])
+                        ->setEmpreinteCo2($data['empreinte_co2'])
+                        ->setCombien($data['combien'])
+                        ->setIcone($data['icone']);
+                    $affected = $this->updateProduit($produit);
                     nv_json(['ok' => true, 'affected' => $affected]);
 
                 case 'DELETE':
@@ -71,7 +70,7 @@ class ProduitController
                         nv_json(['error' => 'Paramètre id manquant.'], 400);
                     }
                     try {
-                        $model->delete($id);
+                        $this->deleteProduit($id);
                         nv_json(['ok' => true]);
                     } catch (PDOException $e) {
                         $code = (int) ($e->errorInfo[1] ?? 0);
@@ -129,5 +128,66 @@ class ProduitController
             'combien' => $combien,
             'icone' => $icone,
         ];
+    }
+
+    /**
+     * @return list<array<string,mixed>>
+     */
+    private function findAll(?int $categorieId = null): array
+    {
+        $sqlList = 'SELECT p.id, p.categorie_id, p.nom, p.label, p.producteur, p.prix, p.empreinte_co2, p.combien, p.icone,
+            c.nom AS categorie_nom
+            FROM produit p
+            INNER JOIN categorie c ON c.id = p.categorie_id';
+        if ($categorieId !== null && $categorieId > 0) {
+            $stmt = $this->pdo->prepare($sqlList . ' WHERE p.categorie_id = ? ORDER BY p.nom ASC');
+            $stmt->execute([$categorieId]);
+            return $stmt->fetchAll();
+        }
+        $stmt = $this->pdo->query($sqlList . ' ORDER BY c.nom ASC, p.nom ASC');
+        return $stmt->fetchAll();
+    }
+
+    private function createProduit(Produit $produit): int
+    {
+        $stmt = $this->pdo->prepare(
+            'INSERT INTO produit (categorie_id, nom, label, producteur, prix, empreinte_co2, combien, icone) VALUES (?,?,?,?,?,?,?,?)'
+        );
+        $stmt->execute([
+            $produit->getCategorieId(),
+            $produit->getNom(),
+            $produit->getLabel(),
+            $produit->getProducteur(),
+            $produit->getPrix(),
+            $produit->getEmpreinteCo2(),
+            $produit->getCombien(),
+            $produit->getIcone(),
+        ]);
+        return (int) $this->pdo->lastInsertId();
+    }
+
+    private function updateProduit(Produit $produit): int
+    {
+        $stmt = $this->pdo->prepare(
+            'UPDATE produit SET categorie_id=?, nom=?, label=?, producteur=?, prix=?, empreinte_co2=?, combien=?, icone=? WHERE id=?'
+        );
+        $stmt->execute([
+            $produit->getCategorieId(),
+            $produit->getNom(),
+            $produit->getLabel(),
+            $produit->getProducteur(),
+            $produit->getPrix(),
+            $produit->getEmpreinteCo2(),
+            $produit->getCombien(),
+            $produit->getIcone(),
+            (int) $produit->getId(),
+        ]);
+        return $stmt->rowCount();
+    }
+
+    private function deleteProduit(int $id): void
+    {
+        $stmt = $this->pdo->prepare('DELETE FROM produit WHERE id = ?');
+        $stmt->execute([$id]);
     }
 }
