@@ -731,3 +731,53 @@ body {
         gap: 18px;
     }
 }
+
+/* FrontOffice saved recipes */
+.recette-actions {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    align-items: center;
+    margin-top: 18px;
+}
+
+.btn-save-recette.saved {
+    background: #EAF7EF;
+    color: #2d6a4f;
+}
+
+.empty-favoris {
+    grid-column: 1 / -1;
+    text-align: center;
+}
+
+.empty-favoris .btn-green {
+    margin-top: 16px;
+}
+
+/* Recettes enregistrées FrontOffice */
+.recette-actions {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-top: 16px;
+}
+
+.btn-remove {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    border: none;
+    border-radius: 999px;
+    padding: 10px 16px;
+    background: #e74c3c;
+    color: #fff;
+    text-decoration: none;
+    cursor: pointer;
+    font-weight: 700;
+}
+
+.empty-favoris {
+    grid-column: 1 / -1;
+    text-align: center;
+}

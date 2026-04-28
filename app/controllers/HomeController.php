@@ -49,4 +49,64 @@ class HomeController extends BaseController
             'instructions' => $instructions,
         ]);
     }
+
+    public function saveRecette(int $id): void
+    {
+        if ($id <= 0) {
+            $this->redirect('index.php?page=front_home');
+            return;
+        }
+
+        $stmt = $this->pdo->prepare('SELECT id_recette FROM recette WHERE id_recette = :id');
+        $stmt->execute([':id' => $id]);
+        $recette = $stmt->fetch();
+
+        if (!$recette) {
+            $this->redirect('index.php?page=front_home');
+            return;
+        }
+
+        if (!isset($_SESSION['recettes_enregistrees']) || !is_array($_SESSION['recettes_enregistrees'])) {
+            $_SESSION['recettes_enregistrees'] = [];
+        }
+
+        if (!in_array($id, $_SESSION['recettes_enregistrees'], true)) {
+            $_SESSION['recettes_enregistrees'][] = $id;
+        }
+
+        $this->redirect('index.php?page=front_favoris');
+    }
+
+    public function favoris(): void
+    {
+        $ids = $_SESSION['recettes_enregistrees'] ?? [];
+        $ids = array_values(array_filter(array_map('intval', $ids), function ($id) {
+            return $id > 0;
+        }));
+
+        $recettes = [];
+
+        if (!empty($ids)) {
+            $placeholders = implode(',', array_fill(0, count($ids), '?'));
+            $stmt = $this->pdo->prepare('SELECT * FROM recette WHERE id_recette IN (' . $placeholders . ') ORDER BY titre ASC');
+            $stmt->execute($ids);
+            $recettes = $stmt->fetchAll();
+        }
+
+        $this->render('front/favoris', [
+            'pageTitle' => 'Mes recettes enregistrées | NutriVert',
+            'recettes' => $recettes,
+        ]);
+    }
+
+    public function removeFavori(int $id): void
+    {
+        if (isset($_SESSION['recettes_enregistrees']) && is_array($_SESSION['recettes_enregistrees'])) {
+            $_SESSION['recettes_enregistrees'] = array_values(array_filter($_SESSION['recettes_enregistrees'], function ($savedId) use ($id) {
+                return (int) $savedId !== $id;
+            }));
+        }
+
+        $this->redirect('index.php?page=front_favoris');
+    }
 }

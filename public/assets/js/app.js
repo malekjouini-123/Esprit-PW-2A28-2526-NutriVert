@@ -1,7 +1,6 @@
 let ingredients = [];
 
 document.addEventListener('DOMContentLoaded', function () {
-    console.log('app.js chargé');
 
     // ====== GESTION INGREDIENTS ======
     const btn = document.getElementById('addIngredientBtn');
@@ -20,10 +19,21 @@ document.addEventListener('DOMContentLoaded', function () {
             const quantite = quantiteField.value.trim();
             const image = imageField.value.trim();
 
+            let ingredientError = document.getElementById('ingredientError');
+
+            if (!ingredientError) {
+                ingredientError = document.createElement('div');
+                ingredientError.id = 'ingredientError';
+                ingredientError.className = 'error-message';
+                btn.insertAdjacentElement('afterend', ingredientError);
+            }
+
             if (!nom || !quantite) {
-                alert('Remplir les champs');
+                ingredientError.textContent = 'Remplir le nom et la quantité.';
                 return;
             }
+
+            ingredientError.textContent = '';
 
             ingredients.push({
                 nom_produit: nom,
@@ -45,16 +55,11 @@ document.addEventListener('DOMContentLoaded', function () {
     const cancelBtn = document.getElementById('cancelDelete');
     const deleteButtons = document.querySelectorAll('.open-delete-modal');
 
-    console.log('modal:', modal);
-    console.log('confirmBtn:', confirmBtn);
-    console.log('cancelBtn:', cancelBtn);
-    console.log('deleteButtons:', deleteButtons.length);
 
     if (modal && confirmBtn && cancelBtn && deleteButtons.length > 0) {
         deleteButtons.forEach(function (button) {
             button.addEventListener('click', function () {
                 const deleteUrl = this.getAttribute('data-url');
-                console.log('click supprimer', deleteUrl);
 
                 if (deleteUrl) {
                     confirmBtn.setAttribute('href', deleteUrl);

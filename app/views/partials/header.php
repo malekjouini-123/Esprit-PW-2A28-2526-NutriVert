@@ -15,6 +15,7 @@
             <a href="test3.htm">Accueil</a>
             <a href="index.php?page=back_dashboard">BackOffice</a>
             <a href="index.php?page=front_home">FrontOffice</a>
+            <a href="index.php?page=front_favoris"><i class="fas fa-bookmark"></i> Mes recettes enregistrées</a>
         </nav>
 
         <div class="brand-wrap">

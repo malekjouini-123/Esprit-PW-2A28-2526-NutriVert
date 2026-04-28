@@ -35,6 +35,7 @@
                     <div class="recette-meta"><strong>Durée :</strong> <?php echo (int) $recette['duree']; ?> min</div>
                     <div class="recette-actions">
                         <a href="index.php?page=front_recette_detail&id=<?php echo (int) $recette['id_recette']; ?>" class="btn-green"><i class="fas fa-utensils"></i> Voir détails</a>
+                        <a href="index.php?page=front_save_recette&id=<?php echo (int) $recette['id_recette']; ?>" class="btn-ghost"><i class="fas fa-bookmark"></i> Enregistrer</a>
                     </div>
                 </article>
             <?php endforeach; ?>

@@ -1,4 +1,8 @@
 <?php
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+
 require_once __DIR__ . '/../config/Database.php';
 require_once __DIR__ . '/../app/controllers/BaseController.php';
 require_once __DIR__ . '/../app/models/Recette.php';
@@ -19,6 +23,15 @@ switch ($page) {
         break;
     case 'front_recette_detail':
         $homeController->recetteDetail($id);
+        break;
+    case 'front_favoris':
+        $homeController->favoris();
+        break;
+    case 'front_save_recette':
+        $homeController->saveRecette($id);
+        break;
+    case 'front_remove_favori':
+        $homeController->removeFavori($id);
         break;
 
     case 'back_dashboard':
