@@ -1,98 +1,62 @@
 <?php
 declare(strict_types=1);
 
+require_once __DIR__ . '/../config/database.php';
 require_once __DIR__ . '/../models/Coaching.php';
-require_once __DIR__ . '/../models/Exercise.php';
+
+if (class_exists('CoachingController')) return;
+
+use Dompdf\Dompdf;
 
 class CoachingController
 {
-    private Coaching $coachingModel;
-    private Exercise $exerciseModel;
+    private PDO $pdo;
+    private array $allowedSortColumns = ['duration_weeks', 'difficulty_level', 'created_at', 'title'];
 
-    public function __construct()
-    {
-        $this->coachingModel = new Coaching();
-        $this->exerciseModel = new Exercise();
-    }
+    public function __construct() { $this->pdo = getDB(); }
+    public function __destruct() {}
 
     public function handle(string $action): void
     {
         switch ($action) {
-            case 'index':
-            case 'search':
-            case 'sort':
-                $this->renderIndex();
-                break;
-            case 'create':
-                $this->renderCreate();
-                break;
-            case 'store':
-                $this->store();
-                break;
-            case 'edit':
-                $this->edit();
-                break;
-            case 'update':
-                $this->update();
-                break;
-            case 'delete':
-                $this->delete();
-                break;
-            case 'export':
-                $this->exportPdf();
-                break;
-            default:
-                $this->renderIndex();
-                break;
+            case 'index': case 'search': case 'sort': $this->renderIndex(); break;
+            case 'create':        $this->renderCreate(); break;
+            case 'store':         $this->store();        break;
+            case 'edit':          $this->edit();         break;
+            case 'update':        $this->update();       break;
+            case 'delete':        $this->delete();       break;
+            case 'export':        $this->exportPdf();    break;
+            case 'export_csv':    $this->exportCsv();    break;
+            case 'generer_seance':$this->genererSeance();break;
+            default:              $this->renderIndex();
         }
     }
 
-    public function getAllForDashboard(): array
-    {
-        return $this->coachingModel->getAll();
-    }
-
-    public function getByIdForDashboard(int $id): ?array
-    {
-        return $this->coachingModel->getById($id);
-    }
+    public function getAllForDashboard(): array    { return $this->dbGetAll(); }
+    public function getByIdForDashboard(int $id): ?Coaching { return $this->dbGetById($id); }
 
     private function renderIndex(): void
     {
         $search = trim((string)($_GET['search'] ?? ''));
-        $sort   = trim((string)($_GET['sort'] ?? ''));
-
-        // Map UI sort keys to [column, order] — avoids explode() breaking on multi-word columns.
+        $sort   = trim((string)($_GET['sort']   ?? ''));
         $sortMap = [
-            'title_asc'           => ['title',          'asc'],
-            'duration_weeks_asc'  => ['duration_weeks',  'asc'],
-            'duration_weeks_desc' => ['duration_weeks',  'desc'],
+            'title_asc'           => ['title',         'asc'],
+            'duration_weeks_asc'  => ['duration_weeks','asc'],
+            'duration_weeks_desc' => ['duration_weeks','desc'],
         ];
         [$sortColumn, $sortOrder] = $sortMap[$sort] ?? ['', 'desc'];
 
-        if ($search !== '' && $sortColumn !== '') {
-            // Search first, then sort in-memory.
-            $coachingPrograms = $this->coachingModel->search($search);
-            $coachingPrograms = $this->sortRows($coachingPrograms, $sortColumn, $sortOrder);
-        } elseif ($search !== '') {
-            $coachingPrograms = $this->coachingModel->search($search);
-        } elseif ($sortColumn !== '') {
-            $coachingPrograms = $this->coachingModel->sort($sortColumn, $sortOrder);
-        } else {
-            $coachingPrograms = $this->coachingModel->getAll();
-        }
+        if ($search !== '' && $sortColumn !== '')      $coachingPrograms = $this->sortRows($this->dbSearch($search), $sortColumn, $sortOrder);
+        elseif ($search !== '')                        $coachingPrograms = $this->dbSearch($search);
+        elseif ($sortColumn !== '')                    $coachingPrograms = $this->dbSort($sortColumn, $sortOrder);
+        else                                           $coachingPrograms = $this->dbGetAll();
 
         $exercisesByCoaching = [];
-        foreach ($this->exerciseModel->getAll() as $exercise) {
-            $coachingId = (int)$exercise['coaching_id'];
-            if (!isset($exercisesByCoaching[$coachingId])) {
-                $exercisesByCoaching[$coachingId] = [];
-            }
-            $exercisesByCoaching[$coachingId][] = $exercise;
+        $exerciseController  = new ExerciseController();
+        foreach ($exerciseController->getAllForDashboard() as $exercise) {
+            $exercisesByCoaching[(int)$exercise['coaching_id']][] = $exercise;
         }
-
         $flashMessage = $this->consumeFlash();
-
         include __DIR__ . '/../views/front/coaching.php';
     }
 
@@ -105,262 +69,238 @@ class CoachingController
     private function edit(): void
     {
         $id = $this->getIdFromGet();
-        if ($id === null) {
-            $this->setFlash('Invalid coaching ID.');
-            $this->redirect('index.php?controller=coaching&action=index');
-        }
-
-        $editingProgram = $this->coachingModel->getById($id);
-        if (!$editingProgram) {
-            $this->setFlash('Coaching program not found.');
-            $this->redirect('index.php?controller=coaching&action=index');
-        }
-
+        if ($id === null) { $this->setFlash('Identifiant invalide.'); $this->redirect('index.php?controller=coaching&action=index'); }
+        $editingProgram = $this->dbGetById($id);
+        if (!$editingProgram) { $this->setFlash('Programme introuvable.'); $this->redirect('index.php?controller=coaching&action=index'); }
         $flashMessage = $this->consumeFlash();
         include __DIR__ . '/../views/front/coaching_edit.php';
     }
 
     private function store(): void
     {
-        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-            $this->redirect('index.php?controller=coaching&action=index');
-        }
-
-        [$data, $errors] = $this->validateCoaching($_POST);
-        if ($errors !== []) {
-            $this->setFlash(implode(' ', $errors));
-            $this->redirectBackToCoaching();
-        }
-
-        $this->coachingModel->create($data);
-        $this->setFlash('Coaching program created successfully.');
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') { $this->redirect('index.php?controller=coaching&action=index'); }
+        $program = $this->buildFromPost($_POST);
+        if ($program === null) { $this->redirectBackToCoaching(); }
+        $this->dbCreate($program);
+        $this->setFlash('Programme créé avec succès.');
         $this->redirectBackToCoaching();
     }
 
     private function update(): void
     {
-        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-            $this->redirect('index.php?controller=coaching&action=index');
-        }
-
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') { $this->redirect('index.php?controller=coaching&action=index'); }
         $id = $this->getIdFromGet();
-        if ($id === null || !$this->coachingModel->getById($id)) {
-            $this->setFlash('Coaching program not found.');
-            $this->redirectBackToCoaching();
-        }
-
-        [$data, $errors] = $this->validateCoaching($_POST);
-        if ($errors !== []) {
-            $this->setFlash(implode(' ', $errors));
-            $this->redirectBackToCoaching($id);
-        }
-
-        $this->coachingModel->update($id, $data);
-        $this->setFlash('Coaching program updated successfully.');
+        if ($id === null || !$this->dbGetById($id)) { $this->setFlash('Programme introuvable.'); $this->redirectBackToCoaching(); }
+        $program = $this->buildFromPost($_POST);
+        if ($program === null) { $this->redirectBackToCoaching($id); }
+        $this->dbUpdate($id, $program);
+        $this->setFlash('Programme mis à jour avec succès.');
         $this->redirectBackToCoaching();
     }
 
     private function delete(): void
     {
         $id = $this->getIdFromGet();
-        if ($id === null) {
-            $this->setFlash('Invalid coaching ID.');
-            $this->redirectBackToCoaching();
+        if ($id === null) { $this->setFlash('Identifiant invalide.'); $this->redirectBackToCoaching(); }
+        $exerciseController = new ExerciseController();
+        foreach ($exerciseController->getByCoachingForController($id) as $exercise) {
+            if (!empty($exercise['image'])) { $path = __DIR__ . '/../' . $exercise['image']; if (is_file($path)) @unlink($path); }
+            $exerciseController->deleteById((int)$exercise['id']);
         }
-
-        $exercises = $this->exerciseModel->getByCoaching($id);
-        foreach ($exercises as $exercise) {
-            if (!empty($exercise['image'])) {
-                $absolutePath = __DIR__ . '/../' . $exercise['image'];
-                if (is_file($absolutePath)) {
-                    @unlink($absolutePath);
-                }
-            }
-            $this->exerciseModel->delete((int)$exercise['id']);
-        }
-
-        $this->coachingModel->delete($id);
-        $this->setFlash('Coaching program deleted successfully.');
+        $this->dbDelete($id);
+        $this->setFlash('Programme supprimé avec succès.');
         $this->redirectBackToCoaching();
     }
 
-    private function exportPdf(): void
+    private function exportCsv(): void
     {
         $id = $this->getIdFromGet();
-        if ($id === null) {
-            $this->setFlash('Invalid coaching ID for PDF export.');
-            $this->redirectBackToCoaching();
-        }
+        if ($id === null) { $this->setFlash('Identifiant invalide.'); $this->redirect('index.php?controller=coaching&action=index'); }
+        $program = $this->dbGetById($id);
+        if (!$program) { $this->setFlash('Programme introuvable.'); $this->redirect('index.php?controller=coaching&action=index'); }
+        $exerciseController = new ExerciseController();
+        $exercises = $exerciseController->getByCoachingForController($id);
 
-        $program = $this->coachingModel->getById($id);
-        if (!$program) {
-            $this->setFlash('Coaching program not found.');
-            $this->redirectBackToCoaching();
-        }
+        $e = static fn($v): string => htmlspecialchars((string)$v, ENT_QUOTES, 'UTF-8');
 
-        $exercises = $this->exerciseModel->getByCoaching($id);
+        header('Content-Type: text/csv; charset=UTF-8');
+        header('Content-Disposition: attachment; filename="' . preg_replace('/[^A-Za-z0-9_\-]/', '_', $program->getTitle()) . '.csv"');
 
-        if (ob_get_length()) {
-            ob_clean();
-        }
+        $output = fopen('php://output', 'w');
+        fprintf($output, chr(0xEF).chr(0xBB).chr(0xBF)); // UTF-8 BOM
 
-        require_once __DIR__ . '/../vendor/autoload.php';
-        $options = new \Dompdf\Options();
-        $options->set('defaultFont', 'DejaVu Sans');
-        $options->set('isHtml5ParserEnabled', true);
-        $dompdf = new \Dompdf\Dompdf($options);
+        // En-têtes
+        fputcsv($output, ['Programme', $e($program->getTitle())], ';');
+        fputcsv($output, ['Description', $e($program->getDescription() ?: 'Aucune description')], ';');
+        fputcsv($output, ['Durée', $program->getDurationWeeks() . ' semaines'], ';');
+        fputcsv($output, ['Niveau', ucfirst($e($program->getDifficultyLevel()))], ';');
+        fputcsv($output, [], ';'); // Ligne vide
+        fputcsv($output, ['Exercice', 'Séries × Répétitions', 'Temps de repos', 'Description'], ';');
 
-        $e = static fn($value): string => htmlspecialchars((string)$value, ENT_QUOTES, 'UTF-8');
-
-        $html = '<!DOCTYPE html>
-        <html>
-        <head>
-            <meta charset="UTF-8">
-            <style>
-                body { font-family: sans-serif; color: #2D3E2B; }
-                h1 { color: #FF7E67; font-size: 24px; border-bottom: 2px solid #7DCFB6; padding-bottom: 10px; }
-                p { font-size: 14px; line-height: 1.5; color: #4A5B4A; }
-                .badges { margin: 15px 0; font-size: 12px; }
-                .badge { display: inline-block; padding: 4px 10px; background: #ebf5df; border: 1px solid #7DCFB6; border-radius: 12px; margin-right: 10px; font-weight: bold; color: #2D3E2B; }
-                table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-                th { background: #FEF7E8; color: #FF7E67; padding: 12px; text-align: left; font-size: 13px; text-transform: uppercase; border-bottom: 2px dashed rgba(255,126,103,0.3); }
-                td { padding: 12px; border-bottom: 1px solid #eee; font-size: 13px; }
-            </style>
-        </head>
-        <body>
-            <h1>' . $e($program['title']) . '</h1>
-            <p>' . nl2br($e($program['description'] ?: 'Aucune description fournie.')) . '</p>
-            <div class="badges">
-                <span class="badge">Durée: ' . (int)$program['duration_weeks'] . ' semaines</span>
-                <span class="badge">Niveau: ' . ucfirst($e($program['difficulty_level'])) . '</span>
-            </div>
-            
-            <h2 style="margin-top: 30px; font-size: 18px; color: #4A6B4A;">Liste des Exercices</h2>
-            <table>
-                <thead>
-                    <tr>
-                        <th>Nom de l&apos;exercice</th>
-                        <th>Séries x Rép.</th>
-                        <th>Temps de repos</th>
-                        <th>Description</th>
-                    </tr>
-                </thead>
-                <tbody>';
-
-        if ($exercises === []) {
-            $html .= '<tr><td colspan="4" style="text-align: center; color: #888; padding: 30px;">Aucun exercice lié à ce programme.</td></tr>';
+        if (empty($exercises)) {
+            fputcsv($output, ['Aucun exercice lié'], ';');
         } else {
             foreach ($exercises as $ex) {
-                $html .= '<tr>
-                    <td style="font-weight: bold; color: #4A6B4A;">' . $e($ex['name']) . '</td>
-                    <td><strong style="color: coral;">' . (int)$ex['sets'] . ' x ' . (int)$ex['reps'] . '</strong></td>
-                    <td>' . $e($ex['rest_time']) . '</td>
-                    <td>' . nl2br($e($ex['description'] ?: '-')) . '</td>
-                </tr>';
+                fputcsv($output, [
+                    $e($ex['name']),
+                    $ex['sets'] . ' × ' . $ex['reps'],
+                    $e($ex['rest_time']),
+                    $e($ex['description'] ?: '-')
+                ], ';');
             }
         }
 
-        $html .= '</tbody></table></body></html>';
-
-        $dompdf->setPaper('A4', 'portrait');
-        $dompdf->loadHtml($html);
-        $dompdf->render();
-        $dompdf->stream('Programme_' . preg_replace('/[^A-Za-z0-9_\-]/', '_', $program['title']) . '.pdf', ["Attachment" => true]);
+        fclose($output);
         exit;
     }
 
-    private function validateCoaching(array $input): array
+    private function genererSeance(): void
     {
-        $errors = [];
-        $title = trim(strip_tags((string)($input['title'] ?? '')));
-        $description = trim(strip_tags((string)($input['description'] ?? '')));
-        $durationWeeks = filter_var($input['duration_weeks'] ?? null, FILTER_VALIDATE_INT);
-        $difficulty = strtolower(trim((string)($input['difficulty_level'] ?? '')));
-
-        if ($title === '') {
-            $errors[] = 'Title is required.';
+        $id = $this->getIdFromGet();
+        if ($id === null) { $this->setFlash('Programme introuvable.'); $this->redirect('index.php?controller=coaching&action=index'); }
+        $program = $this->dbGetById($id);
+        if (!$program) { $this->setFlash('Programme introuvable.'); $this->redirect('index.php?controller=coaching&action=index'); }
+        $niveau = $program->getDifficultyLevel();
+        $bibliotheque = [
+            ['nom' => 'Marche rapide',    'type' => 'cardio',    'series' => 3, 'reps' => 10, 'repos' => 30],
+            ['nom' => 'Course',           'type' => 'cardio',    'series' => 4, 'reps' => 8,  'repos' => 45],
+            ['nom' => 'Burpees',          'type' => 'cardio',    'series' => 3, 'reps' => 12, 'repos' => 60],
+            ['nom' => 'Corde à sauter',   'type' => 'cardio',    'series' => 5, 'reps' => 20, 'repos' => 30],
+            ['nom' => 'Gainage',          'type' => 'endurance', 'series' => 3, 'reps' => 30, 'repos' => 30],
+            ['nom' => 'Squat',            'type' => 'endurance', 'series' => 3, 'reps' => 15, 'repos' => 40],
+            ['nom' => 'Fentes',           'type' => 'endurance', 'series' => 3, 'reps' => 12, 'repos' => 35],
+            ['nom' => 'Pompes',           'type' => 'force',     'series' => 4, 'reps' => 12, 'repos' => 45],
+            ['nom' => 'Tractions',        'type' => 'force',     'series' => 3, 'reps' => 8,  'repos' => 60],
+            ['nom' => 'Développé couché', 'type' => 'force',     'series' => 4, 'reps' => 10, 'repos' => 90],
+        ];
+        $regles = [
+            'easy'   => ['cardio' => 3, 'endurance' => 1, 'force' => 0],
+            'medium' => ['cardio' => 2, 'endurance' => 1, 'force' => 1],
+            'hard'   => ['cardio' => 1, 'endurance' => 2, 'force' => 3],
+        ];
+        $regle = $regles[$niveau] ?? ['cardio' => 2, 'endurance' => 1, 'force' => 1];
+        $seance = []; $compteurs = ['cardio' => 0, 'endurance' => 0, 'force' => 0];
+        foreach ($bibliotheque as $exercice) {
+            $type = $exercice['type'];
+            if ($compteurs[$type] < $regle[$type]) { $seance[] = $exercice; $compteurs[$type]++; }
         }
-
-        if ($durationWeeks === false || $durationWeeks <= 0) {
-            $errors[] = 'Duration must be a positive number.';
-        }
-
-        if (!in_array($difficulty, ['easy', 'medium', 'hard'], true)) {
-            $errors[] = 'Difficulty must be easy, medium, or hard.';
-        }
-
-        return [[
-            'title' => $title,
-            'description' => $description,
-            'duration_weeks' => $durationWeeks ?: 0,
-            'difficulty_level' => $difficulty,
-        ], $errors];
+        include __DIR__ . '/../views/front/seance_generee.php';
     }
 
+    private function dbGetAll(): array
+    {
+        $stmt = $this->pdo->query('SELECT * FROM coaching_programs ORDER BY created_at DESC');
+        return $this->hydrateMany($stmt->fetchAll());
+    }
+
+    private function dbGetById(int $id): ?Coaching
+    {
+        $stmt = $this->pdo->prepare('SELECT * FROM coaching_programs WHERE id = :id');
+        $stmt->execute(['id' => $id]);
+        $row = $stmt->fetch();
+        return $row ? new Coaching($row) : null;
+    }
+
+    private function dbSearch(string $keyword): array
+    {
+        $stmt = $this->pdo->prepare('SELECT * FROM coaching_programs WHERE title LIKE :k1 OR description LIKE :k2 ORDER BY created_at DESC');
+        $kw = '%' . $keyword . '%';
+        $stmt->execute(['k1' => $kw, 'k2' => $kw]);
+        return $this->hydrateMany($stmt->fetchAll());
+    }
+
+    private function dbSort(string $column, string $order): array
+    {
+        $col = in_array($column, $this->allowedSortColumns, true) ? $column : 'created_at';
+        $dir = strtolower($order) === 'asc' ? 'ASC' : 'DESC';
+        if ($col === 'difficulty_level') {
+            $sql = "SELECT * FROM coaching_programs ORDER BY FIELD(difficulty_level,'easy','medium','hard') {$dir}, created_at DESC";
+        } else {
+            $sql = "SELECT * FROM coaching_programs ORDER BY {$col} {$dir}";
+        }
+        return $this->hydrateMany($this->pdo->query($sql)->fetchAll());
+    }
+
+    private function dbCreate(Coaching $program): bool
+    {
+        $stmt = $this->pdo->prepare('INSERT INTO coaching_programs (title, description, image, duration_weeks, difficulty_level) VALUES (:title, :description, :image, :duration_weeks, :difficulty_level)');
+        return $stmt->execute($program->toArray());
+    }
+
+    private function dbUpdate(int $id, Coaching $program): bool
+    {
+        $stmt = $this->pdo->prepare('UPDATE coaching_programs SET title = :title, description = :description, image = :image, duration_weeks = :duration_weeks, difficulty_level = :difficulty_level WHERE id = :id');
+        return $stmt->execute(array_merge($program->toArray(), ['id' => $id]));
+    }
+
+    private function dbDelete(int $id): bool
+    {
+        $stmt = $this->pdo->prepare('DELETE FROM coaching_programs WHERE id = :id');
+        return $stmt->execute(['id' => $id]);
+    }
+
+    private function hydrateMany(array $rows): array
+    {
+        return array_map(static fn(array $row): Coaching => new Coaching($row), $rows);
+    }
+
+    private function buildFromPost(array $input): ?Coaching
+    {
+        try {
+            return new Coaching([
+                'title'            => trim(strip_tags((string)($input['title']            ?? ''))),
+                'description'      => trim(strip_tags((string)($input['description']      ?? ''))),
+                'image'            => trim((string)($input['image'] ?? '')) ?: null,
+                'duration_weeks'   => (int)($input['duration_weeks']   ?? 0),
+                'difficulty_level' => strtolower(trim((string)($input['difficulty_level'] ?? ''))),
+            ]);
+        } catch (InvalidArgumentException $e) {
+            $this->setFlash($e->getMessage());
+            return null;
+        }
+    }
 
     private function sortRows(array $rows, string $column, string $order): array
     {
-        $safeOrder = strtolower($order) === 'asc' ? 1 : -1;
-        $safeColumn = in_array($column, ['duration_weeks', 'difficulty_level', 'created_at', 'title'], true)
-            ? $column
-            : 'created_at';
-
-        usort($rows, static function (array $a, array $b) use ($safeColumn, $safeOrder): int {
-            if ($safeColumn === 'difficulty_level') {
-                $rank = ['easy' => 1, 'medium' => 2, 'hard' => 3];
-                $first = $rank[$a[$safeColumn]] ?? 999;
-                $second = $rank[$b[$safeColumn]] ?? 999;
-                return ($first <=> $second) * $safeOrder;
-            }
-
-            return (($a[$safeColumn] <=> $b[$safeColumn]) * $safeOrder);
+        $dir = strtolower($order) === 'asc' ? 1 : -1;
+        usort($rows, static function (Coaching $a, Coaching $b) use ($column, $dir): int {
+            return match ($column) {
+                'difficulty_level' => ((['easy'=>1,'medium'=>2,'hard'=>3][$a->getDifficultyLevel()]??999)<=>(['easy'=>1,'medium'=>2,'hard'=>3][$b->getDifficultyLevel()]??999))*$dir,
+                'duration_weeks'   => ($a->getDurationWeeks() <=> $b->getDurationWeeks()) * $dir,
+                'title'            => strcmp($a->getTitle(), $b->getTitle()) * $dir,
+                default            => (($a->getCreatedAt()??'')<=>($b->getCreatedAt()??''))*$dir,
+            };
         });
-
         return $rows;
     }
 
     private function getIdFromGet(): ?int
     {
         $id = filter_input(INPUT_GET, 'id', FILTER_VALIDATE_INT);
-        return $id !== false && $id !== null ? $id : null;
+        return ($id !== false && $id !== null) ? $id : null;
     }
 
-    private function setFlash(string $message): void
-    {
-        $_SESSION['flash_message'] = $message;
-    }
+    private function setFlash(string $message): void    { $_SESSION['flash_message'] = $message; }
 
     private function consumeFlash(): ?string
     {
-        if (!isset($_SESSION['flash_message'])) {
-            return null;
-        }
-
-        $message = (string)$_SESSION['flash_message'];
+        if (!isset($_SESSION['flash_message'])) return null;
+        $msg = (string)$_SESSION['flash_message'];
         unset($_SESSION['flash_message']);
-        return $message;
+        return $msg;
     }
 
-    private function redirect(string $url): void
-    {
-        header('Location: ' . $url);
-        exit;
-    }
+    private function redirect(string $url): never { header('Location: ' . $url); exit; }
 
-    private function redirectBackToCoaching(?int $editId = null): void
+    private function redirectBackToCoaching(?int $editId = null): never
     {
         if (($_GET['redirect'] ?? '') === 'dashboard') {
             $url = 'index.php?controller=dashboard&action=index';
-            if ($editId !== null) {
-                $url .= '&view=coaching_edit&id=' . $editId;
-            }
+            if ($editId !== null) $url .= '&view=coaching_edit&id=' . $editId;
             $this->redirect($url);
         }
-
         $url = 'index.php?controller=coaching&action=index';
-        if ($editId !== null) {
-            $url .= '&action=edit&id=' . $editId;
-        }
+        if ($editId !== null) $url .= '&action=edit&id=' . $editId;
         $this->redirect($url);
     }
 }

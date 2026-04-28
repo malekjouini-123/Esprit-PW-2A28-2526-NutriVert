@@ -1,97 +1,159 @@
 <?php
 declare(strict_types=1);
 
-require_once __DIR__ . '/../config/database.php';
+// =============================================================================
+//  ENTITÉ  Coaching
+//  Objet métier pur : attributs, constructeur, destructeur, getters, setters.
+//  Aucune logique BDD ici — tout accès PDO est dans CoachingController.
+// =============================================================================
 
 class Coaching
 {
-    private PDO $pdo;
-    private array $allowedSortColumns = ['duration_weeks', 'difficulty_level', 'created_at', 'title'];
+    // -------------------------------------------------------------------------
+    // Attributs privés
+    // -------------------------------------------------------------------------
 
-    public function __construct()
+    private ?int    $id;
+    private string  $title;
+    private string  $description;
+    private ?string $image;
+    private int     $durationWeeks;
+    private string  $difficultyLevel;
+    private ?string $createdAt;
+
+    public const ALLOWED_DIFFICULTIES = ['easy', 'medium', 'hard'];
+
+    // -------------------------------------------------------------------------
+    // Constructeur
+    // -------------------------------------------------------------------------
+
+    /**
+     * Initialise l'entité depuis un tableau associatif (résultat PDO ou $_POST).
+     *
+     * @throws InvalidArgumentException si les données sont invalides.
+     */
+    public function __construct(array $data)
     {
-        $this->pdo = getDB();
+        $this->id              = isset($data['id'])             ? (int)$data['id']                        : null;
+        $this->title           = trim((string)($data['title']           ?? ''));
+        $this->description     = trim((string)($data['description']     ?? ''));
+        $this->image           = isset($data['image']) && !empty($data['image']) ? trim((string)$data['image']) : null;
+        $this->durationWeeks   = isset($data['duration_weeks']) ? (int)$data['duration_weeks']            : 0;
+        $this->difficultyLevel = strtolower(trim((string)($data['difficulty_level'] ?? '')));
+        $this->createdAt       = isset($data['created_at'])     ? (string)$data['created_at']             : null;
+
+        $this->validate();
     }
 
-    public function getAll(): array
+    // -------------------------------------------------------------------------
+    // Destructeur
+    // -------------------------------------------------------------------------
+
+    public function __destruct()
     {
-        $stmt = $this->pdo->query('SELECT * FROM coaching_programs ORDER BY created_at DESC');
-        return $stmt->fetchAll();
+        // Libération du cycle de vie de l'objet.
+        // Aucune ressource externe à fermer ; le GC PHP gère la mémoire.
     }
 
-    public function getById(int $id): ?array
+    // -------------------------------------------------------------------------
+    // Getters
+    // -------------------------------------------------------------------------
+
+    public function getId(): ?int             { return $this->id; }
+    public function getTitle(): string        { return $this->title; }
+    public function getDescription(): string  { return $this->description; }
+    public function getImage(): ?string       { return $this->image; }
+    public function getDurationWeeks(): int   { return $this->durationWeeks; }
+    public function getDifficultyLevel(): string { return $this->difficultyLevel; }
+    public function getCreatedAt(): ?string   { return $this->createdAt; }
+
+    // -------------------------------------------------------------------------
+    // Setters (avec validation intégrée)
+    // -------------------------------------------------------------------------
+
+    public function setTitle(string $title): void
     {
-        $stmt = $this->pdo->prepare('SELECT * FROM coaching_programs WHERE id = :id');
-        $stmt->execute(['id' => $id]);
-        $item = $stmt->fetch();
-
-        return $item ?: null;
-    }
-
-    public function create(array $data): bool
-    {
-        $stmt = $this->pdo->prepare(
-            'INSERT INTO coaching_programs (title, description, duration_weeks, difficulty_level)
-             VALUES (:title, :description, :duration_weeks, :difficulty_level)'
-        );
-
-        return $stmt->execute([
-            'title' => $data['title'],
-            'description' => $data['description'],
-            'duration_weeks' => $data['duration_weeks'],
-            'difficulty_level' => $data['difficulty_level'],
-        ]);
-    }
-
-    public function update(int $id, array $data): bool
-    {
-        $stmt = $this->pdo->prepare(
-            'UPDATE coaching_programs
-             SET title = :title, description = :description, duration_weeks = :duration_weeks, difficulty_level = :difficulty_level
-             WHERE id = :id'
-        );
-
-        return $stmt->execute([
-            'id' => $id,
-            'title' => $data['title'],
-            'description' => $data['description'],
-            'duration_weeks' => $data['duration_weeks'],
-            'difficulty_level' => $data['difficulty_level'],
-        ]);
-    }
-
-    public function delete(int $id): bool
-    {
-        $stmt = $this->pdo->prepare('DELETE FROM coaching_programs WHERE id = :id');
-        return $stmt->execute(['id' => $id]);
-    }
-
-    public function search(string $keyword): array
-    {
-        $stmt = $this->pdo->prepare(
-            'SELECT * FROM coaching_programs
-             WHERE title LIKE :keyword1 OR description LIKE :keyword2
-             ORDER BY created_at DESC'
-        );
-        $kw = '%' . $keyword . '%';
-        $stmt->execute(['keyword1' => $kw, 'keyword2' => $kw]);
-
-        return $stmt->fetchAll();
-    }
-
-    public function sort(string $column, string $order): array
-    {
-        $safeColumn = in_array($column, $this->allowedSortColumns, true) ? $column : 'created_at';
-        $safeOrder = strtolower($order) === 'asc' ? 'ASC' : 'DESC';
-
-        if ($safeColumn === 'difficulty_level') {
-            $sql = "SELECT * FROM coaching_programs
-                    ORDER BY FIELD(difficulty_level, 'easy', 'medium', 'hard') {$safeOrder}, created_at DESC";
-        } else {
-            $sql = "SELECT * FROM coaching_programs ORDER BY {$safeColumn} {$safeOrder}";
+        $title = trim($title);
+        if ($title === '') {
+            throw new InvalidArgumentException('Le titre ne peut pas être vide.');
         }
+        $this->title = $title;
+    }
 
-        $stmt = $this->pdo->query($sql);
-        return $stmt->fetchAll();
+    public function setDescription(string $description): void
+    {
+        $this->description = trim($description);
+    }
+
+    public function setImage(?string $image): void
+    {
+        $this->image = $image ? trim($image) : null;
+    }
+
+    public function setDurationWeeks(int $durationWeeks): void
+    {
+        if ($durationWeeks <= 0) {
+            throw new InvalidArgumentException('La durée doit être un entier positif.');
+        }
+        $this->durationWeeks = $durationWeeks;
+    }
+
+    public function setDifficultyLevel(string $difficultyLevel): void
+    {
+        $level = strtolower(trim($difficultyLevel));
+        if (!in_array($level, self::ALLOWED_DIFFICULTIES, true)) {
+            throw new InvalidArgumentException(
+                'Niveau invalide. Valeurs acceptées : ' . implode(', ', self::ALLOWED_DIFFICULTIES)
+            );
+        }
+        $this->difficultyLevel = $level;
+    }
+
+    // -------------------------------------------------------------------------
+    // Utilitaires
+    // -------------------------------------------------------------------------
+
+    /**
+     * Retourne un tableau compatible avec les requêtes PDO INSERT / UPDATE.
+     */
+    public function toArray(): array
+    {
+        return [
+            'title'            => $this->title,
+            'description'      => $this->description,
+            'image'            => $this->image,
+            'duration_weeks'   => $this->durationWeeks,
+            'difficulty_level' => $this->difficultyLevel,
+        ];
+    }
+
+    public function __toString(): string
+    {
+        return sprintf(
+            'Coaching[id=%s, title="%s", difficulty=%s, duration=%d weeks]',
+            $this->id ?? 'new',
+            $this->title,
+            $this->difficultyLevel,
+            $this->durationWeeks
+        );
+    }
+
+    // -------------------------------------------------------------------------
+    // Validation interne — appelée uniquement par __construct
+    // -------------------------------------------------------------------------
+
+    private function validate(): void
+    {
+        if ($this->title === '') {
+            throw new InvalidArgumentException('Le titre ne peut pas être vide.');
+        }
+        if ($this->durationWeeks <= 0) {
+            throw new InvalidArgumentException('La durée doit être un entier positif.');
+        }
+        if (!in_array($this->difficultyLevel, self::ALLOWED_DIFFICULTIES, true)) {
+            throw new InvalidArgumentException(
+                'Niveau invalide. Valeurs acceptées : ' . implode(', ', self::ALLOWED_DIFFICULTIES)
+            );
+        }
     }
 }
