@@ -16,13 +16,12 @@ class CategorieController
 
     public function handle(): void
     {
-        $model = new Categorie($this->pdo);
         $method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
 
         try {
             switch ($method) {
                 case 'GET':
-                    nv_json($model->findAll());
+                    nv_json($this->findAll());
 
                 case 'POST':
                     $in = nv_json_input();
@@ -34,7 +33,8 @@ class CategorieController
                     if ($desc === '') {
                         $desc = null;
                     }
-                    $id = $model->create($nom, $desc);
+                    $categorie = (new Categorie())->setNom($nom)->setDescription($desc);
+                    $id = $this->createCategorie($categorie);
                     nv_json(['ok' => true, 'id' => $id]);
 
                 case 'PUT':
@@ -51,7 +51,8 @@ class CategorieController
                     if ($desc === '') {
                         $desc = null;
                     }
-                    $affected = $model->update($id, $nom, $desc);
+                    $categorie = (new Categorie())->setId($id)->setNom($nom)->setDescription($desc);
+                    $affected = $this->updateCategorie($categorie);
                     nv_json(['ok' => true, 'affected' => $affected]);
 
                 case 'DELETE':
@@ -60,7 +61,7 @@ class CategorieController
                         nv_json(['error' => 'Paramètre id manquant.'], 400);
                     }
                     try {
-                        $model->delete($id);
+                        $this->deleteCategorie($id);
                         nv_json(['ok' => true]);
                     } catch (PDOException $e) {
                         $code = (int) ($e->errorInfo[1] ?? 0);
@@ -79,5 +80,34 @@ class CategorieController
             }
             nv_json(['error' => 'Erreur base de données.', 'detail' => $e->getMessage()], 500);
         }
+    }
+
+    /**
+     * @return list<array<string,mixed>>
+     */
+    private function findAll(): array
+    {
+        $stmt = $this->pdo->query('SELECT id, nom, description FROM categorie ORDER BY nom ASC');
+        return $stmt->fetchAll();
+    }
+
+    private function createCategorie(Categorie $categorie): int
+    {
+        $stmt = $this->pdo->prepare('INSERT INTO categorie (nom, description) VALUES (?, ?)');
+        $stmt->execute([$categorie->getNom(), $categorie->getDescription()]);
+        return (int) $this->pdo->lastInsertId();
+    }
+
+    private function updateCategorie(Categorie $categorie): int
+    {
+        $stmt = $this->pdo->prepare('UPDATE categorie SET nom = ?, description = ? WHERE id = ?');
+        $stmt->execute([$categorie->getNom(), $categorie->getDescription(), (int) $categorie->getId()]);
+        return $stmt->rowCount();
+    }
+
+    private function deleteCategorie(int $id): void
+    {
+        $stmt = $this->pdo->prepare('DELETE FROM categorie WHERE id = ?');
+        $stmt->execute([$id]);
     }
 }
