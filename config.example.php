@@ -11,6 +11,17 @@ define('DB_NAME', 'NutriVert');
 define('DB_USER', 'root');
 define('DB_PASS', '');
 
+// Gmail : activez l'authentification à deux facteurs, puis générez un mot de passe d'application.
+define('NV_SMTP_HOST', 'smtp.gmail.com');
+define('NV_SMTP_PORT', 587);
+define('NV_SMTP_USER', '');
+define('NV_SMTP_PASSWORD', '');
+define('NV_MAIL_FROM_EMAIL', '');
+define('NV_MAIL_FROM_NAME', 'NutriVert');
+define('NV_INSCRIPTION_NOTIFY_EMAIL', '');
+
+require_once __DIR__ . '/nv_mail_smtp.php';
+
 function nv_bootstrap(): void
 {
     if (($_SERVER['REQUEST_METHOD'] ?? '') === 'OPTIONS') {

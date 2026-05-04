@@ -135,11 +135,63 @@ class FrontController
         }
 
         if ($res) {
+            if ($data['id'] === 0) {
+                $this->notifyNewInscriptionByEmail($inscription);
+            }
             header('Location: index.php?sub=participants&success=inscribed&id=' . ($data['id'] > 0 ? $data['id'] : $inscription->id));
         } else {
             header('Location: index.php?sub=participants&error=failed');
         }
         exit;
+    }
+
+    /**
+     * Envoie un e-mail au destinataire configuré (NV_INSCRIPTION_NOTIFY_EMAIL) via Gmail SMTP.
+     */
+    private function notifyNewInscriptionByEmail(Inscription $inscription): void
+    {
+        if (!function_exists('nv_mail_smtp_configured') || !nv_mail_smtp_configured()) {
+            return;
+        }
+        if (!defined('NV_INSCRIPTION_NOTIFY_EMAIL') || NV_INSCRIPTION_NOTIFY_EMAIL === '') {
+            return;
+        }
+        if (!filter_var(NV_INSCRIPTION_NOTIFY_EMAIL, FILTER_VALIDATE_EMAIL)) {
+            return;
+        }
+
+        $event = Evenement::findById($inscription->evenement_id);
+        $eventTitle = $event ? $event->titre : ('Événement #' . $inscription->evenement_id);
+        $subject = 'NutriVert — Nouvelle inscription : ' . $eventTitle;
+        $html = $this->buildInscriptionNotificationHtml($inscription, $event);
+
+        $err = null;
+        if (!nv_send_html_mail(NV_INSCRIPTION_NOTIFY_EMAIL, $subject, $html, $err) && $err) {
+            error_log('NutriVert inscription mail: ' . $err);
+        }
+    }
+
+    private function buildInscriptionNotificationHtml(Inscription $inscription, ?Evenement $event): string
+    {
+        $dateEv = $event ? date('d/m/Y H:i', strtotime($event->date_evenement)) : '';
+        $lieuEv = $event ? htmlspecialchars($event->lieu) : '';
+        $titreEv = $event ? htmlspecialchars($event->titre) : htmlspecialchars((string)$inscription->evenement_id);
+
+        $nom = htmlspecialchars($inscription->nom . ' ' . $inscription->prenom);
+        $email = htmlspecialchars($inscription->email);
+        $tel = htmlspecialchars($inscription->telephone);
+
+        return '<!DOCTYPE html><html><head><meta charset="UTF-8"></head><body style="font-family:sans-serif;background:#fcfdf7;color:#2d4f1e;padding:20px;">'
+            . '<div style="max-width:560px;margin:0 auto;background:#fff;padding:24px;border-radius:12px;">'
+            . '<h1 style="color:#3d6b2e;font-size:1.25rem;">Nouvelle inscription</h1>'
+            . '<p><strong>Événement :</strong> ' . $titreEv . '</p>'
+            . ($dateEv !== '' ? '<p><strong>Date :</strong> ' . htmlspecialchars($dateEv) . '</p>' : '')
+            . ($lieuEv !== '' ? '<p><strong>Lieu :</strong> ' . $lieuEv . '</p>' : '')
+            . '<hr style="border:none;border-top:1px solid #eee;margin:16px 0;">'
+            . '<p><strong>Participant :</strong> ' . $nom . '</p>'
+            . '<p><strong>E-mail :</strong> ' . $email . '</p>'
+            . '<p><strong>Téléphone :</strong> ' . $tel . '</p>'
+            . '</div></body></html>';
     }
 
     /**

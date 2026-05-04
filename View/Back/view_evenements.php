@@ -93,7 +93,24 @@ declare(strict_types=1);
         .offer-content { padding: 1.5rem; flex-grow: 1; display: flex; flex-direction: column; gap: 1rem; }
         .offer-price { font-size: 2rem; font-weight: 800; color: #1f5e1a; margin-top: auto; }
 
-        .crud-btns { display: flex; gap: 0.5rem; margin-top: 1rem; }
+        .crud-btns { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 1rem; align-items: center; }
+        .crud-btns .btn-inscrire {
+            background: #7DCFB6;
+            color: #1a3a1a;
+            border: none;
+            padding: 0.5rem 0.85rem;
+            border-radius: 0.8rem;
+            font-weight: 700;
+            cursor: pointer;
+            font-family: inherit;
+            font-size: 0.85rem;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.35rem;
+            text-decoration: none;
+        }
+        .crud-btns .btn-inscrire:hover { filter: brightness(1.05); transform: scale(1.02); }
         .btn-edit { background: #f1c40f; color: #fff; border: none; padding: 0.6rem; border-radius: 0.8rem; cursor: pointer; flex: 1; font-weight: 700; transition: 0.2s; }
         .btn-delete { background: #e74c3c; color: #fff; border: none; padding: 0.6rem; border-radius: 0.8rem; cursor: pointer; flex: 1; font-weight: 700; transition: 0.2s; }
         .btn-edit:hover { background: #d4ac0d; }
@@ -312,6 +329,7 @@ declare(strict_types=1);
                         <p style="color: #2c4d24; font-size: 0.95rem; line-height: 1.6;"><?= htmlspecialchars($ev->description) ?></p>
                         <div class="offer-price"><?= $ev->prix_participation ?? '49' ?><span> DT/mois</span></div>
                         <div class="crud-btns">
+                            <a href="index.php?action=inscription&event_id=<?= (int)$ev->id ?>" class="btn-inscrire" target="_blank" rel="noopener"><i class="fas fa-user-plus"></i> S'inscrire</a>
                             <button class="btn-edit" onclick="editOffer(<?= $ev->id ?>)"><i class="fas fa-edit"></i></button>
                             <button class="btn-delete" onclick="deleteOffer(<?= $ev->id ?>)"><i class="fas fa-trash"></i></button>
                             <button class="btn-show" onclick="showEventDetails(<?= $ev->id ?>)" style="background: #3498db; color: white; border: none; padding: 0.5rem; border-radius: 8px; cursor: pointer; margin-left: 5px;"><i class="fas fa-eye"></i></button>

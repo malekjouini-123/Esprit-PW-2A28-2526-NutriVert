@@ -43,7 +43,7 @@ class AdminEvenementController
 
         $id = (int)($_POST['id'] ?? 0);
         $evenement = ($id > 0) ? Evenement::findById($id) : new Evenement();
-        
+
         if (!$evenement) {
             header('Location: admin_evenements.php?error=notfound');
             exit;
