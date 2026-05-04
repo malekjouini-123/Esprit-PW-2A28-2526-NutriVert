@@ -1107,7 +1107,6 @@ body.generate-open .recette-grid {
     color: var(--deep);
     margin-right: 4px;
 }
-
 /* Language switcher + RTL translation support */
 .lang-switcher {
     display: flex;
