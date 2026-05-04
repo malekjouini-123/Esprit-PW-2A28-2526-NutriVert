@@ -1,0 +1,14 @@
+{
+    "name": "nutrivert/nutrivert-mvc",
+    "description": "Application NutriVert - Système de gestion avec MVC",
+    "type": "project",
+    "require": {
+        "php": ">=7.4",
+        "phpmailer/phpmailer": "^6.9"
+    },
+    "autoload": {
+        "psr-4": {
+            "NutriVert\\": "./"
+        }
+    }
+}

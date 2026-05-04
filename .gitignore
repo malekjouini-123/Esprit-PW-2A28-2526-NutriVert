@@ -1,0 +1,29 @@
+# Variables d'environnement (secrets)
+.env
+.env.local
+.env.*.local
+
+# Fichiers IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Fichiers de cache PHP
+*.cache
+
+# Logs
+logs/
+*.log
+
+# Dossier node_modules (si vous utilisez Node.js)
+node_modules/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Storage d'emails de test
+storage/emails/*
+!storage/emails/.gitkeep
