@@ -19,8 +19,19 @@
             <input type="text" id="objectif" name="objectif" value="<?php echo htmlspecialchars($old['objectif'] ?? ''); ?>">
             <div class="error-message"><?php echo htmlspecialchars($errors['objectif'] ?? ''); ?></div>
 
+            <?php
+            $regimesAutorises = ['Végétarien', 'Végan', 'Sans gluten', 'Protéiné', 'Faible en calories'];
+            $regimeSelectionne = $old['regime'] ?? '';
+            ?>
             <label for="regime">Régime</label>
-            <input type="text" id="regime" name="regime" value="<?php echo htmlspecialchars($old['regime'] ?? ''); ?>">
+            <select id="regime" name="regime">
+                <option value="">-- Choisir un régime --</option>
+                <?php foreach ($regimesAutorises as $regimeOption): ?>
+                    <option value="<?php echo htmlspecialchars($regimeOption); ?>" <?php echo ($regimeSelectionne === $regimeOption) ? 'selected' : ''; ?>>
+                        <?php echo htmlspecialchars($regimeOption); ?>
+                    </option>
+                <?php endforeach; ?>
+            </select>
             <div class="error-message"><?php echo htmlspecialchars($errors['regime'] ?? ''); ?></div>
 
             <label for="duree">Durée</label>

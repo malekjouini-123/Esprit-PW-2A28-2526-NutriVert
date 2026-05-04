@@ -26,7 +26,6 @@
     <table class="data-table">
         <thead>
             <tr>
-                <th>ID</th>
                 <th>Titre</th>
                 <th>Objectif</th>
                 <th>Régime</th>
@@ -38,7 +37,6 @@
             <?php if (!empty($recettes)) : ?>
                 <?php foreach ($recettes as $recette) : ?>
                     <tr>
-                        <td><?php echo htmlspecialchars($recette['id_recette']); ?></td>
                         <td><?php echo htmlspecialchars($recette['titre']); ?></td>
                         <td><?php echo htmlspecialchars($recette['objectif']); ?></td>
                         <td><?php echo htmlspecialchars($recette['regime']); ?></td>
@@ -59,7 +57,7 @@
                 <?php endforeach; ?>
             <?php else : ?>
                 <tr>
-                    <td colspan="6">Aucune recette trouvée.</td>
+                    <td colspan="5">Aucune recette trouvée.</td>
                 </tr>
             <?php endif; ?>
         </tbody>
