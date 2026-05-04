@@ -21,8 +21,11 @@ class RecetteController extends BaseController
             $errors['objectif'] = 'L\'objectif doit contenir au moins 5 caractères.';
         }
 
+        $regimesAutorises = ['Végétarien', 'Végan', 'Sans gluten', 'Protéiné', 'Faible en calories'];
         if (($data['regime'] ?? '') === '') {
             $errors['regime'] = 'Le régime est obligatoire.';
+        } elseif (!in_array($data['regime'], $regimesAutorises, true)) {
+            $errors['regime'] = 'Veuillez choisir un régime valide.';
         }
 
         if (($data['duree'] ?? '') === '' || !is_numeric($data['duree']) || (int) $data['duree'] <= 0) {

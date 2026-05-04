@@ -3,12 +3,12 @@
     <div class="detail-card">
         <h1 class="page-title"><?php echo htmlspecialchars($recette['titre']); ?></h1>
         <div class="detail-summary">
-            <div class="summary-item"><strong>Objectif</strong><span><?php echo htmlspecialchars($recette['objectif']); ?></span></div>
-            <div class="summary-item"><strong>Régime</strong><span><?php echo htmlspecialchars($recette['regime']); ?></span></div>
-            <div class="summary-item"><strong>Durée</strong><span><?php echo (int)$recette['duree']; ?> min</span></div>
+            <div class="summary-item"><strong><?php echo t('objective'); ?></strong><span><?php echo htmlspecialchars($recette['objectif']); ?></span></div>
+            <div class="summary-item"><strong><?php echo t('regime'); ?></strong><span><?php echo htmlspecialchars($recette['regime']); ?></span></div>
+            <div class="summary-item"><strong><?php echo t('duration'); ?></strong><span><?php echo (int)$recette['duree']; ?> min</span></div>
         </div>
 
-        <h2 class="section-subtitle">Étapes et ingrédients</h2>
+        <h2 class="section-subtitle"><?php echo t('details_title'); ?></h2>
 
         <div class="instructions-list">
             <?php foreach ($instructions as $instruction): ?>
@@ -28,7 +28,7 @@
                                     <img src="<?php echo htmlspecialchars($image); ?>" alt="<?php echo htmlspecialchars($nom); ?>">
                                     <div class="ingredient-info">
                                         <span class="ingredient-name"><?php echo htmlspecialchars($nom); ?></span>
-                                        <span class="ingredient-qty">Quantité : <?php echo htmlspecialchars($quantite); ?></span>
+                                        <span class="ingredient-qty"><?php echo t('quantity'); ?> : <?php echo htmlspecialchars($quantite); ?></span>
                                     </div>
                                 </div>
                             <?php endforeach; ?>
@@ -39,7 +39,7 @@
         </div>
 
         <p class="back-link-wrap">
-            <a href="index.php?page=front_home" class="btn-green"><i class="fas fa-arrow-left"></i> Retour aux recettes</a>
+            <a href="index.php?page=front_home" class="btn-green"><i class="fas fa-arrow-left"></i> <?php echo t('back_recipes'); ?></a>
         </p>
     </div>
 </div>
