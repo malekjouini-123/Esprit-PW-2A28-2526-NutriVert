@@ -159,9 +159,7 @@ class FaceRecognitionService {
         }
 
         return [
-            ['python'],
-            ['python3'],
-            ['py', '-3'],
+            ['py', '-3.10'],
         ];
     }
 
