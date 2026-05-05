@@ -70,6 +70,17 @@ if (isset($_GET['action'])) {
         header("Location: dashboard.php?section=posts");
         exit;
     }
+
+    if ($_GET['action'] === 'repost_post' && isset($_GET['id'])) {
+        $id = (int)$_GET['id'];
+        $stmt = $pdo->prepare("INSERT INTO Post (titre, contenu, media_url, type_post, auteur_id) 
+                               SELECT CONCAT('reposted: ', titre), contenu, media_url, type_post, auteur_id 
+                               FROM Post WHERE id_post = ?");
+        $stmt->execute([$id]);
+        $_SESSION['flash'] = "La publication a été republiée avec succès.";
+        header("Location: dashboard.php?section=posts");
+        exit;
+    }
 }
 
 $totalUsers = $pdo->query("SELECT COUNT(*) FROM Utilisateur")->fetchColumn();
@@ -123,12 +134,65 @@ foreach ($allRepliesRaw as $r) {
 // Fetch minimal user list for dropdowns
 $users = $pdo->query("SELECT id_user, nom_utilisateur FROM Utilisateur ORDER BY nom_utilisateur ASC")->fetchAll();
 
-$e = static fn($value): string => htmlspecialchars((string)$value, ENT_QUOTES, 'UTF-8');
-
 // Determine active section server-side
 $activeSection = $_GET['section'] ?? 'dashboard';
-$validSections = ['dashboard', 'posts'];
+$validSections = ['dashboard', 'posts', 'mentions'];
 if (!in_array($activeSection, $validSections)) $activeSection = 'dashboard';
+
+// --- MENTIONS LOGIC ---
+if ($activeSection === 'mentions') {
+    $pdo->query("UPDATE Utilisateur SET date_lecture_mentions = NOW() WHERE id_user IN (1, 102)");
+}
+$adminData = $pdo->query("SELECT MAX(date_lecture_mentions) as last_read FROM Utilisateur WHERE id_user IN (1, 102)")->fetch();
+$lastReadTime = strtotime($adminData['last_read'] ?? '2000-01-01 00:00:00');
+
+// L'administrateur peut être "Marc Robert" (id=1) ou le compte spécifique "Admin NutriVert"
+$adminUser = $pdo->query("SELECT nom_utilisateur FROM Utilisateur WHERE id_user = 1")->fetch();
+$adminName1 = $adminUser ? $adminUser['nom_utilisateur'] : 'Marc Robert';
+$adminName2 = 'Admin NutriVert';
+
+$adminTag1 = '@' . $adminName1;
+$adminTag2 = '@' . $adminName2;
+
+$likeTag1 = '%' . $adminTag1 . '%';
+$likeTag2 = '%' . $adminTag2 . '%';
+
+// Mentions in Posts (title or content)
+$stmt = $pdo->prepare("
+    SELECT 'Publication' as type, p.id_post as id, p.titre, p.contenu, p.date_publication as date_creation, u.nom_utilisateur as auteur
+    FROM Post p
+    LEFT JOIN Utilisateur u ON p.auteur_id = u.id_user
+    WHERE p.contenu LIKE ? OR p.titre LIKE ? OR p.contenu LIKE ? OR p.titre LIKE ?
+");
+$stmt->execute([$likeTag1, $likeTag1, $likeTag2, $likeTag2]);
+$postMentions = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+// Mentions in Replies
+$stmt = $pdo->prepare("
+    SELECT 'Commentaire' as type, r.id_reply as id, r.post_id, r.commentaire as contenu, r.date_reply as date_creation, u.nom_utilisateur as auteur
+    FROM Reply r
+    LEFT JOIN Utilisateur u ON r.auteur_id = u.id_user
+    WHERE r.commentaire LIKE ? OR r.commentaire LIKE ?
+");
+$stmt->execute([$likeTag1, $likeTag2]);
+$replyMentions = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+$allMentions = array_merge($postMentions, $replyMentions);
+usort($allMentions, function($a, $b) {
+    return strtotime($b['date_creation']) - strtotime($a['date_creation']);
+});
+
+$mentionsCount = 0;
+foreach ($allMentions as $m) {
+    if (strtotime($m['date_creation']) > $lastReadTime) {
+        $mentionsCount++;
+    }
+}
+
+$adminTagDisplay = $adminTag1 . " ou " . $adminTag2;
+// ----------------------
+
+$e = static fn($value): string => htmlspecialchars((string)$value, ENT_QUOTES, 'UTF-8');
 ?>
 <!DOCTYPE html>
 <html lang="fr">
@@ -600,6 +664,46 @@ th {
     background: #dc2626;
     box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
 }
+
+/* Back to Top Button */
+.back-to-top {
+    position: fixed;
+    bottom: 2rem;
+    right: 2rem;
+    width: 48px;
+    height: 48px;
+    background: var(--green-mid);
+    color: white;
+    border: none;
+    border-radius: 12px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.1rem;
+    box-shadow: 0 4px 12px rgba(22, 101, 52, 0.3);
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(20px);
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    z-index: 1000;
+}
+
+.back-to-top.show {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+
+.back-to-top:hover {
+    background: var(--green-deep);
+    box-shadow: 0 6px 16px rgba(20, 83, 45, 0.4);
+    transform: translateY(-4px);
+}
+
+.back-to-top:active {
+    transform: translateY(0);
+}
 </style>
 </head>
 <body>
@@ -611,17 +715,19 @@ th {
     </div>
     <a class="menu-item <?= $activeSection === 'dashboard' ? 'active' : '' ?>" href="dashboard.php" data-section="dashboard"><i class="fas fa-chart-line"></i><span> Dashboard</span></a>
     <a class="menu-item <?= $activeSection === 'posts' ? 'active' : '' ?>" href="dashboard.php?section=posts" data-section="posts"><i class="fas fa-file-alt"></i><span> Publications</span></a>
+    <a class="menu-item <?= $activeSection === 'mentions' ? 'active' : '' ?>" href="dashboard.php?section=mentions" data-section="mentions">
+        <i class="fas fa-bell"></i><span style="display:flex; align-items:center; width:100%;"> Mentions 
+        <?php if ($mentionsCount > 0): ?>
+            <span style="background:#ef4444; color:white; border-radius:999px; padding:0.1rem 0.4rem; font-size:0.7rem; margin-left:auto;"><?= $mentionsCount ?></span>
+        <?php endif; ?>
+        </span>
+    </a>
 </div>
 
 <div class="main">
     <div class="topbar">
         <h1 style="margin:0; font-size: 1.4rem;"><i class="fas fa-seedling" style="color:var(--green-light)"></i> Admin</h1>
-        
-        <div class="search-box">
-            <i class="fas fa-search"></i>
-            <input type="text" id="globalSearch" placeholder="Rechercher une publication ou un membre...">
-        </div>
-
+        <!-- Barre de recherche déplacée -->
         <div style="display:flex;align-items:center;gap:0.6rem;flex-wrap:wrap;">
             <a class="switch-link" href="../../index.php">Retour</a>
             <div class="admin-badge"><i class="fas fa-shield-alt"></i> Admin NutriVert</div>
@@ -658,50 +764,99 @@ th {
     <div id="posts-section" class="section <?= $activeSection === 'posts' ? 'active-section' : '' ?>">
         <div class="form-card" style="margin-bottom: 2rem;">
             <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:1rem;">
-                <h2><i class="fas fa-file-alt"></i> Gestion des publications</h2>
-                <div class="table-actions">
-                    <span style="font-size: 0.8rem; color: var(--text-muted); font-weight: 600; margin-right: 0.5rem;">Trier par :</span>
-                    <a href="dashboard.php?section=posts&sort=newest" class="btn-outline btn-sm <?= ($sort === 'newest') ? 'active' : '' ?>" style="border-radius: 4px;">Récents</a>
-                    <a href="dashboard.php?section=posts&sort=most_liked" class="btn-outline btn-sm <?= ($sort === 'most_liked') ? 'active' : '' ?>" style="border-radius: 4px; color: #10b981; border-color: #10b981;">Plus de Likes</a>
-                    <a href="dashboard.php?section=posts&sort=most_disliked" class="btn-outline btn-sm <?= ($sort === 'most_disliked') ? 'active' : '' ?>" style="border-radius: 4px; color: #ef4444; border-color: #ef4444;">Plus de Dislikes</a>
-                </div>
+                <h2><i class="fas fa-pen"></i> Créer une publication</h2>
             </div>
             
             <div style="margin-top:1.5rem;">
-                <h3><i class="fas fa-pen"></i> Publier en tant qu'utilisateur</h3>
-                <form action="post_form.php" method="POST" style="display:flex; flex-direction:column; gap:1rem; margin-top: 1rem;">
-                <input type="text" name="titre" placeholder="Titre de la publication" required style="padding: 0.8rem; border-radius: 8px; border: 1px solid #d1d5db; font-family: inherit; outline: none; transition: border-color 0.2s;">
-                <textarea name="contenu" rows="3" placeholder="Que voulez-vous partager avec la communauté ?" required style="padding: 0.8rem; border-radius: 8px; border: 1px solid #d1d5db; font-family: inherit; resize: vertical; outline: none; transition: border-color 0.2s;"></textarea>
-                <div style="display:flex; gap: 1rem; align-items:center; flex-wrap: wrap;">
-                    <select name="type_post" style="padding: 0.6rem; border-radius: 8px; border: 1px solid #d1d5db; font-family: inherit; outline: none; cursor: pointer;">
-                        <option value="Article">📄 Article</option>
-                        <option value="Question">❓ Question</option>
-                        <option value="Recette">🍳 Recette</option>
-                    </select>
-                    <select name="auteur_id" required style="padding: 0.6rem; border-radius: 8px; border: 1px solid #d1d5db; font-family: inherit; outline: none; cursor: pointer;">
-                        <option value="">👤 Sélectionnez un auteur...</option>
-                        <?php foreach ($users as $u): ?>
-                            <option value="<?= $u['id_user'] ?>"><?= $e($u['nom_utilisateur']) ?></option>
-                        <?php endforeach; ?>
-                    </select>
-                    <button type="submit" class="btn-primary" style="margin-left:auto;"><i class="fas fa-paper-plane"></i> Publier</button>
-                </div>
-            </form>
+                <form id="quickPostForm" action="post_form.php" method="POST" enctype="multipart/form-data" style="display:flex; flex-direction:column; gap:1rem; margin-top: 1rem;">
+                    <div style="display: flex; flex-direction: column; gap: 0.2rem;">
+                        <input type="text" id="quick_titre" name="titre" placeholder="Titre de la publication (min 5 caractères)" required style="padding: 0.8rem; border-radius: 8px; border: 1px solid #d1d5db; font-family: inherit; outline: none; transition: all 0.2s; width: 100%;">
+                        <span id="quick_titre_error" style="color: #ef4444; font-size: 0.75rem; font-weight: 500; margin-left: 0.5rem; display: none;"></span>
+                    </div>
+                    
+                    <div style="display: flex; flex-direction: column; gap: 0.2rem;">
+                        <textarea id="quick_contenu" name="contenu" rows="3" placeholder="Que voulez-vous partager avec la communauté ?" required style="padding: 0.8rem; border-radius: 8px; border: 1px solid #d1d5db; font-family: inherit; resize: vertical; outline: none; transition: all 0.2s; width: 100%;"></textarea>
+                        <span id="quick_contenu_error" style="color: #ef4444; font-size: 0.75rem; font-weight: 500; margin-left: 0.5rem; display: none;"></span>
+                    </div>
+
+                    <div style="display:flex; gap: 1rem; align-items:center; flex-wrap: wrap;">
+                        <select name="type_post" style="padding: 0.6rem; border-radius: 8px; border: 1px solid #d1d5db; font-family: inherit; outline: none; cursor: pointer;">
+                            <option value="Article">📄 Article</option>
+                            <option value="Question">❓ Question</option>
+                            <option value="Recette">🍳 Recette</option>
+                        </select>
+                        <input type="file" id="quick_media_input" name="media" accept="image/*,video/*" style="display: none;" onchange="document.getElementById('quick_media_name').textContent = this.files[0] ? this.files[0].name : ''">
+                        <button type="button" class="btn-outline btn-sm" onclick="document.getElementById('quick_media_input').click()" style="display: flex; align-items: center; gap: 0.4rem; padding: 0.6rem 1rem; border-radius: 8px; cursor: pointer;"><i class="fas fa-image"></i> Ajouter un Média</button>
+                        <span id="quick_media_name" style="font-size: 0.8rem; color: #6b7280; max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;"></span>
+                        <button type="submit" class="btn-primary" style="margin-left:auto;"><i class="fas fa-paper-plane"></i> Publier</button>
+                    </div>
+                </form>
+            </div>
+            
+            <script>
+            document.getElementById('quickPostForm').addEventListener('submit', function(e) {
+                let isValid = true;
+                const titre = document.getElementById('quick_titre');
+                const contenu = document.getElementById('quick_contenu');
+                
+                const tErr = document.getElementById('quick_titre_error');
+                const cErr = document.getElementById('quick_contenu_error');
+                
+                function showError(input, span, msg) {
+                    span.textContent = msg;
+                    span.style.display = 'block';
+                    input.style.borderColor = '#ef4444';
+                    input.style.backgroundColor = '#fef2f2';
+                    setTimeout(() => {
+                        span.style.display = 'none';
+                        input.style.borderColor = '#d1d5db';
+                        input.style.backgroundColor = 'white';
+                    }, 4000);
+                }
+
+                if (titre.value.trim().length < 5) {
+                    showError(titre, tErr, 'Le titre doit faire au moins 5 caractères.');
+                    isValid = false;
+                }
+                if (contenu.value.trim().length < 5) {
+                    showError(contenu, cErr, 'Le contenu doit faire au moins 5 caractères.');
+                    isValid = false;
+                }
+                
+                
+                if (!isValid) e.preventDefault();
+            });
+            </script>
         </div>
 
         <div class="form-card">
-            <h2><i class="fas fa-comments"></i> Gestion des publications</h2>
-            <p class="hint">Aperçu et modération des articles, questions et recettes partagés par la communauté.</p>
+            <div style="display:flex; flex-direction:column; gap:1rem; margin-bottom: 1.5rem;">
+                <div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:1rem;">
+                    <div>
+                        <h2 style="margin-bottom: 0.5rem;"><i class="fas fa-comments"></i> Gestion des publications</h2>
+                        <p class="hint">Aperçu et modération des articles, questions et recettes partagés par la communauté.</p>
+                    </div>
+                    <div class="table-actions" style="display: flex; align-items: center; gap: 0.5rem;">
+                        <span style="font-size: 0.8rem; color: var(--text-muted); font-weight: 600;">Trier :</span>
+                        <a href="dashboard.php?section=posts&sort=newest" class="btn-outline btn-sm <?= ($sort === 'newest') ? 'active' : '' ?>" style="border-radius: 4px;">Récents</a>
+                        <a href="dashboard.php?section=posts&sort=most_liked" class="btn-outline btn-sm <?= ($sort === 'most_liked') ? 'active' : '' ?>" style="border-radius: 4px; color: #10b981; border-color: #10b981;">+ Likes</a>
+                        <a href="dashboard.php?section=posts&sort=most_disliked" class="btn-outline btn-sm <?= ($sort === 'most_disliked') ? 'active' : '' ?>" style="border-radius: 4px; color: #ef4444; border-color: #ef4444;">+ Dislikes</a>
+                    </div>
+                </div>
+                <div class="search-box" style="margin: 0; max-width: 100%;">
+                    <i class="fas fa-search" style="left: 1.2rem;"></i>
+                    <input type="text" id="globalSearch" placeholder="Rechercher une publication par auteur, titre, type ou contenu..." style="width: 100%; padding: 0.8rem 1rem 0.8rem 2.8rem; border-radius: 8px; border: 1px solid #d1d5db; background: white; font-size: 0.95rem;">
+                </div>
+            </div>
             <div class="table-container">
                 <table>
-                    <thead><tr><th>ID</th><th>Auteur</th><th>Titre / Contenu</th><th>Type</th><th>Réactions</th><th>Date</th><th>Actions</th></tr></thead>
+                    <thead><tr><th>Auteur</th><th>Titre / Contenu</th><th>Type</th><th>Réactions</th><th>Date</th><th>Actions</th></tr></thead>
                     <tbody>
                     <?php if ($posts === []): ?>
-                        <tr><td colspan="7">Aucune publication trouvée.</td></tr>
+                        <tr><td colspan="6">Aucune publication trouvée.</td></tr>
                     <?php endif; ?>
                     <?php foreach ($posts as $post): ?>
                         <tr>
-                            <td><?= (int)$post['id_post'] ?></td>
                             <td><?= $e($post['nom_utilisateur']) ?></td>
                             <td>
                                 <strong><?= $e($post['titre']) ?></strong><br>
@@ -728,6 +883,7 @@ th {
                             <td><?= date('d/m/Y H:i', strtotime($post['date_publication'])) ?></td>
                             <td>
                                 <div class="table-actions">
+                                    <a class="btn-outline btn-sm" href="dashboard.php?action=repost_post&id=<?= (int)$post['id_post'] ?>" title="Republier cette publication" style="color: #6366f1; border-color: #6366f1;"><i class="fas fa-retweet"></i> Reposter</a>
                                     <a class="btn-outline btn-sm" href="post_form.php?id=<?= (int)$post['id_post'] ?>">Modifier</a>
                                     <a class="btn-outline btn-sm btn-danger" data-confirm href="dashboard.php?action=delete_post&id=<?= (int)$post['id_post'] ?>">Supprimer</a>
                                 </div>
@@ -735,7 +891,7 @@ th {
                         </tr>
                         <?php if (isset($repliesByPost[$post['id_post']])): ?>
                             <tr style="background: #f9fafb;">
-                                <td colspan="7" style="padding: 0 1rem 1rem 3rem; border-bottom: 2px solid #edf7f0;">
+                                <td colspan="6" style="padding: 0 1rem 1rem 3rem; border-bottom: 2px solid #edf7f0;">
                                     <div style="border-left: 3px solid var(--green-soft); padding-left: 1rem; margin-top: 0.5rem;">
                                         <h4 style="font-size: 0.75rem; text-transform: uppercase; color: var(--text-muted); margin-bottom: 0.5rem;">Commentaires associés</h4>
                                         <?php foreach ($repliesByPost[$post['id_post']] as $reply): ?>
@@ -760,9 +916,80 @@ th {
             </div>
         </div>
     </div>
+
+<div id="mentions-section" class="section <?= $activeSection === 'mentions' ? 'active-section' : '' ?>">
+    <div class="form-card">
+        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:1rem; margin-bottom: 1.5rem;">
+            <div>
+                <h2 style="margin-bottom: 0.5rem;"><i class="fas fa-bell"></i> Mentions administrateur</h2>
+                <p class="hint">Liste de toutes les publications et commentaires où l'on vous a mentionné (<?= $e($adminTagDisplay) ?>).</p>
+            </div>
+        </div>
+        
+        <div class="notifications-feed" style="display:flex; flex-direction:column; gap:1rem;">
+            <?php if ($allMentions === []): ?>
+                <div style="padding:3rem 2rem; text-align:center; color:var(--text-muted); background:#f9fafb; border-radius:12px; border:2px dashed #e5e7eb;">
+                    <i class="fas fa-bell-slash" style="font-size:2.5rem; margin-bottom:1rem; color:#d1d5db;"></i>
+                    <p style="font-size:1.05rem; font-weight:500;">Vous n'avez aucune mention pour le moment.</p>
+                </div>
+            <?php endif; ?>
+            
+            <?php foreach ($allMentions as $mention): ?>
+                <div class="notification-card" style="background:white; border:1px solid #e5e7eb; border-radius:12px; padding:1.2rem; display:flex; gap:1rem; transition:transform 0.2s, box-shadow 0.2s; position:relative; overflow:hidden;" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 10px 15px -3px rgba(0,0,0,0.05)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='none';">
+                    <!-- Indicateur visuel à gauche -->
+                    <div style="position:absolute; left:0; top:0; bottom:0; width:4px; background:var(--green-mid);"></div>
+                    
+                    <!-- Icône de type -->
+                    <div style="width:48px; height:48px; border-radius:50%; background:#edf7f0; color:var(--green-mid); display:flex; align-items:center; justify-content:center; font-size:1.4rem; flex-shrink:0;">
+                        <i class="fas <?= $mention['type'] === 'Publication' ? 'fa-file-alt' : 'fa-comment-dots' ?>"></i>
+                    </div>
+                    
+                    <!-- Contenu de la notification -->
+                    <div style="flex:1;">
+                        <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:0.8rem; flex-wrap:wrap; gap:0.5rem;">
+                            <div style="font-size:0.95rem;">
+                                <strong style="color:var(--green-deep); font-weight:700;"><i class="fas fa-user-circle" style="color:#9ca3af; margin-right:0.3rem;"></i> <?= $e($mention['auteur']) ?></strong> 
+                                vous a mentionné dans 
+                                <span style="font-weight:600; color:#6b7280;"><?= $mention['type'] === 'Publication' ? 'une publication' : 'un commentaire' ?></span>
+                            </div>
+                            <div style="font-size:0.8rem; color:#9ca3af; display:flex; align-items:center; gap:0.4rem; font-weight:500;">
+                                <i class="far fa-clock"></i> <?= date('d/m/Y H:i', strtotime($mention['date_creation'])) ?>
+                            </div>
+                        </div>
+                        
+                        <!-- Extrait du texte -->
+                        <div style="background:#f9fafb; padding:1rem 1.2rem; border-radius:8px; border-left:3px solid #d1d5db; color:var(--text); font-size:0.9rem; line-height:1.6;">
+                            <?php 
+                            $snippet = $mention['contenu'];
+                            if ($mention['type'] === 'Publication' && !empty($mention['titre']) && (stripos($mention['titre'], $adminTag1) !== false || stripos($mention['titre'], $adminTag2) !== false)) {
+                                $snippet = "<strong style='color:var(--text); font-size:1rem; display:block; margin-bottom:0.3rem;'>" . $mention['titre'] . "</strong>" . $snippet;
+                            }
+                            // Highlight both tags
+                            $regex = '/(?<=^|\s)('.preg_quote($adminTag1, '/').'|'.preg_quote($adminTag2, '/').')(?=[^\w]|$)/i';
+                            $highlighted = preg_replace($regex, '<strong style="color:#059669; background:#d1fae5; padding:0.15rem 0.4rem; border-radius:6px; box-shadow:0 1px 2px rgba(0,0,0,0.05);">$1</strong>', $e($snippet));
+                            echo nl2br($highlighted);
+                            ?>
+                        </div>
+                        
+                        <!-- Actions -->
+                        <div style="margin-top:1rem; display:flex; gap:0.5rem;">
+                            <a href="<?= $mention['type'] === 'Publication' ? 'post_form.php?id='.$mention['id'] : 'reply_form.php?id='.$mention['id'] ?>" class="btn-outline btn-sm" style="background:white; display:flex; align-items:center; gap:0.4rem; border-color:#d1d5db; color:#4b5563;" onmouseover="this.style.borderColor='var(--green-mid)'; this.style.color='var(--green-mid)';" onmouseout="this.style.borderColor='#d1d5db'; this.style.color='#4b5563';">
+                                <i class="fas fa-external-link-alt"></i> Ouvrir pour modérer
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            <?php endforeach; ?>
+        </div>
+    </div>
 </div>
+</div> <!-- Fin de .main -->
 
 <div class="toast" id="toast"></div>
+
+<button id="back-to-top" class="back-to-top" title="Retour en haut">
+    <i class="fas fa-chevron-up"></i>
+</button>
 
 <!-- Custom Confirmation Modal -->
 <div class="modal-overlay" id="confirmModal">
@@ -1002,6 +1229,25 @@ if (globalSearch) {
                 item.style.display = item.innerText.toLowerCase().includes(term) ? '' : 'none';
             });
         }
+    });
+}
+
+// Back to Top Logic
+const backToTopBtn = document.getElementById('back-to-top');
+if (backToTopBtn) {
+    window.addEventListener('scroll', () => {
+        if (window.scrollY > 400) {
+            backToTopBtn.classList.add('show');
+        } else {
+            backToTopBtn.classList.remove('show');
+        }
+    });
+
+    backToTopBtn.addEventListener('click', () => {
+        window.scrollTo({
+            top: 0,
+            behavior: 'smooth'
+        });
     });
 }
 </script>

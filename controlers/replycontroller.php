@@ -48,6 +48,9 @@ class ReplyController {
 
     // Create a new reply
     public function createReply(Reply $reply) {
+        // Filtrage des mots inappropriés
+        $reply->setCommentaire(filterProfanity($reply->getCommentaire()));
+
         $stmt = $this->pdo->prepare("INSERT INTO Reply (commentaire, image_url, post_id, auteur_id, parent_reply_id) VALUES (?, ?, ?, ?, ?)");
         $stmt->execute([
             $reply->getCommentaire(),
@@ -62,6 +65,9 @@ class ReplyController {
 
     // Update a reply
     public function updateReply(Reply $reply) {
+        // Filtrage des mots inappropriés
+        $reply->setCommentaire(filterProfanity($reply->getCommentaire()));
+
         $stmt = $this->pdo->prepare("UPDATE Reply SET commentaire = ?, image_url = ? WHERE id_reply = ?");
         $stmt->execute([
             $reply->getCommentaire(),

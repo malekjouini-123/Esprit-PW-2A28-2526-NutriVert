@@ -235,6 +235,42 @@ $totalUsers = $usersController->getUserCount();
         }
 
         .no-results i { font-size: 3rem; margin-bottom: 1rem; color: #e5e7eb; }
+
+        /* Back to Top Button */
+        .back-to-top {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            width: 48px;
+            height: 48px;
+            background: var(--green-mid);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.1rem;
+            box-shadow: 0 4px 12px rgba(22, 101, 52, 0.3);
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(20px);
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            z-index: 1000;
+        }
+
+        .back-to-top.show {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+
+        .back-to-top:hover {
+            background: var(--green-dark);
+            box-shadow: 0 6px 16px rgba(20, 83, 45, 0.4);
+            transform: translateY(-4px);
+        }
     </style>
 </head>
 <body>
@@ -336,11 +372,34 @@ $totalUsers = $usersController->getUserCount();
         </div>
     </div>
 
+    <button id="back-to-top" class="back-to-top" title="Retour en haut">
+        <i class="fas fa-chevron-up"></i>
+    </button>
+
     <script>
         function confirmDelete(id) {
             if (confirm('Voulez-vous vraiment bannir cet utilisateur ? Cette action est irréversible.')) {
                 window.location.href = 'delete_user.php?id=' + id;
             }
+        }
+
+        // Back to Top Logic
+        const backToTopBtn = document.getElementById('back-to-top');
+        if (backToTopBtn) {
+            window.addEventListener('scroll', () => {
+                if (window.scrollY > 300) {
+                    backToTopBtn.classList.add('show');
+                } else {
+                    backToTopBtn.classList.remove('show');
+                }
+            });
+
+            backToTopBtn.addEventListener('click', () => {
+                window.scrollTo({
+                    top: 0,
+                    behavior: 'smooth'
+                });
+            });
         }
     </script>
 </body>

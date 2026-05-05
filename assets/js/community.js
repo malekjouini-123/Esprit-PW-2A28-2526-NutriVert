@@ -54,6 +54,25 @@ document.addEventListener('DOMContentLoaded', () => {
         t._to = setTimeout(() => t.classList.remove('show'), 3200);
     }
 
+    /**
+     * Filtre les mots inappropriés côté client.
+     */
+    function filterProfanity(text) {
+        if (!text) return text;
+        const badWords = [
+            'fuck', 'shit', 'asshole', 'bitch', 'bastard', 'crap', 'damn', 'piss', 'dick', 'pussy', 'cock', 'faggot', 'nigger', 'slut', 'bad word',
+            'merde', 'connard', 'connasse', 'salope', 'enculé', 'pute', 'bordel', 'con', 'chier', 'salaud', 'abruti', 'nique', 'teub', 'bite', 'cul', 'mauvais mot', 'mauvaise mot'
+        ];
+        
+        let filteredText = text;
+        badWords.forEach(word => {
+            const replacement = '*'.repeat(word.length);
+            const regex = new RegExp('\\b' + word + '\\b', 'gi');
+            filteredText = filteredText.replace(regex, replacement);
+        });
+        return filteredText;
+    }
+
     // 1. Handling Reactions on Posts
     document.addEventListener('click', async (e) => {
         let btn = e.target.closest('.btn-react');
@@ -199,12 +218,47 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // Option: Reposter
-    document.addEventListener('click', (e) => {
-        const btn = e.target.closest('.btn-repost');
+    document.addEventListener('click', async (e) => {
+        const btn = e.target.closest('.btn-repost') || e.target.closest('.btn-repost-post');
         if (!btn) return;
         
-        showToast('Fonctionnalité de repost bientôt disponible !');
-        btn.closest('.post-dropdown').style.display = 'none';
+        const article = btn.closest('.post-card');
+        const postId = article.dataset.postId;
+        
+        // Visual feedback
+        const originalContent = btn.innerHTML;
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>...';
+
+        try {
+            const formData = new FormData();
+            formData.append('post_id', postId);
+
+            const response = await fetch('api/repost.php', {
+                method: 'POST',
+                body: formData
+            });
+
+            const data = await response.json();
+            if (data.success) {
+                showToast('Publication republiée !');
+                // Reload to see the new post
+                setTimeout(() => location.reload(), 1200);
+            } else {
+                showToast(data.message || 'Erreur lors du repost');
+                btn.disabled = false;
+                btn.innerHTML = originalContent;
+            }
+        } catch (err) {
+            console.error('Erreur Repost:', err);
+            showToast('Erreur lors de la republication');
+            btn.disabled = false;
+            btn.innerHTML = originalContent;
+        }
+
+        if (btn.closest('.post-dropdown')) {
+            btn.closest('.post-dropdown').style.display = 'none';
+        }
     });
 
     // Option: Répondre au post (focus input)
@@ -269,10 +323,30 @@ document.addEventListener('DOMContentLoaded', () => {
         const inputField = article.querySelector('.reply-input');
         const fileInput = article.querySelector('.reply-image-input');
         
-        const commentaire = inputField.value.trim();
+        const commentaireRaw = inputField.value.trim();
+        const commentaire = filterProfanity(commentaireRaw);
         const file = fileInput.files[0];
 
-        if (!commentaire && !file) return;
+        // Contrôle de saisie
+        if (!commentaire && !file) {
+            showToast('Veuillez écrire un commentaire ou ajouter une image.');
+            return;
+        }
+        
+        if (commentaire && commentaire.length < 2) {
+            showToast('Votre commentaire est trop court (min 2 caractères).');
+            return;
+        }
+        
+        if (commentaire && commentaire.length > 1000) {
+            showToast('Votre commentaire est trop long (max 1000 caractères).');
+            return;
+        }
+
+        // Visual feedback: update the input field if it was censored
+        if (commentaire !== commentaireRaw) {
+            inputField.value = commentaire;
+        }
 
         sendBtn.disabled = true;
 
@@ -361,24 +435,67 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (submitPostBtn && newPostContent) {
         submitPostBtn.addEventListener('click', async () => {
-            const contenu = newPostContent.value.trim();
+            const contenuRaw = newPostContent.value.trim();
+            const contenu = filterProfanity(contenuRaw);
             const file = postImageInput ? postImageInput.files[0] : null;
             const titleInput = document.getElementById('new-post-title');
             const typeInput = document.getElementById('new-post-type');
-            const titre = titleInput ? titleInput.value.trim() : '';
+            const titreRaw = titleInput ? titleInput.value.trim() : '';
+            const titre = filterProfanity(titreRaw);
             const typePost = typeInput ? typeInput.value : 'Article';
             
+            // Visual feedback
+            if (contenu !== contenuRaw) newPostContent.value = contenu;
+            if (titre !== titreRaw && titleInput) titleInput.value = titre;
+            
             // Contrôle de saisie
-            if (!contenu && !file) {
-                newPostContent.style.border = '1px solid #ef4444';
-                newPostContent.style.backgroundColor = '#fef2f2';
-                showToast('Veuillez écrire un message ou ajouter une photo/vidéo avant de publier.');
+            let errorMessage = '';
+            let targetErrorSpan = null;
+            
+            const titleErrorSpan = document.getElementById('new-post-title-error');
+            const contentErrorSpan = document.getElementById('new-post-content-error');
+            
+            // Reset errors
+            if (titleErrorSpan) { titleErrorSpan.style.display = 'none'; titleErrorSpan.textContent = ''; }
+            if (contentErrorSpan) { contentErrorSpan.style.display = 'none'; contentErrorSpan.textContent = ''; }
+
+            if (!titre) {
+                errorMessage = 'Le titre est obligatoire.';
+                targetErrorSpan = titleErrorSpan;
+            } else if (titre.length < 5) {
+                errorMessage = 'Le titre est trop court (minimum 5 caractères).';
+                targetErrorSpan = titleErrorSpan;
+            } else if (titre.length > 100) {
+                errorMessage = 'Le titre est trop long (maximum 100 caractères).';
+                targetErrorSpan = titleErrorSpan;
+            } else if (!contenu && !file) {
+                errorMessage = 'Veuillez écrire un message ou ajouter une photo.';
+                targetErrorSpan = contentErrorSpan;
+            } else if (contenu && contenu.length < 5) {
+                errorMessage = 'Votre message est trop court (minimum 5 caractères).';
+                targetErrorSpan = contentErrorSpan;
+            } else if (contenu && contenu.length > 2000) {
+                errorMessage = 'Votre message est trop long (maximum 2000 caractères).';
+                targetErrorSpan = contentErrorSpan;
+            }
+
+            if (errorMessage) {
+                if (targetErrorSpan) {
+                    targetErrorSpan.textContent = errorMessage;
+                    targetErrorSpan.style.display = 'block';
+                    
+                    const targetInput = (targetErrorSpan === titleErrorSpan) ? titleInput : newPostContent;
+                    targetInput.style.border = '1px solid #ef4444';
+                    targetInput.style.backgroundColor = '#fef2f2';
+                    
+                    setTimeout(() => {
+                        targetErrorSpan.style.display = 'none';
+                        targetInput.style.border = (targetInput === titleInput) ? 'none' : 'none';
+                        targetInput.style.backgroundColor = (targetInput === titleInput) ? '#f3f4f6' : '#f3f4f6';
+                    }, 4000);
+                }
                 
-                setTimeout(() => {
-                    newPostContent.style.border = 'none';
-                    newPostContent.style.backgroundColor = '#f3f4f6';
-                }, 3000);
-                
+                showToast(errorMessage);
                 return;
             }
 
@@ -587,5 +704,101 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
     });
+
+    // 10. Back to Top Logic
+    const backToTopBtn = document.getElementById('back-to-top');
+    
+    if (backToTopBtn) {
+        window.addEventListener('scroll', () => {
+            if (window.scrollY > 400) {
+                backToTopBtn.classList.add('show');
+            } else {
+                backToTopBtn.classList.remove('show');
+            }
+        });
+
+        backToTopBtn.addEventListener('click', () => {
+            window.scrollTo({
+                top: 0,
+                behavior: 'smooth'
+            });
+        });
+    }
+
+    // 11. User Tagging Autocomplete
+    if (typeof allUsers !== 'undefined' && Array.isArray(allUsers)) {
+        const autocompleteDiv = document.createElement('div');
+        autocompleteDiv.className = 'tag-autocomplete';
+        document.body.appendChild(autocompleteDiv);
+        
+        let currentTarget = null;
+        let currentMatchStart = -1;
+        let currentMatchEnd = -1;
+
+        function closeAutocomplete() {
+            autocompleteDiv.classList.remove('show');
+            currentTarget = null;
+        }
+
+        document.addEventListener('input', (e) => {
+            if (e.target.tagName !== 'TEXTAREA' && e.target.tagName !== 'INPUT') return;
+            
+            const val = e.target.value;
+            const cursorStart = e.target.selectionStart;
+            
+            const textBeforeCursor = val.substring(0, cursorStart);
+            const match = textBeforeCursor.match(/(?:[\s\n]|^)(@[^@\n]*)$/);
+            
+            if (match) {
+                const query = match[1].substring(1).toLowerCase();
+                const filteredUsers = allUsers.filter(u => u.nom_utilisateur.toLowerCase().includes(query));
+                
+                if (filteredUsers.length > 0) {
+                    currentTarget = e.target;
+                    currentMatchStart = match.index + (textBeforeCursor[match.index] === ' ' || textBeforeCursor[match.index] === '\n' ? 1 : 0);
+                    currentMatchEnd = cursorStart;
+                    
+                    autocompleteDiv.innerHTML = '';
+                    filteredUsers.slice(0, 6).forEach(u => {
+                        const item = document.createElement('div');
+                        item.className = 'tag-item';
+                        item.innerHTML = `<i class="fas fa-user-circle" style="color:var(--green-mid)"></i> ${u.nom_utilisateur}`;
+                        item.addEventListener('mousedown', (ev) => {
+                            ev.preventDefault(); // Empêcher la perte de focus du textarea
+                            const fullVal = currentTarget.value;
+                            const newVal = fullVal.substring(0, currentMatchStart) + `@${u.nom_utilisateur} ` + fullVal.substring(currentMatchEnd);
+                            currentTarget.value = newVal;
+                            closeAutocomplete();
+                            currentTarget.focus();
+                        });
+                        autocompleteDiv.appendChild(item);
+                    });
+                    
+                    const rect = e.target.getBoundingClientRect();
+                    autocompleteDiv.style.left = `${rect.left + window.scrollX}px`;
+                    // Positionnement sous le curseur n'est pas trivial, on le met sous le textarea
+                    autocompleteDiv.style.top = `${rect.bottom + window.scrollY + 2}px`;
+                    autocompleteDiv.classList.add('show');
+                } else {
+                    closeAutocomplete();
+                }
+            } else {
+                closeAutocomplete();
+            }
+        });
+
+        document.addEventListener('click', (e) => {
+            if (!autocompleteDiv.contains(e.target)) {
+                closeAutocomplete();
+            }
+        });
+        
+        // Cacher si on perd le focus ou appuie sur escape
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && autocompleteDiv.classList.contains('show')) {
+                closeAutocomplete();
+            }
+        });
+    }
 
 });

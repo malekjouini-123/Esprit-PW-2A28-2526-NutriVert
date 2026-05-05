@@ -1,5 +1,22 @@
 <?php
 // views/community.php
+
+global $pdo;
+$allUsersList = [];
+if (isset($pdo)) {
+    $allUsersList = $pdo->query("SELECT id_user, nom_utilisateur FROM Utilisateur ORDER BY LENGTH(nom_utilisateur) DESC")->fetchAll(PDO::FETCH_ASSOC);
+}
+
+function renderTags($text, $users) {
+    $safeText = htmlspecialchars($text);
+    foreach ($users as $u) {
+        $name = $u['nom_utilisateur'];
+        $pattern = '/(?<=^|\s)@(' . preg_quote($name, '/') . ')(?=[^\w]|$)/i';
+        $replacement = '<span class="user-tag" data-id="'.$u['id_user'].'">@$1</span>';
+        $safeText = preg_replace($pattern, $replacement, $safeText);
+    }
+    return nl2br($safeText);
+}
 ?>
 <!DOCTYPE html>
 <html lang="fr">
@@ -11,7 +28,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="assets/css/style.css">
+    <link rel="stylesheet" href="assets/css/style.css?v=<?= time() ?>">
 </head>
 <body>
 <header>
@@ -31,9 +48,15 @@
         <div class="create-post-header" style="flex-direction: column; gap: 0.8rem; align-items: stretch;">
             <div style="display: flex; gap: 1rem; align-items: center; width: 100%;">
                 <div class="avatar">MR</div>
-                <input type="text" id="new-post-title" placeholder="Titre de votre publication (ex: Mon nouveau régime)" style="flex: 1; border: none; background: #f3f4f6; border-radius: 8px; padding: 0.8rem 1.2rem; font-size: 1rem; font-weight: 600; font-family: inherit; outline: none; transition: box-shadow 0.2s;">
+                <div style="flex: 1; display: flex; flex-direction: column; gap: 0.2rem;">
+                    <input type="text" id="new-post-title" placeholder="Titre de votre publication (ex: Mon nouveau régime)" style="width: 100%; border: none; background: #f3f4f6; border-radius: 8px; padding: 0.8rem 1.2rem; font-size: 1rem; font-weight: 600; font-family: inherit; outline: none; transition: box-shadow 0.2s;">
+                    <span id="new-post-title-error" class="error-msg-front" style="color: #ef4444; font-size: 0.75rem; font-weight: 500; margin-left: 0.5rem; display: none;"></span>
+                </div>
             </div>
-            <textarea id="new-post-content" placeholder="Que voulez-vous partager avec la communauté ?" style="margin-top: 0.2rem;"></textarea>
+            <div style="display: flex; flex-direction: column; gap: 0.2rem;">
+                <textarea id="new-post-content" placeholder="Que voulez-vous partager avec la communauté ?" style="margin-top: 0.2rem;"></textarea>
+                <span id="new-post-content-error" class="error-msg-front" style="color: #ef4444; font-size: 0.75rem; font-weight: 500; margin-left: 0.5rem; display: none;"></span>
+            </div>
         </div>
         <div class="create-post-actions">
             <div style="display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap;">
@@ -94,10 +117,10 @@
             </div>
         </div>
         <div class="post-content" data-raw-content="<?= htmlspecialchars($post->getContenu()) ?>">
-            <?php if ($post->getTitre() && $post->getTitre() !== 'Nouvelle publication'): ?>
-                <h3 class="post-title" style="margin-bottom: 0.5rem; font-size: 1.1rem; color: #111827;"><?= htmlspecialchars($post->getTitre()) ?></h3>
+            <?php if ($post->getTitre()): ?>
+                <h3 class="post-title" style="margin-bottom: 0.5rem; font-size: 1.1rem; color: #111827;"><?= renderTags($post->getTitre(), $allUsersList) ?></h3>
             <?php endif; ?>
-            <p class="post-text" style="margin: 0;"><?= nl2br(htmlspecialchars($post->getContenu())) ?></p>
+            <p class="post-text" style="margin: 0;"><?= renderTags($post->getContenu(), $allUsersList) ?></p>
         </div>
         
         <?php if ($post->getMediaUrl()): ?>
@@ -150,7 +173,7 @@
                 <div style="flex:1;">
                     <div class="reply-content-box" data-raw-content="<?= htmlspecialchars($reply->getCommentaire()) ?>">
                         <div class="reply-author"><?= htmlspecialchars($rAuthorName) ?></div>
-                        <div class="reply-text"><?= nl2br(htmlspecialchars($reply->getCommentaire())) ?></div>
+                        <div class="reply-text"><?= renderTags($reply->getCommentaire(), $allUsersList) ?></div>
                         <?php if ($reply->getImageUrl()): ?>
                         <img src="<?= htmlspecialchars($reply->getImageUrl()) ?>" style="max-width: 200px; border-radius: 8px; margin-top: 0.5rem;">
                         <?php endif; ?>
@@ -220,8 +243,15 @@
     </div>
 </div>
 
-<div class="toast" id="toast"></div>
+    <button id="back-to-top" class="back-to-top" title="Retour en haut">
+        <i class="fas fa-arrow-up"></i>
+    </button>
 
+</div>
+
+<script>
+    const allUsers = <?= json_encode($allUsersList, JSON_UNESCAPED_UNICODE) ?>;
+</script>
 <script src="assets/js/community.js?v=<?= time() ?>"></script>
 </body>
 </html>

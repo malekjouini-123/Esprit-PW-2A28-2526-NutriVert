@@ -26,8 +26,18 @@ if (isset($_FILES['image']) && $_FILES['image']['error'] === UPLOAD_ERR_OK) {
     }
 }
 
-$titre = $_POST['titre'] ?? 'Nouvelle publication';
+$titre = trim($_POST['titre'] ?? '');
 $type_post = $_POST['type_post'] ?? 'Article';
+
+if (empty($titre) || mb_strlen($titre) < 5) {
+    echo json_encode(['success' => false, 'message' => 'Le titre est obligatoire et doit faire au moins 5 caractères']);
+    exit;
+}
+
+if (empty($contenu) || mb_strlen($contenu) < 5) {
+    echo json_encode(['success' => false, 'message' => 'Le contenu doit faire au moins 5 caractères']);
+    exit;
+}
 $user_id = 1; // Simulated user ID
 
 $post = new Post($titre, $contenu, $media_url, $type_post, $user_id);

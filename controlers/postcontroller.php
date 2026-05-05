@@ -48,6 +48,10 @@ class PostController {
 
     // Create a new post
     public function createPost(Post $post) {
+        // Filtrage des mots inappropriés
+        $post->setTitre(filterProfanity($post->getTitre()));
+        $post->setContenu(filterProfanity($post->getContenu()));
+
         $stmt = $this->pdo->prepare("INSERT INTO Post (titre, contenu, media_url, type_post, auteur_id) VALUES (?, ?, ?, ?, ?)");
         $stmt->execute([
             $post->getTitre(),
@@ -62,6 +66,10 @@ class PostController {
 
     // Update a post
     public function updatePost(Post $post) {
+        // Filtrage des mots inappropriés
+        $post->setTitre(filterProfanity($post->getTitre()));
+        $post->setContenu(filterProfanity($post->getContenu()));
+
         $stmt = $this->pdo->prepare("UPDATE Post SET titre = ?, contenu = ?, media_url = ?, type_post = ? WHERE id_post = ?");
         $stmt->execute([
             $post->getTitre(),

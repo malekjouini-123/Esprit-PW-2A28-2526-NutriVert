@@ -262,3 +262,98 @@ nav a.active { color: #166534; background: #e6f0eb; }
 }
 
 .toast.show { transform: translateY(0); }
+
+/* Back to Top Button */
+.back-to-top {
+    position: fixed;
+    bottom: 2rem;
+    right: 2rem;
+    width: 50px;
+    height: 50px;
+    background: linear-gradient(135deg, #10b981, #059669);
+    color: white;
+    border: none;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+    box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4);
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(20px);
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    z-index: 1000;
+}
+
+.back-to-top.show {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+
+.back-to-top:hover {
+    background: linear-gradient(135deg, #059669, #047857);
+    box-shadow: 0 6px 20px rgba(16, 185, 129, 0.6);
+    transform: translateY(-5px);
+}
+
+.back-to-top:active {
+    transform: translateY(0);
+}
+/* Tag d'utilisateur (@mention) */
+.user-tag {
+    color: var(--green-mid);
+    font-weight: 600;
+    background: #edf7f0;
+    padding: 0.1rem 0.4rem;
+    border-radius: 4px;
+    text-decoration: none;
+    transition: all 0.2s;
+}
+
+.user-tag:hover {
+    background: #d7e5dc;
+}
+
+/* Menu d'autocomplétion des tags */
+.tag-autocomplete {
+    position: absolute;
+    background: white;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    z-index: 1000;
+    max-height: 200px;
+    overflow-y: auto;
+    width: max-content;
+    min-width: 150px;
+    display: none; /* Caché par défaut */
+}
+
+.tag-autocomplete.show {
+    display: block;
+}
+
+.tag-item {
+    padding: 0.6rem 1rem;
+    cursor: pointer;
+    font-size: 0.9rem;
+    color: var(--text);
+    transition: background 0.15s;
+    border-bottom: 1px solid #f3f4f6;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.tag-item:last-child {
+    border-bottom: none;
+}
+
+.tag-item:hover, .tag-item.selected {
+    background: #f3f4f6;
+    color: var(--green-mid);
+    font-weight: 500;
+}

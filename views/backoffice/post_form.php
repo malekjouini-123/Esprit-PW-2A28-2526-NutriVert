@@ -18,17 +18,36 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $contenu = trim($_POST['contenu'] ?? '');
     $type_post = $_POST['type_post'] ?? 'Article';
 
-    if (empty($titre) || empty($contenu) || $auteur_id <= 0) {
-        echo "<script>alert('Veuillez remplir tous les champs obligatoires.'); history.back();</script>";
+    if (empty($titre) || empty($contenu) || $auteur_id <= 0 || strlen($titre) < 5 || strlen($contenu) < 5) {
+        // En cas d'échec (si le JS est contourné), on redirige simplement sans alerte intrusive
+        header("Location: dashboard.php?section=posts");
         exit;
     }
 
+    // Filtrage des mots inappropriés
+    $titre = filterProfanity($titre);
+    $contenu = filterProfanity($contenu);
+
+    // Handle Media Upload (Image or Video)
+    $image_url = $post ? $post['image_url'] : null;
+    if (isset($_FILES['media']) && $_FILES['media']['error'] === UPLOAD_ERR_OK) {
+        $uploadDir = __DIR__ . '/../../uploads/';
+        if (!is_dir($uploadDir)) {
+            mkdir($uploadDir, 0777, true);
+        }
+        $filename = time() . '_' . basename($_FILES['media']['name']);
+        $uploadFile = $uploadDir . $filename;
+        if (move_uploaded_file($_FILES['media']['tmp_name'], $uploadFile)) {
+            $image_url = 'uploads/' . $filename;
+        }
+    }
+
     if ($id > 0) {
-        $stmt = $pdo->prepare("UPDATE Post SET titre = ?, auteur_id = ?, contenu = ?, type_post = ? WHERE id_post = ?");
-        $stmt->execute([$titre, $auteur_id, $contenu, $type_post, $id]);
+        $stmt = $pdo->prepare("UPDATE Post SET titre = ?, auteur_id = ?, contenu = ?, type_post = ?, image_url = ? WHERE id_post = ?");
+        $stmt->execute([$titre, $auteur_id, $contenu, $type_post, $image_url, $id]);
     } else {
-        $stmt = $pdo->prepare("INSERT INTO Post (titre, auteur_id, contenu, type_post) VALUES (?, ?, ?, ?)");
-        $stmt->execute([$titre, $auteur_id, $contenu, $type_post]);
+        $stmt = $pdo->prepare("INSERT INTO Post (titre, auteur_id, contenu, type_post, image_url) VALUES (?, ?, ?, ?, ?)");
+        $stmt->execute([$titre, $auteur_id, $contenu, $type_post, $image_url]);
     }
     header("Location: dashboard.php?section=posts");
     exit;
@@ -58,20 +77,13 @@ $e = static fn($value): string => htmlspecialchars((string)$value, ENT_QUOTES, '
 <body>
     <div class="form-container">
         <h1><?= $id > 0 ? 'Modifier la publication' : 'Nouvelle publication' ?></h1>
-        <form method="POST" id="postForm">
+        <form method="POST" id="postForm" enctype="multipart/form-data">
             
             <label>Titre de la publication <span style="color:#ef4444;">*</span></label>
             <input type="text" name="titre" id="titre" value="<?= $post ? $e($post['titre']) : '' ?>" placeholder="Ex: Comment bien manger ?" required>
             <span class="error-msg" id="titre_error"></span>
 
-            <label>Auteur <span style="color:#ef4444;">*</span></label>
-            <select name="auteur_id" id="auteur_id" required>
-                <option value="">Sélectionnez un auteur...</option>
-                <?php foreach ($users as $u): ?>
-                    <option value="<?= $u['id_user'] ?>" <?= ($post && $post['auteur_id'] == $u['id_user']) ? 'selected' : '' ?>><?= $e($u['nom_utilisateur']) ?></option>
-                <?php endforeach; ?>
-            </select>
-            <span class="error-msg" id="auteur_error"></span>
+            <input type="hidden" name="auteur_id" id="auteur_id" value="<?= $post ? (int)$post['auteur_id'] : 1 ?>">
 
             <label>Type de publication</label>
             <select name="type_post" required>
@@ -85,6 +97,18 @@ $e = static fn($value): string => htmlspecialchars((string)$value, ENT_QUOTES, '
             <textarea name="contenu" id="contenu" rows="8" placeholder="Écrivez le contenu ici..." required><?= $post ? $e($post['contenu']) : '' ?></textarea>
             <span class="error-msg" id="contenu_error"></span>
 
+            <label>Média (Image ou Vidéo)</label>
+            <?php if ($post && $post['image_url']): ?>
+                <div style="margin-bottom: 0.5rem; font-size: 0.85rem; color: #6b7280;">Média actuel : <a href="../../<?= $e($post['image_url']) ?>" target="_blank" style="color: #166534; font-weight: 600;">Voir le média</a></div>
+            <?php endif; ?>
+            
+            <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 0.5rem;">
+                <input type="file" id="media_input" name="media" accept="image/*,video/*" style="display: none;" onchange="document.getElementById('media_name').textContent = this.files[0] ? this.files[0].name : 'Aucun fichier sélectionné'">
+                <button type="button" class="cancel" onclick="document.getElementById('media_input').click()" style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer; margin: 0;"><i class="fas fa-upload"></i> Sélectionner un fichier</button>
+                <span id="media_name" style="font-size: 0.85rem; color: #6b7280;">Aucun fichier sélectionné</span>
+            </div>
+            <span class="error-msg"></span>
+
             <div style="margin-top: 1rem;">
                 <a href="dashboard.php?section=posts" class="cancel">Annuler</a>
                 <button type="submit">Enregistrer</button>
@@ -94,30 +118,53 @@ $e = static fn($value): string => htmlspecialchars((string)$value, ENT_QUOTES, '
 
     <script>
     const form = document.getElementById('postForm');
+    
+    function applyErrorStyle(input, errorSpan, message) {
+        errorSpan.textContent = message;
+        input.style.border = '1px solid #ef4444';
+        input.style.backgroundColor = '#fef2f2';
+        
+        setTimeout(() => {
+            input.style.border = '1px solid #d1d5db';
+            input.style.backgroundColor = 'white';
+            errorSpan.textContent = '';
+        }, 4000);
+    }
+
     form.addEventListener('submit', function(e) {
         let isValid = true;
         
+        const titreInput = document.getElementById('titre');
+        const contenuInput = document.getElementById('contenu');
+
+        const titreError = document.getElementById('titre_error');
+        const contenuError = document.getElementById('contenu_error');
+
         // Reset errors
-        document.getElementById('titre_error').textContent = '';
-        document.getElementById('auteur_error').textContent = '';
-        document.getElementById('contenu_error').textContent = '';
+        titreError.textContent = '';
+        contenuError.textContent = '';
         
-        const titre = document.getElementById('titre').value.trim();
-        const auteurId = document.getElementById('auteur_id').value;
-        const contenu = document.getElementById('contenu').value.trim();
+        const titre = titreInput.value.trim();
+        const contenu = contenuInput.value.trim();
 
-        if (titre === '') {
-            document.getElementById('titre_error').textContent = 'Le titre est obligatoire.';
-            isValid = false;
-        }
 
-        if (!auteurId) {
-            document.getElementById('auteur_error').textContent = 'Veuillez sélectionner un auteur.';
-            isValid = false;
-        }
 
         if (contenu === '') {
-            document.getElementById('contenu_error').textContent = 'Le contenu ne peut pas être vide.';
+            applyErrorStyle(contenuInput, contenuError, 'Le contenu ne peut pas être vide.');
+            isValid = false;
+        } else if (contenu.length < 5) {
+            applyErrorStyle(contenuInput, contenuError, 'Le contenu est trop court (min 5 caractères).');
+            isValid = false;
+        }
+
+        if (titre === '') {
+            applyErrorStyle(titreInput, titreError, 'Le titre est obligatoire.');
+            isValid = false;
+        } else if (titre.length < 5) {
+            applyErrorStyle(titreInput, titreError, 'Le titre est trop court (min 5 caractères).');
+            isValid = false;
+        } else if (titre.length > 100) {
+            applyErrorStyle(titreInput, titreError, 'Le titre est trop long (max 100 caractères).');
             isValid = false;
         }
 

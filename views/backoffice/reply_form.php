@@ -20,10 +20,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $commentaire = trim($_POST['commentaire']);
     
     // Server-side validation
-    if ($post_id <= 0 || $auteur_id <= 0 || empty($commentaire)) {
-        echo "<script>alert('Veuillez remplir tous les champs obligatoires.'); history.back();</script>";
+    if ($post_id <= 0 || $auteur_id <= 0 || (empty($commentaire) && empty($image_url)) || (!empty($commentaire) && strlen($commentaire) < 2)) {
+        header("Location: dashboard.php?section=posts");
         exit;
     }
+
+    // Filtrage des mots inappropriés
+    $commentaire = filterProfanity($commentaire);
 
     // Handle Image Upload
     $image_url = $reply ? $reply['image_url'] : null;
@@ -107,14 +110,7 @@ if ($reply) {
             <div id="post-preview" style="background: #edf7f0; padding: 1rem; border-radius: 8px; margin-bottom: 1.5rem; color: #166534; font-size: 0.88rem; border: 1px solid #d7e5dc; white-space: pre-wrap; display: none;">
             </div>
 
-            <label>3. Auteur de la réponse <span style="color:#ef4444;">*</span></label>
-            <select name="auteur_id" id="auteur_id" required>
-                <option value="">Sélectionnez un auteur...</option>
-                <?php foreach ($users as $u): ?>
-                    <option value="<?= $u['id_user'] ?>" <?= ($reply && $reply['auteur_id'] == $u['id_user']) ? 'selected' : '' ?>><?= $e($u['nom_utilisateur']) ?></option>
-                <?php endforeach; ?>
-            </select>
-            <span class="error-msg" id="auteur_error"></span>
+            <input type="hidden" name="auteur_id" id="auteur_id" value="<?= $reply ? (int)$reply['auteur_id'] : 1 ?>">
 
             <label>Contenu du commentaire <span style="color:#ef4444;">*</span></label>
             <textarea name="commentaire" id="commentaire" rows="5" required><?= $reply ? $e($reply['commentaire']) : '' ?></textarea>
@@ -122,9 +118,14 @@ if ($reply) {
 
             <label>Joindre une Image (Optionnel)</label>
             <?php if ($reply && $reply['image_url']): ?>
-                <div style="margin-bottom: 0.5rem; font-size: 0.85rem; color: #6b7280;">Image actuelle : <a href="../../<?= $e($reply['image_url']) ?>" target="_blank">Voir l'image</a></div>
+                <div style="margin-bottom: 0.5rem; font-size: 0.85rem; color: #6b7280;">Image actuelle : <a href="../../<?= $e($reply['image_url']) ?>" target="_blank" style="color: #166534; font-weight: 600;">Voir l'image</a></div>
             <?php endif; ?>
-            <input type="file" name="image" accept="image/*">
+            
+            <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 0.5rem;">
+                <input type="file" id="media_input" name="image" accept="image/*,video/*" style="display: none;" onchange="document.getElementById('media_name').textContent = this.files[0] ? this.files[0].name : 'Aucun fichier sélectionné'">
+                <button type="button" class="cancel" onclick="document.getElementById('media_input').click()" style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer; margin: 0;"><i class="fas fa-upload"></i> Sélectionner une image</button>
+                <span id="media_name" style="font-size: 0.85rem; color: #6b7280;">Aucun fichier sélectionné</span>
+            </div>
             <span class="error-msg"></span>
 
             <div style="margin-top: 1rem;">
@@ -186,30 +187,46 @@ if ($reply) {
 
     // Form Validation
     const form = document.getElementById('replyForm');
+    function applyErrorStyle(input, errorSpan, message) {
+        errorSpan.textContent = message;
+        input.style.border = '1px solid #ef4444';
+        input.style.backgroundColor = '#fef2f2';
+        
+        setTimeout(() => {
+            input.style.border = '1px solid #d1d5db';
+            input.style.backgroundColor = 'white';
+            errorSpan.textContent = '';
+        }, 4000);
+    }
+
     form.addEventListener('submit', function(e) {
         let isValid = true;
         
+        const postSelect = document.getElementById('post_id_select');
+        const commentaireInput = document.getElementById('commentaire');
+
+        const postError = document.getElementById('post_error');
+        const commentaireError = document.getElementById('commentaire_error');
+
         // Reset errors
-        document.getElementById('post_error').textContent = '';
-        document.getElementById('auteur_error').textContent = '';
-        document.getElementById('commentaire_error').textContent = '';
+        postError.textContent = '';
+        commentaireError.textContent = '';
         
-        const postId = document.getElementById('post_id_select').value;
-        const auteurId = document.getElementById('auteur_id').value;
-        const commentaire = document.getElementById('commentaire').value.trim();
+        const postId = postSelect.value;
+        const commentaire = commentaireInput.value.trim();
 
         if (!postId) {
-            document.getElementById('post_error').textContent = 'Veuillez sélectionner un post.';
+            applyErrorStyle(postSelect, postError, 'Veuillez sélectionner un post.');
             isValid = false;
         }
 
-        if (!auteurId) {
-            document.getElementById('auteur_error').textContent = 'Veuillez sélectionner l\'auteur de la réponse.';
-            isValid = false;
-        }
+
 
         if (commentaire === '') {
-            document.getElementById('commentaire_error').textContent = 'Le contenu du commentaire ne peut pas être vide.';
+            applyErrorStyle(commentaireInput, commentaireError, 'Le contenu du commentaire ne peut pas être vide.');
+            isValid = false;
+        } else if (commentaire.length < 2) {
+            applyErrorStyle(commentaireInput, commentaireError, 'Le commentaire est trop court (min 2 caractères).');
             isValid = false;
         }
 
