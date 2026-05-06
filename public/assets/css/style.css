@@ -1156,3 +1156,72 @@ body.rtl select,
 body.rtl textarea {
     text-align: right;
 }
+
+/* AI recipe generation feedback */
+.ai-success-box {
+    border: 1px solid rgba(54, 179, 126, 0.25);
+    background: linear-gradient(135deg, rgba(54, 179, 126, 0.13), rgba(255,255,255,0.9));
+}
+
+.ai-error-box {
+    border: 1px solid rgba(231, 76, 60, 0.25);
+    background: linear-gradient(135deg, rgba(231, 76, 60, 0.12), rgba(255,255,255,0.9));
+}
+
+.generate-result-box small {
+    display: block;
+    margin-top: 6px;
+    color: #6B7C68;
+    font-weight: 700;
+}
+
+.generate-form textarea {
+    width: 100%;
+    border: 1px solid rgba(41, 74, 47, 0.18);
+    border-radius: 18px;
+    padding: 13px 15px;
+    resize: vertical;
+    min-height: 92px;
+    font-family: inherit;
+    background: rgba(255,255,255,0.88);
+    color: var(--deep);
+    outline: none;
+}
+
+.generate-form textarea:focus {
+    border-color: rgba(125,207,182,0.9);
+    box-shadow: 0 0 0 4px rgba(125,207,182,0.18);
+}
+
+/* AI translation bar */
+.ai-translate-form {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+    background: rgba(255, 255, 255, 0.88);
+    border: 1px solid rgba(62, 122, 90, 0.18);
+    border-radius: 18px;
+    padding: 14px 16px;
+    margin: 18px 0;
+    box-shadow: 0 12px 30px rgba(30, 80, 50, 0.08);
+}
+
+.ai-translate-form label {
+    font-weight: 800;
+    color: #234c36;
+}
+
+.ai-translate-form select {
+    border: 1px solid rgba(62, 122, 90, 0.25);
+    border-radius: 14px;
+    padding: 10px 14px;
+    background: white;
+    color: #234c36;
+    font-weight: 700;
+}
+
+.ai-translate-form small {
+    color: #3e7a5a;
+    font-weight: 700;
+}

@@ -1,10 +1,27 @@
 <?php require __DIR__ . '/../partials/header.php'; ?>
+<?php $aiT = function ($text) use ($aiTranslationMap) { return $aiTranslationMap[$text] ?? $text; }; ?>
 
 <div class="container">
     <section class="hero-panel">
         <h1 class="page-title"><?php echo t('hero_title'); ?></h1>
         <p class="hero-text"><?php echo t('hero_text'); ?></p>
     </section>
+
+    <form method="GET" action="index.php" class="ai-translate-form">
+        <?php foreach ($_GET as $key => $value): ?>
+            <?php if ($key === 'ai_translate' || is_array($value)) continue; ?>
+            <input type="hidden" name="<?php echo htmlspecialchars($key); ?>" value="<?php echo htmlspecialchars($value); ?>">
+        <?php endforeach; ?>
+        <input type="hidden" name="page" value="front_home">
+        <label for="ai_translate"><i class="fas fa-language"></i> Traduction AI</label>
+        <select id="ai_translate" name="ai_translate">
+            <option value="fr" <?php echo (($aiTargetLang ?? '') === 'fr') ? 'selected' : ''; ?>>Français</option>
+            <option value="en" <?php echo (($aiTargetLang ?? '') === 'en') ? 'selected' : ''; ?>>English</option>
+            <option value="ar" <?php echo (($aiTargetLang ?? '') === 'ar') ? 'selected' : ''; ?>>العربية</option>
+        </select>
+        <button type="submit" class="btn-green"><i class="fas fa-wand-magic-sparkles"></i> Traduire la page</button>
+        <?php if (!empty($aiTranslateNote)): ?><small><?php echo htmlspecialchars($aiTranslateNote); ?></small><?php endif; ?>
+    </form>
 
     <form method="GET" action="index.php" class="search-form">
         <input type="hidden" name="page" value="front_home">
@@ -36,9 +53,7 @@
                 <button type="button" id="closeGenerateModal" class="modal-close-btn">×</button>
             </div>
 
-            <form method="GET" action="index.php" class="generate-form" id="generateRecipeForm">
-                <input type="hidden" name="page" value="front_home">
-                <input type="hidden" name="generer_recette" value="1">
+            <form method="POST" action="index.php?page=front_ai_generate_store" class="generate-form" id="generateRecipeForm">
 
                 <label for="regime_generate"><?php echo t('choose_regime'); ?></label>
                 <select id="regime_generate" name="regime_generate">
@@ -51,6 +66,7 @@
                 </select>
 
                 <label><?php echo t('choose_ingredients'); ?></label>
+                <p class="helper-text">Choisissez des ingrédients existants ou écrivez vos ingrédients. La recette générée sera enregistrée directement dans la base.</p>
                 <?php if (!empty($availableIngredients)): ?>
                     <div class="ingredient-choice-grid">
                         <?php foreach ($availableIngredients as $ingredientName): ?>
@@ -68,6 +84,14 @@
                 <?php else: ?>
                     <p class="helper-text"><?php echo t('no_ingredients'); ?></p>
                 <?php endif; ?>
+
+                <label for="ingredients_ai_text">Autres ingrédients</label>
+                <textarea
+                    id="ingredients_ai_text"
+                    name="ingredients_ai_text"
+                    rows="3"
+                    placeholder="Exemple : quinoa, tomate, poulet, huile d’olive"
+                ></textarea>
 
                 <div class="error-message" id="generateRecipeError">
                     <?php if (!empty($generateMode) && empty($selectedIngredients)): ?>
@@ -155,6 +179,16 @@
         </div>
     </div>
 
+    <?php if (!empty($aiRecipeSuccess) || !empty($aiRecipeError)): ?>
+        <div class="generate-result-box <?php echo !empty($aiRecipeError) ? 'ai-error-box' : 'ai-success-box'; ?>">
+            <strong><?php echo !empty($aiRecipeError) ? 'Erreur' : 'Succès'; ?> :</strong>
+            <span><?php echo htmlspecialchars(!empty($aiRecipeError) ? $aiRecipeError : $aiRecipeSuccess); ?></span>
+            <?php if (!empty($aiRecipeNote)): ?>
+                <small><?php echo htmlspecialchars($aiRecipeNote); ?></small>
+            <?php endif; ?>
+        </div>
+    <?php endif; ?>
+
     <?php $hideRecetteGrid = (!empty($generateMode) && empty($selectedIngredients)) || (($businessMode ?? '') === 'suggestion' && empty($selectedSmartIngredients)) || (($businessMode ?? '') === 'objectif' && empty($selectedObjectif)); ?>
 
     <?php if (!empty($resultTitle)): ?>
@@ -173,9 +207,9 @@
             <?php if (($businessMode ?? '') === 'rapides'): ?>
                 <span> — <?php echo t('result_fast_suffix'); ?></span>
             <?php elseif (($businessMode ?? '') === 'objectif' && !empty($selectedObjectif)): ?>
-                <span> — <?php echo t('goal_chosen'); ?> : <?php echo htmlspecialchars($selectedObjectif); ?></span>
+                <span> — <?php echo t('goal_chosen'); ?> : <?php echo htmlspecialchars($aiT($selectedObjectif)); ?></span>
             <?php elseif (($businessMode ?? '') === 'suggestion' && !empty($selectedSmartIngredients)): ?>
-                <span> — <?php echo t('ingredients_chosen'); ?> : <?php echo htmlspecialchars(implode(', ', $selectedSmartIngredients)); ?></span>
+                <span> — <?php echo t('ingredients_chosen'); ?> : <?php echo htmlspecialchars($aiT(implode(', ', $selectedSmartIngredients))); ?></span>
             <?php endif; ?>
         </div>
     <?php endif; ?>
@@ -186,9 +220,9 @@
                 <?php foreach ($recettes as $recette): ?>
                     <article class="recette-card">
                         <div class="card-badge"><?php echo t('recipe'); ?></div>
-                        <h3><?php echo htmlspecialchars($recette['titre']); ?></h3>
-                        <div class="recette-meta"><strong><?php echo t('objective'); ?> :</strong> <?php echo htmlspecialchars($recette['objectif']); ?></div>
-                        <div class="recette-meta"><strong><?php echo t('regime'); ?> :</strong> <?php echo htmlspecialchars($recette['regime']); ?></div>
+                        <h3><?php echo htmlspecialchars($aiT($recette['titre'])); ?></h3>
+                        <div class="recette-meta"><strong><?php echo t('objective'); ?> :</strong> <?php echo htmlspecialchars($aiT($recette['objectif'])); ?></div>
+                        <div class="recette-meta"><strong><?php echo t('regime'); ?> :</strong> <?php echo htmlspecialchars($aiT($recette['regime'])); ?></div>
                         <div class="recette-meta"><strong><?php echo t('duration'); ?> :</strong> <?php echo (int) $recette['duree']; ?> min</div>
                         <?php if (isset($recette['match_score'])): ?>
                             <div class="smart-score">
@@ -252,7 +286,8 @@ document.addEventListener('DOMContentLoaded', function () {
     if (generateForm) {
         generateForm.addEventListener('submit', function (event) {
             const checkedIngredients = generateForm.querySelectorAll('input[name="ingredients_generate[]"]:checked');
-            if (checkedIngredients.length === 0) {
+            const typedIngredients = document.getElementById('ingredients_ai_text');
+            if (checkedIngredients.length === 0 && (!typedIngredients || typedIngredients.value.trim() === '')) {
                 event.preventDefault();
                 generateError.textContent = <?php echo json_encode(t('need_ingredient_generate'), JSON_UNESCAPED_UNICODE); ?>;
             }

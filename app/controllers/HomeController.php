@@ -10,6 +10,18 @@ class HomeController extends BaseController
 
     public function index(): void
     {
+        $aiRecipeError = $_SESSION['ai_recipe_error'] ?? '';
+        $aiRecipeSuccess = $_SESSION['ai_recipe_success'] ?? '';
+        $aiRecipeNote = $_SESSION['ai_recipe_note'] ?? '';
+        unset($_SESSION['ai_recipe_error'], $_SESSION['ai_recipe_success'], $_SESSION['ai_recipe_note']);
+
+        $aiTargetLang = $this->normalizeAiLang($_GET['ai_translate'] ?? '');
+        $aiTranslationMap = [];
+        $aiTranslateNote = '';
+        if ($aiTargetLang !== '') {
+            $_SESSION['lang'] = $aiTargetLang;
+        }
+
         $search = trim($_GET['search'] ?? '');
         $generateMode = isset($_GET['generer_recette']);
         $businessMode = trim($_GET['mode_metier'] ?? '');
@@ -67,6 +79,12 @@ class HomeController extends BaseController
             $recettes = $stmt->fetchAll();
         }
 
+        if ($aiTargetLang !== '') {
+            $translationData = $this->translateHomeTexts($aiTargetLang, $recettes, $selectedObjectif, array_merge($selectedIngredients, $selectedSmartIngredients));
+            $aiTranslationMap = $translationData['translations'];
+            $aiTranslateNote = $translationData['note'];
+        }
+
         $this->render('front/home', [
             'pageTitle' => 'NutriVert | FrontOffice',
             'recettes' => $recettes,
@@ -80,7 +98,69 @@ class HomeController extends BaseController
             'generateMode' => $generateMode,
             'businessMode' => $businessMode,
             'resultTitle' => $resultTitle,
+            'aiRecipeError' => $aiRecipeError,
+            'aiRecipeSuccess' => $aiRecipeSuccess,
+            'aiRecipeNote' => $aiRecipeNote,
+            'aiTargetLang' => $aiTargetLang,
+            'aiTranslationMap' => $aiTranslationMap,
+            'aiTranslateNote' => $aiTranslateNote,
         ]);
+    }
+
+    private function normalizeAiLang(string $lang): string
+    {
+        $lang = trim($lang);
+        return in_array($lang, ['fr', 'en', 'ar'], true) ? $lang : '';
+    }
+
+    private function translateHomeTexts(string $targetLang, array $recettes, string $selectedObjectif, array $selectedIngredients): array
+    {
+        $texts = [];
+        foreach ($recettes as $recette) {
+            $texts[] = $recette['titre'] ?? '';
+            $texts[] = $recette['objectif'] ?? '';
+            $texts[] = $recette['regime'] ?? '';
+        }
+        $texts[] = $selectedObjectif;
+        foreach ($selectedIngredients as $ingredient) {
+            $texts[] = $ingredient;
+        }
+
+        return $this->translateTextsWithAi($targetLang, $texts);
+    }
+
+    private function translateDetailTexts(string $targetLang, array $recette, array $instructions): array
+    {
+        $texts = [
+            $recette['titre'] ?? '',
+            $recette['objectif'] ?? '',
+            $recette['regime'] ?? '',
+        ];
+
+        foreach ($instructions as $instruction) {
+            $texts[] = $instruction['etape'] ?? '';
+            $texts[] = $instruction['description'] ?? '';
+            $ingredients = json_decode($instruction['ingredient_produit'] ?? '[]', true);
+            if (is_array($ingredients)) {
+                foreach ($ingredients as $ingredient) {
+                    $texts[] = $ingredient['nom_produit'] ?? '';
+                    $texts[] = $ingredient['quantite'] ?? '';
+                }
+            }
+        }
+
+        return $this->translateTextsWithAi($targetLang, $texts);
+    }
+
+    private function translateTextsWithAi(string $targetLang, array $texts): array
+    {
+        try {
+            $config = require __DIR__ . '/../../config/config.php';
+            $aiService = new AiRecipeService($config);
+            return $aiService->translateTexts($targetLang, $texts);
+        } catch (Throwable $e) {
+            return ['translations' => [], 'note' => 'Traduction indisponible : ' . $e->getMessage()];
+        }
     }
 
     private function cleanArray($values): array
@@ -264,6 +344,94 @@ class HomeController extends BaseController
         return $ingredientsByRecette;
     }
 
+
+    public function generateAiRecipeAndSave(): void
+    {
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            $this->redirect('index.php?page=front_home');
+            return;
+        }
+
+        $regime = trim($_POST['regime_generate'] ?? '');
+        $selectedIngredients = $this->cleanArray($_POST['ingredients_generate'] ?? []);
+        $typedIngredients = $this->parseIngredientsText($_POST['ingredients_ai_text'] ?? '');
+        $ingredients = array_values(array_unique(array_merge($selectedIngredients, $typedIngredients)));
+
+        $regimesAutorises = ['Végétarien', 'Végan', 'Sans gluten', 'Protéiné', 'Faible en calories'];
+        if ($regime !== '' && !in_array($regime, $regimesAutorises, true)) {
+            $regime = '';
+        }
+
+        if (count($ingredients) === 0) {
+            $_SESSION['ai_recipe_error'] = 'Choisissez ou écrivez au moins un ingrédient.';
+            $this->redirect('index.php?page=front_home');
+            return;
+        }
+
+        try {
+            $config = require __DIR__ . '/../../config/config.php';
+            $aiService = new AiRecipeService($config);
+            $recipe = $aiService->generate($regime, $ingredients);
+            $newId = $this->saveGeneratedRecipe($recipe);
+
+            $_SESSION['ai_recipe_success'] = 'Recette IA générée et enregistrée dans la base.';
+            if (!empty($recipe['note'])) {
+                $_SESSION['ai_recipe_note'] = $recipe['note'];
+            }
+
+            $this->redirect('index.php?page=front_recette_detail&id=' . $newId);
+        } catch (Throwable $e) {
+            $_SESSION['ai_recipe_error'] = 'Erreur IA : ' . $e->getMessage();
+            $this->redirect('index.php?page=front_home');
+        }
+    }
+
+    private function parseIngredientsText(string $text): array
+    {
+        $parts = preg_split('/[,;\n\r]+/', $text);
+        if (!is_array($parts)) {
+            return [];
+        }
+
+        return array_values(array_unique(array_filter(array_map('trim', $parts))));
+    }
+
+    private function saveGeneratedRecipe(array $recipe): int
+    {
+        $this->pdo->beginTransaction();
+
+        try {
+            $stmtRecette = $this->pdo->prepare('INSERT INTO recette (titre, objectif, regime, duree) VALUES (:titre, :objectif, :regime, :duree)');
+            $stmtRecette->execute([
+                ':titre' => $recipe['titre'],
+                ':objectif' => $recipe['objectif'],
+                ':regime' => $recipe['regime'],
+                ':duree' => (int) $recipe['duree'],
+            ]);
+
+            $recetteId = (int) $this->pdo->lastInsertId();
+            $stmtInstruction = $this->pdo->prepare('INSERT INTO instruction (id_recette, etape, description, ingredient_produit) VALUES (:id_recette, :etape, :description, :ingredient_produit)');
+
+            foreach (($recipe['instructions'] ?? []) as $instruction) {
+                $ingredientsJson = json_encode($instruction['ingredients'] ?? [], JSON_UNESCAPED_UNICODE);
+                $stmtInstruction->execute([
+                    ':id_recette' => $recetteId,
+                    ':etape' => trim((string) ($instruction['etape'] ?? 'Étape')),
+                    ':description' => trim((string) ($instruction['description'] ?? '')),
+                    ':ingredient_produit' => $ingredientsJson ?: '[]',
+                ]);
+            }
+
+            $this->pdo->commit();
+            return $recetteId;
+        } catch (Throwable $e) {
+            if ($this->pdo->inTransaction()) {
+                $this->pdo->rollBack();
+            }
+            throw $e;
+        }
+    }
+
     public function recetteDetail(int $id): void
     {
         $stmtRecette = $this->pdo->prepare('SELECT * FROM recette WHERE id_recette = :id');
@@ -279,10 +447,23 @@ class HomeController extends BaseController
         $stmtInstructions->execute([':id_recette' => $id]);
         $instructions = $stmtInstructions->fetchAll();
 
+        $aiTargetLang = $this->normalizeAiLang($_GET['ai_translate'] ?? '');
+        $aiTranslationMap = [];
+        $aiTranslateNote = '';
+        if ($aiTargetLang !== '') {
+            $_SESSION['lang'] = $aiTargetLang;
+            $translationData = $this->translateDetailTexts($aiTargetLang, $recette, $instructions);
+            $aiTranslationMap = $translationData['translations'];
+            $aiTranslateNote = $translationData['note'];
+        }
+
         $this->render('front/recette_detail', [
             'pageTitle' => 'Détail recette',
             'recette' => $recette,
             'instructions' => $instructions,
+            'aiTargetLang' => $aiTargetLang,
+            'aiTranslationMap' => $aiTranslationMap,
+            'aiTranslateNote' => $aiTranslateNote,
         ]);
     }
 

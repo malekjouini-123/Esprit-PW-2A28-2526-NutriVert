@@ -9,6 +9,7 @@ app_current_lang();
 require_once __DIR__ . '/../app/controllers/BaseController.php';
 require_once __DIR__ . '/../app/models/Recette.php';
 require_once __DIR__ . '/../app/models/Instruction.php';
+require_once __DIR__ . '/../app/services/AiRecipeService.php';
 require_once __DIR__ . '/../app/controllers/HomeController.php';
 require_once __DIR__ . '/../app/controllers/RecetteController.php';
 
@@ -34,6 +35,9 @@ switch ($page) {
         break;
     case 'front_remove_favori':
         $homeController->removeFavori($id);
+        break;
+    case 'front_ai_generate_store':
+        $homeController->generateAiRecipeAndSave();
         break;
 
     case 'back_dashboard':
