@@ -661,29 +661,75 @@ document.addEventListener('DOMContentLoaded', () => {
         if (contentBox.querySelector('.edit-post-form')) return;
 
         const rawContent = contentBox.dataset.rawContent;
-        
         textElement.style.display = 'none';
         
+        // Build icon list for the edit picker
+        let iconHtml = '';
+        if (typeof allIcons !== 'undefined') {
+            allIcons.forEach(icon => {
+                iconHtml += `<div class="emoji-item emoji-item-edit" data-emoji="${icon.emoji}" title="${icon.name}">${icon.emoji}</div>`;
+            });
+        }
+
         const formHtml = `
-            <div class="edit-post-form" style="margin-top: 0.5rem;">
-                <textarea class="edit-post-input" style="width:100%; min-height:80px; padding:0.5rem; border:1px solid #d1d5db; border-radius:8px; font-family:inherit;">${rawContent}</textarea>
-                <div style="margin-top:0.5rem; display:flex; gap:0.5rem;">
-                    <button class="btn-submit btn-save-post" style="padding:0.4rem 1rem; font-size:0.8rem;">Enregistrer</button>
-                    <button class="btn-cancel-post" style="padding:0.4rem 1rem; font-size:0.8rem; background:white; color:#166534; border:1px solid #166534; border-radius:999px; cursor:pointer;">Annuler</button>
+            <div class="edit-post-form" style="margin-top: 0.5rem; background: #f9fafb; padding: 1rem; border-radius: 12px; border: 1px solid #e5e7eb;">
+                <textarea class="edit-post-input" style="width:100%; min-height:100px; padding:0.8rem; border:1px solid #d1d5db; border-radius:10px; font-family:inherit; resize:vertical; outline:none; transition: border-color 0.2s;">${rawContent}</textarea>
+                
+                <div style="margin-top:0.8rem; display:flex; justify-content: space-between; align-items:center;">
+                    <div style="position: relative;">
+                        <button type="button" class="action-btn btn-edit-emoji-toggle" style="padding: 0.4rem 0.8rem; font-size: 0.85rem;"><i class="far fa-smile"></i> Icônes</button>
+                        <div class="emoji-popover emoji-popover-edit" style="width: 250px; bottom: calc(100% + 10px);">
+                            <div class="emoji-grid">
+                                ${iconHtml}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div style="display:flex; gap:0.5rem;">
+                        <button class="btn-cancel-post" style="padding:0.4rem 1.2rem; font-size:0.85rem; background:white; color:#6b7280; border:1px solid #d1d5db; border-radius:999px; cursor:pointer; font-weight:600;">Annuler</button>
+                        <button class="btn-submit btn-save-post" style="padding:0.4rem 1.4rem; font-size:0.85rem; border-radius:999px;">Enregistrer</button>
+                    </div>
                 </div>
             </div>
         `;
         contentBox.insertAdjacentHTML('beforeend', formHtml);
         
         const formDiv = contentBox.querySelector('.edit-post-form');
+        const editInput = formDiv.querySelector('.edit-post-input');
+        const editPopover = formDiv.querySelector('.emoji-popover-edit');
         
+        editInput.focus();
+
+        // Handle emoji toggle for edit
+        formDiv.querySelector('.btn-edit-emoji-toggle').addEventListener('click', (ev) => {
+            ev.stopPropagation();
+            editPopover.classList.toggle('show');
+        });
+
+        // Handle emoji insertion for edit
+        editPopover.addEventListener('click', (ev) => {
+            const item = ev.target.closest('.emoji-item-edit');
+            if (!item) return;
+            
+            const emoji = item.dataset.emoji;
+            const start = editInput.selectionStart;
+            const end = editInput.selectionEnd;
+            const text = editInput.value;
+            
+            editInput.value = text.substring(0, start) + emoji + text.substring(end);
+            editInput.selectionStart = editInput.selectionEnd = start + emoji.length;
+            editInput.focus();
+            editPopover.classList.remove('show');
+        });
+
         formDiv.querySelector('.btn-cancel-post').addEventListener('click', () => {
             formDiv.remove();
             textElement.style.display = 'block';
         });
 
         formDiv.querySelector('.btn-save-post').addEventListener('click', async () => {
-            const newContent = formDiv.querySelector('.edit-post-input').value.trim();
+            const newContentRaw = editInput.value.trim();
+            const newContent = filterProfanity(newContentRaw);
             if (!newContent) return;
             
             try {
@@ -719,29 +765,71 @@ document.addEventListener('DOMContentLoaded', () => {
         if (contentBox.querySelector('.edit-reply-form')) return;
 
         const rawContent = contentBox.dataset.rawContent;
-        
         textElement.style.display = 'none';
+
+        let iconHtml = '';
+        if (typeof allIcons !== 'undefined') {
+            allIcons.forEach(icon => {
+                iconHtml += `<div class="emoji-item emoji-item-edit-reply" data-emoji="${icon.emoji}" title="${icon.name}">${icon.emoji}</div>`;
+            });
+        }
         
         const formHtml = `
-            <div class="edit-reply-form" style="margin-top: 0.5rem; width:100%;">
-                <textarea class="edit-reply-input" style="width:100%; min-height:60px; padding:0.5rem; border:1px solid #d1d5db; border-radius:8px; font-family:inherit; font-size:0.9rem;">${rawContent}</textarea>
-                <div style="margin-top:0.3rem; display:flex; gap:0.5rem;">
-                    <button class="btn-submit btn-save-reply" style="padding:0.3rem 0.8rem; font-size:0.75rem;">Enregistrer</button>
-                    <button class="btn-cancel-reply" style="padding:0.3rem 0.8rem; font-size:0.75rem; background:white; color:#166534; border:1px solid #166534; border-radius:999px; cursor:pointer;">Annuler</button>
+            <div class="edit-reply-form" style="margin-top: 0.5rem; background: #f9fafb; padding: 0.8rem; border-radius: 10px; border: 1px solid #e5e7eb; width:100%;">
+                <textarea class="edit-reply-input" style="width:100%; min-height:80px; padding:0.6rem; border:1px solid #d1d5db; border-radius:8px; font-family:inherit; font-size:0.9rem; resize:vertical; outline:none; transition: border-color 0.2s;">${rawContent}</textarea>
+                
+                <div style="margin-top:0.6rem; display:flex; justify-content: space-between; align-items:center;">
+                    <div style="position: relative;">
+                        <button type="button" class="action-btn btn-edit-reply-emoji-toggle" style="padding: 0.3rem 0.6rem; font-size: 0.8rem;"><i class="far fa-smile"></i> Icônes</button>
+                        <div class="emoji-popover emoji-popover-edit-reply" style="width: 220px; bottom: calc(100% + 8px);">
+                            <div class="emoji-grid" style="grid-template-columns: repeat(5, 1fr);">
+                                ${iconHtml}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div style="display:flex; gap:0.4rem;">
+                        <button class="btn-cancel-reply" style="padding:0.35rem 1rem; font-size:0.8rem; background:white; color:#6b7280; border:1px solid #d1d5db; border-radius:999px; cursor:pointer; font-weight:600;">Annuler</button>
+                        <button class="btn-submit btn-save-reply" style="padding:0.35rem 1.2rem; font-size:0.8rem; border-radius:999px;">Enregistrer</button>
+                    </div>
                 </div>
             </div>
         `;
         contentBox.insertAdjacentHTML('beforeend', formHtml);
         
         const formDiv = contentBox.querySelector('.edit-reply-form');
+        const editInput = formDiv.querySelector('.edit-reply-input');
+        const editPopover = formDiv.querySelector('.emoji-popover-edit-reply');
         
+        editInput.focus();
+
+        formDiv.querySelector('.btn-edit-reply-emoji-toggle').addEventListener('click', (ev) => {
+            ev.stopPropagation();
+            editPopover.classList.toggle('show');
+        });
+
+        editPopover.addEventListener('click', (ev) => {
+            const item = ev.target.closest('.emoji-item-edit-reply');
+            if (!item) return;
+            
+            const emoji = item.dataset.emoji;
+            const start = editInput.selectionStart;
+            const end = editInput.selectionEnd;
+            
+            editInput.value = editInput.value.substring(0, start) + emoji + editInput.value.substring(end);
+            editInput.selectionStart = editInput.selectionEnd = start + emoji.length;
+            editInput.focus();
+            editPopover.classList.remove('show');
+        });
+
         formDiv.querySelector('.btn-cancel-reply').addEventListener('click', () => {
             formDiv.remove();
             textElement.style.display = 'block';
         });
 
         formDiv.querySelector('.btn-save-reply').addEventListener('click', async () => {
-            const newContent = formDiv.querySelector('.edit-reply-input').value.trim();
+            const newContentRaw = editInput.value.trim();
+            const newContent = filterProfanity(newContentRaw);
             if (!newContent) return;
             
             try {
@@ -762,7 +850,6 @@ document.addEventListener('DOMContentLoaded', () => {
             } catch (err) {
                 console.error(err);
             }
-        });
     });
 
     // 8. Delete Post
