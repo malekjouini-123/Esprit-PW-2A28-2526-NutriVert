@@ -207,7 +207,7 @@ document.addEventListener('DOMContentLoaded', () => {
         
         const article = btn.closest('.post-card');
         const postId = article.dataset.postId;
-        const link = window.location.origin + window.location.pathname + '#post-' + postId;
+        const link = window.location.origin + window.location.pathname + '?id=' + postId;
         
         navigator.clipboard.writeText(link).then(() => {
             showToast('Lien copié dans le presse-papiers');

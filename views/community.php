@@ -43,6 +43,14 @@ function renderTags($text, $users) {
 </header>
 
 <div class="wrapper">
+    <?php if (isset($_GET['id'])): ?>
+        <div style="margin-bottom: 1.5rem;">
+            <a href="index.php" style="display: inline-flex; align-items: center; gap: 0.5rem; text-decoration: none; color: #166534; font-weight: 600; font-size: 0.95rem; background: #e6f0eb; padding: 0.6rem 1.2rem; border-radius: 12px; transition: all 0.2s;">
+                <i class="fas fa-arrow-left"></i> Retour au flux communautaire
+            </a>
+        </div>
+    <?php endif; ?>
+    
     <!-- Create Post Section -->
     <section class="create-post">
         <div class="create-post-header" style="flex-direction: column; gap: 0.8rem; align-items: stretch;">

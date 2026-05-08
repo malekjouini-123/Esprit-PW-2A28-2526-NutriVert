@@ -15,7 +15,13 @@ $pdo = getDB();
 // Simulated current user session
 $currentUserId = 1; 
 
-$posts = $postController->getAllPosts();
+$postId = $_GET['id'] ?? null;
+if ($postId) {
+    $singlePost = $postController->getPostById($postId);
+    $posts = $singlePost ? [$singlePost] : [];
+} else {
+    $posts = $postController->getAllPosts();
+}
 
 // Load all available icons
 $allIcons = $postController->getAllIcons();
