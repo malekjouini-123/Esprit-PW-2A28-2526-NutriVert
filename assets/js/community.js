@@ -654,13 +654,18 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!btn) return;
         
         const article = btn.closest('.post-card');
+        if (!article) return;
+        
         const contentBox = article.querySelector('.post-content');
+        if (!contentBox) return;
+        
         const textElement = contentBox.querySelector('.post-text');
+        if (!textElement) return;
         
         // Prevent multiple edit boxes
         if (contentBox.querySelector('.edit-post-form')) return;
 
-        const rawContent = contentBox.dataset.rawContent;
+        const rawContent = contentBox.dataset.rawContent || '';
         textElement.style.display = 'none';
         
         // Build icon list for the edit picker
@@ -759,12 +764,17 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!btn) return;
         
         const replyDiv = btn.closest('.reply');
+        if (!replyDiv) return;
+        
         const contentBox = replyDiv.querySelector('.reply-content-box');
+        if (!contentBox) return;
+        
         const textElement = contentBox.querySelector('.reply-text');
+        if (!textElement) return;
         
         if (contentBox.querySelector('.edit-reply-form')) return;
 
-        const rawContent = contentBox.dataset.rawContent;
+        const rawContent = contentBox.dataset.rawContent || '';
         textElement.style.display = 'none';
 
         let iconHtml = '';
@@ -850,6 +860,7 @@ document.addEventListener('DOMContentLoaded', () => {
             } catch (err) {
                 console.error(err);
             }
+        });
     });
 
     // 8. Delete Post

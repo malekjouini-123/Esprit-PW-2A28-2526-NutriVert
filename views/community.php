@@ -349,6 +349,7 @@ function renderTags($text, $users) {
 
 <script>
     const allUsers = <?= json_encode($allUsersList, JSON_UNESCAPED_UNICODE) ?>;
+    const allIcons = <?= json_encode($allIcons, JSON_UNESCAPED_UNICODE) ?>;
 </script>
 <script src="assets/js/community.js?v=<?= time() ?>"></script>
 </body>
