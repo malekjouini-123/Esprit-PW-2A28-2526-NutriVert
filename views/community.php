@@ -51,6 +51,7 @@ function renderTags($text, $users) {
         </div>
     <?php endif; ?>
     
+    <?php if (!isset($_GET['id'])): ?>
     <!-- Create Post Section -->
     <section class="create-post">
         <div class="create-post-header" style="flex-direction: column; gap: 0.8rem; align-items: stretch;">
@@ -94,6 +95,7 @@ function renderTags($text, $users) {
             <button id="btn-submit-post" class="btn-submit">Publier</button>
         </div>
     </section>
+    <?php endif; ?>
 
     <!-- Post Feed -->
     <?php foreach ($posts as $post): 
