@@ -86,7 +86,7 @@ if (isset($_GET['action'])) {
 $totalUsers = $pdo->query("SELECT COUNT(*) FROM Utilisateur")->fetchColumn();
 $totalPosts = $pdo->query("SELECT COUNT(*) FROM Post")->fetchColumn();
 $totalReplies = $pdo->query("SELECT COUNT(*) FROM Reply")->fetchColumn();
-$totalReactions = $pdo->query("SELECT COUNT(*) FROM Reaction")->fetchColumn();
+$totalReactions = $pdo->query("SELECT (SELECT COUNT(*) FROM Reaction) + (SELECT COUNT(*) FROM ReactionReply)")->fetchColumn();
 
 $types = ['Article', 'Question', 'Recette'];
 $chartData = [];
@@ -98,9 +98,9 @@ foreach ($types as $type) {
     $chartData[] = (int)$stmt->fetchColumn();
 }
 
-// Stats for Reactions Chart
-$totalLikes = $pdo->query("SELECT COUNT(*) FROM Reaction WHERE type_reaction = 'Like'")->fetchColumn();
-$totalDislikes = $pdo->query("SELECT COUNT(*) FROM Reaction WHERE type_reaction = 'Dislike'")->fetchColumn();
+// Stats for Reactions Chart (Sum of Posts reactions and Replies reactions)
+$totalLikes = $pdo->query("SELECT (SELECT COUNT(*) FROM Reaction WHERE type_reaction = 'Like') + (SELECT COUNT(*) FROM ReactionReply WHERE type_reaction = 'Like')")->fetchColumn();
+$totalDislikes = $pdo->query("SELECT (SELECT COUNT(*) FROM Reaction WHERE type_reaction = 'Dislike') + (SELECT COUNT(*) FROM ReactionReply WHERE type_reaction = 'Dislike')")->fetchColumn();
 $reactionChartData = [(int)$totalLikes, (int)$totalDislikes];
 
 $sort = $_GET['sort'] ?? 'newest';
@@ -118,10 +118,12 @@ $posts = $pdo->query("
     ORDER BY $orderBy
 ")->fetchAll();
 
-// Fetch all replies grouped by post_id
+// Fetch all replies with their own reaction counts, grouped by post_id
 $repliesByPost = [];
 $allRepliesRaw = $pdo->query("
-    SELECT r.*, u.nom_utilisateur 
+    SELECT r.*, u.nom_utilisateur,
+        (SELECT COUNT(*) FROM ReactionReply WHERE reply_id = r.id_reply AND type_reaction = 'Like') as likes_count,
+        (SELECT COUNT(*) FROM ReactionReply WHERE reply_id = r.id_reply AND type_reaction = 'Dislike') as dislikes_count
     FROM Reply r 
     LEFT JOIN Utilisateur u ON r.auteur_id = u.id_user 
     ORDER BY r.date_reply ASC
@@ -448,6 +450,18 @@ body {
 
 .btn-outline {
     background: transparent;
+}
+
+/* Animation de surbrillance pour les lignes ciblées par une ancre (#post-row-id) */
+tr:target {
+    animation: highlight-row 3s ease-out;
+    background-color: #d1fae5 !important;
+}
+
+@keyframes highlight-row {
+    0% { background-color: #d1fae5; box-shadow: 0 0 0 4px #d1fae5 inset; }
+    100% { background-color: transparent; box-shadow: 0 0 0 0 transparent inset; }
+}
     border: 1px solid var(--green-light);
     padding: 0.65rem 1.2rem;
     border-radius: 2rem;
@@ -856,7 +870,7 @@ th {
                         <tr><td colspan="6">Aucune publication trouvée.</td></tr>
                     <?php endif; ?>
                     <?php foreach ($posts as $post): ?>
-                        <tr>
+                        <tr id="post-row-<?= (int)$post['id_post'] ?>">
                             <td><?= $e($post['nom_utilisateur']) ?></td>
                             <td>
                                 <strong><?= $e($post['titre']) ?></strong><br>
@@ -898,7 +912,10 @@ th {
                                             <div style="display: flex; justify-content: space-between; align-items: flex-start; padding: 0.5rem 0; border-bottom: 1px solid #f3f4f6;">
                                                 <div style="font-size: 0.85rem;">
                                                     <strong><?= $e($reply['nom_utilisateur']) ?>:</strong> <?= $e($reply['commentaire']) ?>
-                                                    <br><span style="font-size: 0.7rem; color: var(--text-muted);"><?= date('d/m/Y H:i', strtotime($reply['date_reply'])) ?></span>
+                                                    <br>
+                                                    <span style="font-size: 0.75rem; color: #10b981; margin-right: 0.5rem;"><i class="fas fa-thumbs-up"></i> <?= (int)$reply['likes_count'] ?></span>
+                                                    <span style="font-size: 0.75rem; color: #ef4444; margin-right: 0.5rem;"><i class="fas fa-thumbs-down"></i> <?= (int)$reply['dislikes_count'] ?></span>
+                                                    <span style="font-size: 0.7rem; color: var(--text-muted);"><?= date('d/m/Y H:i', strtotime($reply['date_reply'])) ?></span>
                                                 </div>
                                                 <div class="table-actions">
                                                     <a href="reply_form.php?id=<?= (int)$reply['id_reply'] ?>" style="color: var(--green-mid); font-size: 0.75rem; text-decoration: none; margin-right: 0.5rem;"><i class="fas fa-edit"></i></a>
@@ -973,8 +990,8 @@ th {
                         
                         <!-- Actions -->
                         <div style="margin-top:1rem; display:flex; gap:0.5rem;">
-                            <a href="<?= $mention['type'] === 'Publication' ? 'post_form.php?id='.$mention['id'] : 'reply_form.php?id='.$mention['id'] ?>" class="btn-outline btn-sm" style="background:white; display:flex; align-items:center; gap:0.4rem; border-color:#d1d5db; color:#4b5563;" onmouseover="this.style.borderColor='var(--green-mid)'; this.style.color='var(--green-mid)';" onmouseout="this.style.borderColor='#d1d5db'; this.style.color='#4b5563';">
-                                <i class="fas fa-external-link-alt"></i> Ouvrir pour modérer
+                            <a href="dashboard.php?section=posts#post-row-<?= $mention['type'] === 'Publication' ? $mention['id'] : $mention['post_id'] ?>" class="btn-outline btn-sm" style="background:white; display:flex; align-items:center; gap:0.4rem; border-color:#d1d5db; color:#4b5563;" onmouseover="this.style.borderColor='var(--green-mid)'; this.style.color='var(--green-mid)';" onmouseout="this.style.borderColor='#d1d5db'; this.style.color='#4b5563';">
+                                <i class="fas fa-list"></i> Voir la mention
                             </a>
                         </div>
                     </div>

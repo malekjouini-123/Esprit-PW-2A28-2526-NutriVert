@@ -9,8 +9,8 @@ try {
         SELECT u.*, 
             (SELECT COUNT(*) FROM Post WHERE auteur_id = u.id_user) as post_count,
             (SELECT COUNT(*) FROM Reply WHERE auteur_id = u.id_user) as reply_count,
-            (SELECT COUNT(*) FROM Reaction WHERE user_id = u.id_user AND type_reaction = 'Like') as like_count,
-            (SELECT COUNT(*) FROM Reaction WHERE user_id = u.id_user AND type_reaction = 'Dislike') as dislike_count
+            (SELECT (SELECT COUNT(*) FROM Reaction WHERE user_id = u.id_user AND type_reaction = 'Like') + (SELECT COUNT(*) FROM ReactionReply WHERE user_id = u.id_user AND type_reaction = 'Like')) as like_count,
+            (SELECT (SELECT COUNT(*) FROM Reaction WHERE user_id = u.id_user AND type_reaction = 'Dislike') + (SELECT COUNT(*) FROM ReactionReply WHERE user_id = u.id_user AND type_reaction = 'Dislike')) as dislike_count
         FROM Utilisateur u 
         ORDER BY $userOrderBy
     ";

@@ -75,21 +75,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // 1. Handling Reactions on Posts
     document.addEventListener('click', async (e) => {
-        let btn = e.target.closest('.btn-react');
-        let type = '';
-        
-        if (!btn) {
-            btn = e.target.closest('.btn-react-main');
-            if (!btn) return;
-            type = 'Like'; // Default action when clicking the main button
-        } else {
-            type = btn.dataset.type;
-            // Hide popover if clicking inside it
-            btn.closest('.reaction-popover').style.visibility = 'hidden';
-            setTimeout(() => { btn.closest('.reaction-popover').style.visibility = ''; }, 300);
+        // Popover choice (Like or Dislike)
+        const choice = e.target.closest('.btn-react-choice');
+        if (choice) {
+            const type = choice.dataset.type;
+            const mainBtn = choice.closest('.reaction-wrapper').querySelector('.btn-react-main');
+            handleReaction(mainBtn, type);
+            return;
         }
-        
-        handleReaction(btn, type);
+        // Main button click (always toggles Like)
+        const btn = e.target.closest('.btn-react-main');
+        if (!btn) return;
+        if (btn.classList.contains('btn-react-main-reply')) return;
+        handleReaction(btn, 'Like');
     });
 
     async function handleReaction(button, type) {
@@ -104,30 +102,31 @@ document.addEventListener('DOMContentLoaded', () => {
             });
 
             const data = await response.json();
-            
             if (data.success) {
-                const likesSpans = article.querySelectorAll('.likes-count');
-                const dislikesSpans = article.querySelectorAll('.dislikes-count');
-                likesSpans.forEach(s => s.textContent = data.likes);
-                dislikesSpans.forEach(s => s.textContent = data.dislikes);
-                
-                const mainBtn = article.querySelector('.btn-react-main');
-                const icon = mainBtn.querySelector('i');
+                const mainBtn  = article.querySelector('.btn-react-main');
+                const icon     = mainBtn.querySelector('i');
+                const reactTxt = mainBtn.querySelector('.react-text');
 
                 mainBtn.classList.remove('active-like', 'active-dislike');
-                
+
                 if (data.user_reaction === 'Like') {
                     mainBtn.classList.add('active-like');
-                    if (icon) icon.className = 'fas fa-thumbs-up';
-                    mainBtn.innerHTML = `<i class="fas fa-thumbs-up"></i> J'aime`;
+                    icon.className = 'fas fa-thumbs-up';
+                    if (reactTxt) reactTxt.textContent = "J'aime";
                 } else if (data.user_reaction === 'Dislike') {
                     mainBtn.classList.add('active-dislike');
-                    if (icon) icon.className = 'fas fa-thumbs-down';
-                    mainBtn.innerHTML = `<i class="fas fa-thumbs-down"></i> Je n'aime pas`;
+                    icon.className = 'fas fa-thumbs-down';
+                    if (reactTxt) reactTxt.textContent = "Je n'aime pas";
                 } else {
-                    if (icon) icon.className = 'far fa-thumbs-up';
-                    mainBtn.innerHTML = `<i class="far fa-thumbs-up"></i> J'aime`;
+                    icon.className = 'far fa-thumbs-up';
+                    if (reactTxt) reactTxt.textContent = "J'aime";
                 }
+
+                // Update stat bar
+                const statLikes    = article.querySelector('.post-stat-likes');
+                const statDislikes = article.querySelector('.post-stat-dislikes');
+                if (statLikes)    statLikes.textContent    = data.likes;
+                if (statDislikes) statDislikes.textContent = data.dislikes;
             }
         } catch (err) {
             console.error("Erreur lors de la réaction:", err);
@@ -136,20 +135,18 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // 2. Handling Reactions on Replies
     document.addEventListener('click', async (e) => {
-        let btn = e.target.closest('.btn-react-reply');
-        let type = '';
-        
-        if (!btn) {
-            btn = e.target.closest('.btn-react-main-reply');
-            if (!btn) return;
-            type = 'Like';
-        } else {
-            type = btn.dataset.type;
-            btn.closest('.reaction-popover-reply').style.visibility = 'hidden';
-            setTimeout(() => { btn.closest('.reaction-popover-reply').style.visibility = ''; }, 300);
+        // Popover choice
+        const choice = e.target.closest('.btn-react-choice-reply');
+        if (choice) {
+            const type = choice.dataset.type;
+            const mainBtn = choice.closest('.reaction-wrapper-reply').querySelector('.btn-react-main-reply');
+            handleReplyReaction(mainBtn, type);
+            return;
         }
-        
-        handleReplyReaction(btn, type);
+        // Main button click (toggles Like)
+        const btn = e.target.closest('.btn-react-main-reply');
+        if (!btn) return;
+        handleReplyReaction(btn, 'Like');
     });
 
     async function handleReplyReaction(btn, type) {
@@ -165,24 +162,28 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const data = await response.json();
             if (data.success) {
-                const likesSpans = btn.closest('.reply').querySelectorAll('.likes-count, .reply-likes-count');
-                const dislikesSpans = btn.closest('.reply').querySelectorAll('.dislikes-count, .reply-dislikes-count');
-                
-                likesSpans.forEach(s => s.textContent = data.likes > 0 ? data.likes : '');
-                dislikesSpans.forEach(s => s.textContent = data.dislikes > 0 ? data.dislikes : '');
+                const mainBtn  = replyDiv.querySelector('.btn-react-main-reply');
+                const icon     = mainBtn.querySelector('i');
+                const reactTxt = mainBtn.querySelector('.react-text');
+                const countBadge = mainBtn.querySelector('.react-count');
 
-                const mainBtn = btn.closest('.reply').querySelector('.btn-react-main-reply');
-                if (mainBtn) {
-                    mainBtn.style.color = '#4b5563';
-                    if (data.user_reaction === 'Like') {
-                        mainBtn.style.color = '#10b981';
-                        mainBtn.innerHTML = `J'aime <span class="likes-count" style="margin-left:0.2rem; color:#10b981;">${data.likes > 0 ? data.likes : ''}</span>`;
-                    } else if (data.user_reaction === 'Dislike') {
-                        mainBtn.style.color = '#ef4444';
-                        mainBtn.innerHTML = `Je n'aime pas <span class="likes-count" style="margin-left:0.2rem; color:#ef4444;">${data.dislikes > 0 ? data.dislikes : ''}</span>`;
-                    } else {
-                        mainBtn.innerHTML = `J'aime <span class="likes-count" style="margin-left:0.2rem; color:#10b981;">${data.likes > 0 ? data.likes : ''}</span>`;
-                    }
+                mainBtn.classList.remove('active-like', 'active-dislike');
+
+                if (data.user_reaction === 'Like') {
+                    mainBtn.classList.add('active-like');
+                    icon.className = 'fas fa-thumbs-up';
+                    if (reactTxt) reactTxt.textContent = "J'aime";
+                    if (countBadge) countBadge.textContent = data.likes > 0 ? data.likes : '';
+                } else if (data.user_reaction === 'Dislike') {
+                    mainBtn.classList.add('active-dislike');
+                    icon.className = 'fas fa-thumbs-down';
+                    if (reactTxt) reactTxt.textContent = "Je n'aime pas";
+                    if (countBadge) countBadge.textContent = data.dislikes > 0 ? data.dislikes : '';
+                } else {
+                    icon.className = 'far fa-thumbs-up';
+                    if (reactTxt) reactTxt.textContent = "J'aime";
+                    // If no reaction, show like count if > 0, otherwise empty
+                    if (countBadge) countBadge.textContent = data.likes > 0 ? data.likes : '';
                 }
             }
         } catch (err) {
@@ -381,8 +382,23 @@ document.addEventListener('DOMContentLoaded', () => {
                                 ${imgHtml}
                             </div>
                             <div class="reply-actions">
-                                <button class="reply-action btn-react-reply" data-type="Like">J'aime (<span class="likes-count">0</span>)</button>
-                                <button class="reply-action btn-react-reply" data-type="Dislike">Je n'aime pas (<span class="dislikes-count">0</span>)</button>
+                                <div class="reaction-wrapper-reply">
+                                    <button class="reply-action btn-react-main-reply" data-type="Like">
+                                        <i class="far fa-thumbs-up"></i>
+                                        <span class="react-text">J'aime</span>
+                                        <span class="react-count"></span>
+                                    </button>
+                                    <div class="reaction-popover-reply">
+                                        <button class="react-emoji btn-react-choice-reply" data-type="Like">
+                                            <span class="emoji">&#128077;</span>
+                                            <span class="react-label">J'aime</span>
+                                        </button>
+                                        <button class="react-emoji btn-react-choice-reply" data-type="Dislike">
+                                            <span class="emoji">&#128078;</span>
+                                            <span class="react-label">Je n'aime pas</span>
+                                        </button>
+                                    </div>
+                                </div>
                                 <button class="reply-action btn-sub-reply">Répondre</button>
                                 <button class="reply-action btn-edit-reply" style="color: #6b7280;">Modifier</button>
                                 <button class="reply-action btn-delete-reply" style="color: #ef4444;">Supprimer</button>
@@ -432,6 +448,100 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
     }
+
+    // Emoji Popover Logic
+    const emojiPickerBtn = document.getElementById('btn-emoji-picker');
+    const emojiPopover = document.getElementById('emoji-popover');
+    const mainTextarea = document.getElementById('new-post-content');
+
+    if (emojiPickerBtn && emojiPopover) {
+        emojiPickerBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            emojiPopover.classList.toggle('show');
+        });
+
+        document.addEventListener('click', (e) => {
+            if (!emojiPopover.contains(e.target) && e.target !== emojiPickerBtn) {
+                emojiPopover.classList.remove('show');
+            }
+        });
+
+        emojiPopover.addEventListener('click', (e) => {
+            const item = e.target.closest('.emoji-item');
+            if (!item) return;
+
+            const emoji = item.dataset.emoji;
+            const iconId = item.dataset.id;
+            
+            if (mainTextarea) {
+                const start = mainTextarea.selectionStart;
+                const end = mainTextarea.selectionEnd;
+                const text = mainTextarea.value;
+                const before = text.substring(0, start);
+                const after = text.substring(end);
+                
+                mainTextarea.value = before + emoji + after;
+                
+                // Put cursor after inserted emoji
+                mainTextarea.selectionStart = mainTextarea.selectionEnd = start + emoji.length;
+                mainTextarea.focus();
+            }
+
+            // Optional: Still sync with hidden select for DB categorization
+            if (hiddenIconSelect) {
+                let opt = hiddenIconSelect.querySelector(`option[value="${iconId}"]`);
+                if (!opt) {
+                    opt = document.createElement('option');
+                    opt.value = iconId;
+                    hiddenIconSelect.appendChild(opt);
+                }
+                opt.selected = true;
+            }
+        });
+    }
+
+    function clearIconPicker() {
+        if (emojiPopover) emojiPopover.classList.remove('show');
+        if (hiddenIconSelect) hiddenIconSelect.innerHTML = '';
+    }
+
+    // Emoji Picker for Replies
+    document.addEventListener('click', (e) => {
+        const toggleBtn = e.target.closest('.btn-reply-emoji-toggle');
+        if (toggleBtn) {
+            e.stopPropagation();
+            const popover = toggleBtn.nextElementSibling;
+            // Close other reply popovers
+            document.querySelectorAll('.emoji-popover-reply').forEach(p => {
+                if (p !== popover) p.classList.remove('show');
+            });
+            popover.classList.toggle('show');
+            return;
+        }
+
+        // Close reply popovers when clicking outside
+        if (!e.target.closest('.emoji-popover-reply')) {
+            document.querySelectorAll('.emoji-popover-reply').forEach(p => p.classList.remove('show'));
+        }
+
+        // Emoji selection in replies
+        const emojiItem = e.target.closest('.emoji-item-reply');
+        if (emojiItem) {
+            const emoji = emojiItem.dataset.emoji;
+            const inputWrapper = emojiItem.closest('.reply-input-wrapper');
+            const input = inputWrapper.querySelector('.reply-input');
+            
+            if (input) {
+                const start = input.selectionStart;
+                const end = input.selectionEnd;
+                const text = input.value;
+                input.value = text.substring(0, start) + emoji + text.substring(end);
+                input.selectionStart = input.selectionEnd = start + emoji.length;
+                input.focus();
+            }
+            emojiItem.closest('.emoji-popover-reply').classList.remove('show');
+        }
+    });
 
     if (submitPostBtn && newPostContent) {
         submitPostBtn.addEventListener('click', async () => {
@@ -507,6 +617,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 const formData = new FormData();
                 if (titre) formData.append('titre', titre);
                 formData.append('type_post', typePost);
+                const iconInput = document.getElementById('new-post-icon');
+                if (iconInput) {
+                    Array.from(iconInput.selectedOptions).forEach(option => {
+                        formData.append('icon_id[]', option.value);
+                    });
+                }
                 formData.append('contenu', contenu);
                 if (file) formData.append('image', file);
 
@@ -742,6 +858,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
         document.addEventListener('input', (e) => {
             if (e.target.tagName !== 'TEXTAREA' && e.target.tagName !== 'INPUT') return;
+            
+            // Ne pas autoriser les tags dans les champs de titre
+            if (e.target.id === 'new-post-title' || e.target.id === 'quick_titre' || e.target.id === 'titre') return;
             
             const val = e.target.value;
             const cursorStart = e.target.selectionStart;

@@ -65,6 +65,20 @@ function renderTags($text, $users) {
                     <option value="Question">❓ Question</option>
                     <option value="Recette">🍳 Recette</option>
                 </select>
+                <div style="position: relative;">
+                    <button type="button" id="btn-emoji-picker" class="action-btn"><i class="far fa-smile"></i> Icônes</button>
+                    <div class="emoji-popover" id="emoji-popover">
+                        <div class="emoji-grid">
+                            <?php foreach ($allIcons as $icon): ?>
+                                <div class="emoji-item" data-emoji="<?= $icon['emoji'] ?>" data-id="<?= $icon['id_icon'] ?>" title="<?= htmlspecialchars($icon['name']) ?>">
+                                    <?= $icon['emoji'] ?>
+                                </div>
+                            <?php endforeach; ?>
+                        </div>
+                    </div>
+                </div>
+                <!-- Hidden inputs for legacy tracking if needed -->
+                <select id="new-post-icon" name="icon_id[]" multiple style="display: none;"></select>
                 <input type="file" id="post-image-input" accept="image/*" style="display: none;">
                 <button class="action-btn" id="btn-post-image" onclick="document.getElementById('post-image-input').click()"><i class="fas fa-image"></i> Photo/Vidéo</button>
                 <span id="post-image-name" style="font-size: 0.8rem; color: #6b7280;"></span>
@@ -94,13 +108,17 @@ function renderTags($text, $users) {
         $replies = $replyController->getRepliesByPost($post->getIdPost());
         $reactionCounts = $reactionController->getReactionCounts($post->getIdPost());
         $likes = $reactionCounts['Like'] ?? 0;
+        $userReactionObj = $reactionController->getReaction($currentUserId, $post->getIdPost());
+        $userReactionType = $userReactionObj ? $userReactionObj->getTypeReaction() : null;
     ?>
     <article class="post-card" id="post-<?= $post->getIdPost() ?>" data-post-id="<?= $post->getIdPost() ?>">
         <div class="post-header">
             <div class="post-author-wrap">
                 <div class="avatar" style="background:<?= $color['bg'] ?>; color:<?= $color['text'] ?>;"><?= $initials ?></div>
                 <div class="post-author-info">
-                    <span class="post-author-name"><?= htmlspecialchars($authorName) ?></span>
+                    <div style="display: flex; align-items: center; gap: 0.5rem;">
+                        <span class="post-author-name"><?= htmlspecialchars($authorName) ?></span>
+                    </div>
                     <span class="post-time">
                         <i class="fas fa-globe-americas"></i> <?= timeAgo($post->getDatePublication()) ?>
                         <span style="margin: 0 0.4rem; color: #d1d5db;">•</span>
@@ -120,7 +138,9 @@ function renderTags($text, $users) {
             <?php if ($post->getTitre()): ?>
                 <h3 class="post-title" style="margin-bottom: 0.5rem; font-size: 1.1rem; color: #111827;"><?= renderTags($post->getTitre(), $allUsersList) ?></h3>
             <?php endif; ?>
-            <p class="post-text" style="margin: 0;"><?= renderTags($post->getContenu(), $allUsersList) ?></p>
+            <div class="post-text-container">
+                <p class="post-text" style="margin: 0;"><?= renderTags($post->getContenu(), $allUsersList) ?></p>
+            </div>
         </div>
         
         <?php if ($post->getMediaUrl()): ?>
@@ -129,12 +149,12 @@ function renderTags($text, $users) {
         
         <div class="post-stats" style="display: flex; gap: 1rem;">
             <div class="stat-item">
-                <i class="fas fa-heart stat-icon" style="color:#ef4444;"></i>
-                <span class="likes-count"><?= $likes ?></span>
+                <i class="fas fa-thumbs-up stat-icon" style="color:#10b981;"></i>
+                <span class="post-stat-likes"><?= $likes ?></span>
             </div>
             <div class="stat-item">
-                <i class="fas fa-thumbs-down stat-icon" style="color:#6b7280;"></i>
-                <span class="dislikes-count"><?= $reactionCounts['Dislike'] ?? 0 ?></span>
+                <i class="fas fa-thumbs-down stat-icon" style="color:#ef4444;"></i>
+                <span class="post-stat-dislikes"><?= $reactionCounts['Dislike'] ?? 0 ?></span>
             </div>
             <div class="stat-item" style="margin-left: auto;">
                 <span><?= count($replies) ?> réponse<?= count($replies) > 1 ? 's' : '' ?></span>
@@ -143,10 +163,31 @@ function renderTags($text, $users) {
 
         <div class="post-actions-bar">
             <div class="reaction-wrapper">
-                <button class="post-action btn-react-main" data-type="Like"><i class="far fa-thumbs-up"></i> J'aime</button>
+                <?php
+                    $mainBtnClass = "post-action btn-react-main";
+                    $mainIcon = "far fa-thumbs-up";
+                    $mainText = "J'aime";
+                    if ($userReactionType === 'Like') {
+                        $mainBtnClass .= " active-like";
+                        $mainIcon = "fas fa-thumbs-up";
+                    } elseif ($userReactionType === 'Dislike') {
+                        $mainBtnClass .= " active-dislike";
+                        $mainIcon = "fas fa-thumbs-down";
+                        $mainText = "Je n'aime pas";
+                    }
+                ?>
+                <button class="<?= $mainBtnClass ?>" data-type="Like">
+                    <i class="<?= $mainIcon ?>"></i> <span class="react-text"><?= $mainText ?></span>
+                </button>
                 <div class="reaction-popover">
-                    <button class="react-choice btn-react" data-type="Like" title="J'aime"><i class="fas fa-thumbs-up" style="color: #10b981;"></i></button>
-                    <button class="react-choice btn-react" data-type="Dislike" title="Je n'aime pas"><i class="fas fa-thumbs-down" style="color: #ef4444;"></i></button>
+                    <button class="react-emoji btn-react-choice" data-type="Like">
+                        <span class="emoji">&#128077;</span>
+                        <span class="react-label">J'aime</span>
+                    </button>
+                    <button class="react-emoji btn-react-choice" data-type="Dislike">
+                        <span class="emoji">&#128078;</span>
+                        <span class="react-label">Je n'aime pas</span>
+                    </button>
                 </div>
             </div>
             <button class="post-action btn-reply-post"><i class="far fa-comment-alt"></i> Répondre</button>
@@ -166,9 +207,11 @@ function renderTags($text, $users) {
                 $rColor = $colors[$rCIdx];
                 $rrCounts = $reactionReplyController->getReactionCounts($reply->getIdReply());
                 $rLikes = $rrCounts['Like'] ?? 0;
+                $userReplyReactionObj = $reactionReplyController->getReaction($currentUserId, $reply->getIdReply());
+                $userReplyReactionType = $userReplyReactionObj ? $userReplyReactionObj->getTypeReaction() : null;
                 $isMarcRobertReply = strtolower(trim($rAuthorName)) === 'marc robert';
             ?>
-            <div class="reply" data-reply-id="<?= $reply->getIdReply() ?>" <?= $reply->getParentReplyId() ? 'style="margin-left: 2.5rem; border-left: 2px solid #e5e7eb; padding-left: 1rem;"' : '' ?>>
+            <div class="reply" id="reply-<?= $reply->getIdReply() ?>" data-reply-id="<?= $reply->getIdReply() ?>" <?= $reply->getParentReplyId() ? 'style="margin-left: 2.5rem; border-left: 2px solid #e5e7eb; padding-left: 1rem;"' : '' ?>>
                 <div class="avatar reply-avatar" style="background:<?= $rColor['bg'] ?>; color:<?= $rColor['text'] ?>;"><?= $rInitials ?></div>
                 <div style="flex:1;">
                     <div class="reply-content-box" data-raw-content="<?= htmlspecialchars($reply->getCommentaire()) ?>">
@@ -180,10 +223,41 @@ function renderTags($text, $users) {
                     </div>
                     <div class="reply-actions">
                         <div class="reaction-wrapper-reply">
-                            <button class="reply-action btn-react-main-reply" data-type="Like" style="font-weight:600; color:#4b5563;">J'aime <span class="likes-count" style="margin-left:0.2rem; color:#10b981;"><?= $rLikes > 0 ? $rLikes : '' ?></span></button>
+                            <?php
+                                $rMainBtnClass = "reply-action btn-react-main-reply";
+                                $rMainIcon = "far fa-thumbs-up";
+                                $rMainText = "J'aime";
+                                if ($userReplyReactionType === 'Like') {
+                                    $rMainBtnClass .= " active-like";
+                                    $rMainIcon = "fas fa-thumbs-up";
+                                } elseif ($userReplyReactionType === 'Dislike') {
+                                    $rMainBtnClass .= " active-dislike";
+                                    $rMainIcon = "fas fa-thumbs-down";
+                                    $rMainText = "Je n'aime pas";
+                                }
+                                $rLikesCount = $rrCounts['Like'] ?? 0;
+                                $rDislikesCount = $rrCounts['Dislike'] ?? 0;
+                            ?>
+                            <button class="<?= $rMainBtnClass ?>" data-type="Like">
+                                <i class="<?= $rMainIcon ?>"></i>
+                                <span class="react-text"><?= $rMainText ?></span>
+                                <?php if ($userReplyReactionType === 'Like' && $rLikesCount > 0): ?>
+                                    <span class="react-count"><?= $rLikesCount ?></span>
+                                <?php elseif ($userReplyReactionType === 'Dislike' && $rDislikesCount > 0): ?>
+                                    <span class="react-count"><?= $rDislikesCount ?></span>
+                                <?php elseif (!$userReplyReactionType && $rLikesCount > 0): ?>
+                                    <span class="react-count"><?= $rLikesCount ?></span>
+                                <?php endif; ?>
+                            </button>
                             <div class="reaction-popover-reply">
-                                <button class="react-choice-reply btn-react-reply" data-type="Like" title="J'aime"><i class="fas fa-thumbs-up" style="color: #10b981;"></i></button>
-                                <button class="react-choice-reply btn-react-reply" data-type="Dislike" title="Je n'aime pas"><i class="fas fa-thumbs-down" style="color: #ef4444;"></i></button>
+                                <button class="react-emoji btn-react-choice-reply" data-type="Like">
+                                    <span class="emoji">&#128077;</span>
+                                    <span class="react-label">J'aime</span>
+                                </button>
+                                <button class="react-emoji btn-react-choice-reply" data-type="Dislike">
+                                    <span class="emoji">&#128078;</span>
+                                    <span class="react-label">Je n'aime pas</span>
+                                </button>
                             </div>
                         </div>
                         <button class="reply-action btn-sub-reply">Répondre</button>
@@ -205,7 +279,21 @@ function renderTags($text, $users) {
                 <div class="reply-input-wrapper">
                     <input type="text" class="reply-input" placeholder="Écrire une réponse...">
                     <input type="file" class="reply-image-input" accept="image/*" style="display: none;">
-                    <button class="icon-btn" onclick="this.previousElementSibling.click()"><i class="fas fa-camera"></i></button>
+                    
+                    <div style="position: relative; display: flex; align-items: center;">
+                        <button type="button" class="icon-btn btn-reply-emoji-toggle" title="Ajouter une icône"><i class="far fa-smile"></i></button>
+                        <div class="emoji-popover emoji-popover-reply">
+                            <div class="emoji-grid">
+                                <?php foreach ($allIcons as $icon): ?>
+                                    <div class="emoji-item emoji-item-reply" data-emoji="<?= $icon['emoji'] ?>" title="<?= htmlspecialchars($icon['name']) ?>">
+                                        <?= $icon['emoji'] ?>
+                                    </div>
+                                <?php endforeach; ?>
+                            </div>
+                        </div>
+                    </div>
+
+                    <button class="icon-btn" onclick="this.parentElement.querySelector('.reply-image-input').click()"><i class="fas fa-camera"></i></button>
                     <button class="icon-btn btn-send-reply" style="color:#166534;"><i class="fas fa-paper-plane"></i></button>
                 </div>
             </div>

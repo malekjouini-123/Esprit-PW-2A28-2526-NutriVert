@@ -39,8 +39,9 @@ if (empty($contenu) || mb_strlen($contenu) < 5) {
     exit;
 }
 $user_id = 1; // Simulated user ID
+$icon_ids = isset($_POST['icon_id']) ? (array)$_POST['icon_id'] : [];
 
-$post = new Post($titre, $contenu, $media_url, $type_post, $user_id);
+$post = new Post($titre, $contenu, $media_url, $type_post, $user_id, $icon_ids);
 $postController = new PostController();
 $newPost = $postController->createPost($post);
 

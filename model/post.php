@@ -5,16 +5,18 @@ class Post {
     private $contenu;
     private $media_url;
     private $type_post;
+    private $icons = []; // Array of icon IDs or objects
     private $date_publication;
     private $auteur_id;
 
     // Constructor
-    public function __construct($titre = null, $contenu = null, $media_url = null, $type_post = 'Article', $auteur_id = null) {
+    public function __construct($titre = null, $contenu = null, $media_url = null, $type_post = 'Article', $auteur_id = null, $icons = []) {
         $this->titre = $titre;
         $this->contenu = $contenu;
         $this->media_url = $media_url;
         $this->type_post = $type_post;
         $this->auteur_id = $auteur_id;
+        $this->icons = $icons;
     }
 
     // Getters
@@ -36,6 +38,10 @@ class Post {
 
     public function getTypePost() {
         return $this->type_post;
+    }
+
+    public function getIcons() {
+        return $this->icons;
     }
 
     public function getDatePublication() {
@@ -65,6 +71,10 @@ class Post {
 
     public function setTypePost($type_post) {
         $this->type_post = $type_post;
+    }
+
+    public function setIcons($icons) {
+        $this->icons = $icons;
     }
 
     public function setDatePublication($date_publication) {

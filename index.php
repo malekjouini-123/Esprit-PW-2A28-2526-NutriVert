@@ -17,6 +17,13 @@ $currentUserId = 1;
 
 $posts = $postController->getAllPosts();
 
+// Load all available icons
+$allIcons = $postController->getAllIcons();
+$iconMap = [];
+foreach ($allIcons as $icon) {
+    $iconMap[$icon['id_icon']] = $icon;
+}
+
 // Helper to get user
 function getUserInfo($id_user) {
     global $pdo;
