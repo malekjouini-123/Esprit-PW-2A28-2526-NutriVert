@@ -120,7 +120,18 @@ def command_encode(args: argparse.Namespace) -> None:
 
 def command_compare(args: argparse.Namespace) -> None:
     captured = encode_image(args.image)
-    known = normalize_encoding(args.encoding)
+    # Support reading the stored encoding from a temporary file when the
+    # encoding is too large to pass via the command line.
+    if getattr(args, "encoding_file", None):
+        if not os.path.isfile(args.encoding_file):
+            json_exit({"success": False, "match": False, "error": "Fichier d'encodage introuvable."}, 2)
+
+        with open(args.encoding_file, "r", encoding="utf-8") as fh:
+            file_content = fh.read()
+
+        known = normalize_encoding(file_content)
+    else:
+        known = normalize_encoding(args.encoding)
 
     if known is None:
         json_exit({"success": False, "match": False, "error": "Encodage stocke invalide."}, 2)
@@ -185,7 +196,8 @@ def build_parser() -> argparse.ArgumentParser:
 
     compare_parser = subparsers.add_parser("compare")
     compare_parser.add_argument("--image", required=True)
-    compare_parser.add_argument("--encoding", required=True)
+    compare_parser.add_argument("--encoding")
+    compare_parser.add_argument("--encoding-file")
     compare_parser.add_argument("--user-id", type=int)
     compare_parser.add_argument("--threshold", type=float, default=MATCH_THRESHOLD)
     compare_parser.set_defaults(func=command_compare)

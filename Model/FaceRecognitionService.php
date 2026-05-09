@@ -6,6 +6,11 @@ class FaceRecognitionService {
     private $maxImageSize = 5242880;
 
     public function __construct() {
+        $envPath = __DIR__ . '/../config/env.php';
+        if (is_file($envPath)) {
+            require_once $envPath;
+        }
+
         $this->scriptPath = realpath(__DIR__ . '/../scripts/nutrivert_face_id.py') ?: __DIR__ . '/../scripts/nutrivert_face_id.py';
         $this->tempDir = __DIR__ . '/../storage/face-id';
     }
@@ -35,17 +40,20 @@ class FaceRecognitionService {
             return ['success' => false, 'data' => ['match' => false, 'error' => "Aucun Face ID n'est configure pour cet email."]];
         }
 
+        $encodingPath = $this->writeTempEncoding($storedEncoding);
+
         $result = $this->runPython([
             'compare',
             '--image',
             $image['path'],
-            '--encoding',
-            $storedEncoding,
+            '--encoding-file',
+            $encodingPath,
             '--user-id',
             (int)$userId
         ]);
 
         @unlink($image['path']);
+        @unlink($encodingPath);
 
         return $result;
     }
@@ -159,7 +167,10 @@ class FaceRecognitionService {
         }
 
         return [
+            ['python'],
+            ['py', '-3'],
             ['py', '-3.10'],
+            ['py'],
         ];
     }
 
@@ -187,5 +198,20 @@ class FaceRecognitionService {
         if (!is_dir($this->tempDir)) {
             mkdir($this->tempDir, 0755, true);
         }
+    }
+
+    /** Write a stored encoding to a temporary file and return its path. */
+    private function writeTempEncoding($encoding) {
+        $this->ensureTempDir();
+        $path = $this->tempDir . DIRECTORY_SEPARATOR . 'encoding_' . bin2hex(random_bytes(8)) . '.json';
+
+        if (!is_string($encoding)) {
+            $content = json_encode($encoding);
+        } else {
+            $content = $encoding;
+        }
+
+        file_put_contents($path, $content);
+        return $path;
     }
 }

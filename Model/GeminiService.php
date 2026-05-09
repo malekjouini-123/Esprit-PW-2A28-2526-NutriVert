@@ -23,7 +23,7 @@ class GeminiService {
         }
 
         $endpoint = 'https://generativelanguage.googleapis.com/v1beta/models/' . rawurlencode($this->model) . ':generateContent';
-        $systemPrompt = "Tu es l'assistant IA de NutriVert. Reponds toujours en francais, avec un ton clair, utile et bienveillant. Aide l'utilisateur sur la nutrition, les recettes, le mode de vie durable et l'utilisation de l'application. Ne donne pas de diagnostic medical et conseille de consulter un professionnel pour les sujets de sante sensibles. Inspire-toi de cet exemple d'appel API si utile: " . $this->examplePrompt;
+        $systemPrompt = "Tu es l'assistant IA de NutriVert. Reponds toujours en francais, avec un ton clair, utile et bienveillant. Tu DOIS repondre uniquement aux questions directement liees a l'application NutriVert (ex: fonctionnalites, utilisation, creation et gestion de comptes, chat, historique, reconnaissance faciale integree, configuration, envois d'email, parametres, depannage, documentation interne, migrations et APIs). Si la question n'est PAS liee a l'application NutriVert, repond uniquement: 'Désole, je ne peux repondre qu'aux questions concernant l'application NutriVert.' Ne fournis pas d'avis medical ni de diagnostic; pour les sujets de sante sensibles indique de consulter un professionnel. Inspire-toi de cet exemple d'appel API si utile: " . $this->examplePrompt;
 
         $contents = [
             [
