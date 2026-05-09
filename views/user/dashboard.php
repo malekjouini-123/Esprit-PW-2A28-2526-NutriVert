@@ -190,6 +190,10 @@ if (session_status() === PHP_SESSION_NONE) session_start();
         <a href="index.php?controller=user_dashboard&action=coaching_list" class="btn-coaching">
             <i class="fas fa-dumbbell"></i> Voir tous les Coachings
         </a>
+        <br><br>
+        <a href="index.php?controller=user_dashboard&action=chatbot" class="btn-coaching" style="background: linear-gradient(135deg, #4A6B4A, #7DCFB6);">
+            <i class="fas fa-robot"></i> Coaching via Chatbot
+        </a>
     </div>
 
 </div>

@@ -25,6 +25,7 @@ class UserDashboardController
         match ($action) {
             'index'        => $this->dashboard(),
             'coaching_list'=> $this->coachingList(),
+            'chatbot'      => $this->chatbot(),
             'start'        => $this->startCoaching(),
             'next'         => $this->nextExercise(),
             'complete'     => $this->completeCoaching(),
@@ -67,6 +68,19 @@ class UserDashboardController
         unset($_SESSION['flash_message']);
 
         include __DIR__ . '/../views/user/coaching_list.php';
+    }
+
+    // =========================================================================
+    //  CHATBOT COACHING
+    // =========================================================================
+
+    private function chatbot(): void
+    {
+        $user = $_SESSION['user'];
+        $flashMessage = $_SESSION['flash_message'] ?? null;
+        unset($_SESSION['flash_message']);
+
+        include __DIR__ . '/../views/user/chatbot.php';
     }
 
     // =========================================================================
