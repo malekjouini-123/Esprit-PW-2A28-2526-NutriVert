@@ -1,0 +1,903 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nutrivert ✿ Nutrition Intelligente & Durable</title>
+    <!-- Fonts & Icons -->
+    <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Quicksand', sans-serif;
+            background: #FFF9F0;
+            color: #2D3E2B;
+            scroll-behavior: smooth;
+        }
+
+        /* palette créative et joyeuse */
+        :root {
+            --coral: #FF7E67;
+            --mint: #7DCFB6;
+            --lavender: #C8A2F0;
+            --sunset: #FFB347;
+            --sage: #A3C4A2;
+            --deep: #4A6B4A;
+            --bg-warm: #FFF5E6;
+            --card-white: #FFFFFF;
+            --shadow: 0 20px 35px -12px rgba(0,0,0,0.1);
+            --border-radius: 32px;
+        }
+
+        .container {
+            max-width: 1280px;
+            margin: 0 auto;
+            padding: 0 30px;
+        }
+
+        /* navbar créative */
+        .navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            padding: 25px 0;
+        }
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .logo i {
+            font-size: 2.4rem;
+            color: var(--coral);
+            filter: drop-shadow(0 2px 5px rgba(255,126,103,0.3));
+        }
+        .logo span {
+            font-size: 2rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #FF7E67, #7DCFB6);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+        .nav-links {
+            display: flex;
+            gap: 32px;
+        }
+        .nav-links a {
+            text-decoration: none;
+            font-weight: 600;
+            color: #4A5B4A;
+            transition: 0.2s;
+        }
+        .nav-links a:hover {
+            color: var(--coral);
+            transform: translateY(-2px);
+        }
+
+        /* titre accueil */
+        .hero {
+            text-align: center;
+            margin: 40px 0 30px;
+        }
+        .hero h1 {
+            font-size: 3rem;
+            background: linear-gradient(120deg, #FF7E67, #C8A2F0, #7DCFB6);
+            background-size: 200% auto;
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            animation: shimmer 5s linear infinite;
+        }
+        @keyframes shimmer {
+            0% { background-position: 0% 50%; }
+            100% { background-position: 200% 50%; }
+        }
+        .hero p {
+            font-size: 1.2rem;
+            color: #6B7C68;
+            margin-top: 12px;
+        }
+
+        /* SECTION GESTION PROFIL (carte séparée) */
+        .section-card {
+            background: var(--card-white);
+            border-radius: var(--border-radius);
+            padding: 30px;
+            margin: 40px 0;
+            box-shadow: var(--shadow);
+            transition: all 0.3s ease;
+            border: 1px solid rgba(125,207,182,0.3);
+        }
+        .section-title {
+            font-size: 1.8rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 25px;
+            color: var(--deep);
+        }
+        .section-title i {
+            font-size: 2rem;
+            color: var(--coral);
+        }
+        .profil-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .profil-infos {
+            background: #FEF7E8;
+            border-radius: 28px;
+            padding: 20px 25px;
+            flex: 2;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+        .info-badge {
+            background: white;
+            border-radius: 60px;
+            padding: 8px 20px;
+            font-weight: 600;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.03);
+        }
+        .edit-btn {
+            background: var(--mint);
+            border: none;
+            padding: 12px 28px;
+            border-radius: 60px;
+            font-weight: 700;
+            color: #2D3E2B;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .edit-btn:hover {
+            background: var(--coral);
+            color: white;
+            transform: scale(1.02);
+        }
+
+        /* SECTION IA RECETTES + MARKETPLACE intégré dans sa propre carte */
+        .ia-container {
+            background: linear-gradient(135deg, #FFF2E6, #FFFFFF);
+        }
+        .ingredient-group {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            margin: 20px 0;
+        }
+        .ingredient-group input {
+            flex: 3;
+            padding: 15px 20px;
+            border-radius: 60px;
+            border: 2px solid #FFD5C2;
+            font-family: 'Quicksand', sans-serif;
+            font-size: 1rem;
+            background: white;
+        }
+        .btn-primary {
+            background: var(--sunset);
+            border: none;
+            padding: 0 28px;
+            border-radius: 60px;
+            font-weight: 700;
+            color: #2D3E2B;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .recette-card {
+            background: #FFF9EF;
+            border-radius: 28px;
+            padding: 20px;
+            margin-top: 25px;
+            border-left: 12px solid var(--coral);
+        }
+        .marketplace-card {
+            background: #E6F4EE;
+            border-radius: 28px;
+            padding: 18px;
+            margin-top: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        .btn-market {
+            background: var(--lavender);
+            border: none;
+            padding: 10px 25px;
+            border-radius: 40px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .marketplace-template-wrap {
+            margin-top: 8px;
+        }
+        .marketplace-loading {
+            background: #F7FBF8;
+            border-radius: 22px;
+            border: 1px dashed #CBE6DA;
+            padding: 18px;
+            color: #48604B;
+        }
+        #marketplaceSec .section-title {
+            background: linear-gradient(120deg, #1f631a, #58b83a);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+        #marketplaceSec .glass-card {
+            background: rgba(255, 255, 250, 0.82);
+            backdrop-filter: blur(12px);
+            border-radius: 2rem;
+            border: 1px solid rgba(100, 180, 70, 0.35);
+            box-shadow: 0 15px 35px -12px rgba(0, 0, 0, 0.08);
+        }
+        #marketplaceSec .btn-outline-light {
+            background: transparent;
+            border: 1.5px solid #6fbf4c;
+            padding: 0.45rem 1.2rem;
+            border-radius: 2rem;
+            font-weight: 600;
+            color: #2a6e1f;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        #marketplaceSec .btn-primary-green {
+            background: #7DCFB6;
+            border: none;
+            padding: 0.5rem 1.4rem;
+            border-radius: 2rem;
+            font-weight: 700;
+            color: #2D3E2B;
+            cursor: pointer;
+            box-shadow: 0 6px 12px rgba(125, 207, 182, 0.35);
+        }
+        #marketplaceSec .cards-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1.2rem;
+            margin-top: 1rem;
+        }
+        #marketplaceSec .service-card {
+            flex: 1 1 250px;
+            background: rgba(255, 255, 245, 0.7);
+            padding: 1.2rem;
+            border-radius: 1.5rem;
+            border: 1px solid rgba(100, 170, 70, 0.4);
+            color: #1a3a1a;
+            text-align: left;
+        }
+        #marketplaceSec .service-card i {
+            color: #66cc52;
+        }
+        #marketplaceSec .btn-card {
+            background: var(--mint);
+            border: none;
+            padding: 0.55rem 1rem;
+            border-radius: 2rem;
+            font-weight: 700;
+            color: #2D3E2B;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        /* Survol identique au bouton « Modifier mon profil » (.edit-btn) — carte produit uniquement */
+        #marketplaceSec .mp-prod-actions .btn-card:not(.mp-btn-danger):not(:disabled):hover {
+            background: var(--coral);
+            color: #fff;
+            transform: scale(1.02);
+        }
+        #marketplaceSec .btn-card.mp-btn-danger {
+            background: #D95C5C;
+            color: #fff;
+        }
+        #marketplaceSec .btn-card.mp-btn-danger:hover {
+            background: #C74B4B;
+            transform: scale(1.02);
+        }
+        #marketplaceSec .mp-hub {
+            padding: 0.85rem 1rem 1rem;
+        }
+        #marketplaceSec .mp-mini-menu {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.45rem;
+            margin-bottom: 0.75rem;
+            padding-bottom: 0.65rem;
+            border-bottom: 1px solid rgba(100, 180, 70, 0.28);
+        }
+        #marketplaceSec .mp-tab-btn {
+            border: 1px solid rgba(90, 160, 60, 0.55);
+            background: rgba(255, 255, 255, 0.88);
+            color: #1f4a18;
+            padding: 0.32rem 0.85rem;
+            border-radius: 2rem;
+            font-weight: 700;
+            font-size: 0.8rem;
+            cursor: pointer;
+            font-family: 'Quicksand', sans-serif;
+            transition: 0.2s;
+        }
+        #marketplaceSec .mp-tab-btn:hover {
+            background: rgba(200, 240, 180, 0.45);
+        }
+        #marketplaceSec .mp-tab-btn.active {
+            background: linear-gradient(105deg, #4cae4c, #2f8a2b);
+            color: #fff;
+            border-color: transparent;
+            box-shadow: 0 4px 10px rgba(60, 130, 30, 0.2);
+        }
+        #marketplaceSec .mp-iframe-spot {
+            border: 2px solid rgba(100, 180, 70, 0.5);
+            border-radius: 1.15rem;
+            background: rgba(255, 255, 255, 0.72);
+            min-height: 480px;
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.75);
+        }
+        #marketplaceSec .mp-iframe-panels {
+            max-height: 75vh;
+            overflow-y: auto;
+            padding: 1rem 1.15rem 1.2rem;
+        }
+        #marketplaceSec .mp-tab-panel {
+            display: none;
+        }
+        #marketplaceSec .mp-tab-panel.active {
+            display: block;
+        }
+        #marketplaceSec .mp-panel-heading {
+            margin: 0 0 0.35rem 0;
+            font-size: 0.95rem;
+            color: #2a6b1f;
+        }
+        #marketplaceSec .mp-panel-hint {
+            font-size: 0.82rem;
+            color: #3d5c35;
+            margin: 0 0 0.6rem 0;
+        }
+        #marketplaceSec .mp-panel-title {
+            margin: 0 0 0.75rem 0;
+            font-size: 1.05rem;
+            color: #2a6b1f;
+        }
+        #marketplaceSec .mp-shopping-toast {
+            margin-top: 1.2rem;
+            font-weight: 500;
+            background: #daf5ce;
+            border-radius: 2rem;
+            padding: 0.4rem 1rem;
+            display: inline-block;
+        }
+        #marketplaceSec .mp-msg {
+            margin: 0.75rem 0;
+            padding: 0.65rem 1rem;
+            border-radius: 1rem;
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+        #marketplaceSec .mp-msg.ok {
+            background: #daf5ce;
+            color: #1a4a12;
+            border: 1px solid #9fd88a;
+        }
+        #marketplaceSec .mp-msg.err {
+            background: #ffe8e6;
+            color: #7a221a;
+            border: 1px solid #f0b4ad;
+        }
+        #marketplaceSec .mp-stock-alert {
+            display: none;
+            margin: 0.75rem 0;
+            padding: 0.75rem 1rem;
+            border-radius: 1rem;
+            font-size: 0.9rem;
+            font-weight: 700;
+            background: #fdecea;
+            color: #7a1a12;
+            border: 2px solid #c44a3e;
+        }
+        #marketplaceSec .mp-cmd-hint {
+            color: #2a6b1f !important;
+        }
+        #marketplaceSec .mp-form input,
+        #marketplaceSec .mp-form select {
+            width: 100%;
+            padding: 0.62rem 0.8rem;
+            border-radius: 0.75rem;
+            border: 1px solid #b3dc9a;
+            background: rgba(255, 255, 255, 0.92);
+            color: #2a5522;
+        }
+        #marketplaceSec .mp-form input.field-invalid,
+        #marketplaceSec .mp-form select.field-invalid {
+            border-color: #c44a3e;
+            box-shadow: 0 0 0 2px rgba(196, 74, 62, 0.15);
+        }
+        #marketplaceSec .mp-form label {
+            display: block;
+            font-size: 0.78rem;
+            font-weight: 700;
+            color: #2a6b1f;
+            margin: 0.65rem 0 0.25rem;
+        }
+        #marketplaceSec .mp-form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.65rem;
+        }
+        @media (max-width: 520px) {
+            #marketplaceSec .mp-form-row { grid-template-columns: 1fr; }
+        }
+        #marketplaceSec .mp-label-hint {
+            font-size: 0.72rem;
+            color: #4a6a42;
+            margin-top: 0.35rem;
+            line-height: 1.35;
+        }
+        #marketplaceSec .mp-mini-list {
+            list-style: none;
+            margin: 0 0 0.75rem;
+            padding: 0;
+            max-height: 160px;
+            overflow-y: auto;
+        }
+        #marketplaceSec .mp-mini-list li {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 0.5rem;
+            padding: 0.45rem 0.55rem;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+            font-size: 0.9rem;
+        }
+        #marketplaceSec .mp-row-actions {
+            display: flex;
+            gap: 0.35rem;
+            flex-shrink: 0;
+        }
+        #marketplaceSec .mp-row-actions button {
+            font-size: 0.72rem;
+            padding: 0.25rem 0.5rem;
+            border-radius: 999px;
+            border: 1px solid rgba(90, 140, 60, 0.4);
+            background: #fff;
+            cursor: pointer;
+            color: #2a5522;
+            font-weight: 600;
+        }
+        #marketplaceSec .mp-row-actions button.mp-danger {
+            border-color: rgba(180, 60, 50, 0.35);
+            color: #a32a22;
+        }
+        #marketplaceSec .mp-field-error {
+            display: block;
+            color: #9a2e24;
+            font-size: 0.78rem;
+            font-weight: 600;
+            margin: 0.2rem 0 0;
+            min-height: 1.15em;
+        }
+        #marketplaceSec .mp-form-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin-top: 0.85rem;
+        }
+        #marketplaceSec .mp-chip {
+            border: 1px solid rgba(90, 160, 60, 0.55);
+            background: rgba(255, 255, 255, 0.75);
+            color: #1f4a18;
+            padding: 0.35rem 0.85rem;
+            border-radius: 2rem;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        #marketplaceSec .mp-chip.active {
+            background: linear-gradient(105deg, #4cae4c, #2f8a2b);
+            color: #fff;
+            border-color: transparent;
+        }
+        #marketplaceSec .mp-prod-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.45rem;
+            margin-top: 0.75rem;
+        }
+        #marketplaceSec .mp-prod-actions .btn-card {
+            flex: 1;
+            min-width: 120px;
+        }
+        #marketplaceSec .mp-rating-wrap {
+            margin-top: 0.7rem;
+            padding: 0.55rem 0.7rem;
+            border-radius: 0.75rem;
+            background: rgba(255, 255, 255, 0.65);
+            border: 1px solid rgba(110, 170, 95, 0.25);
+        }
+        #marketplaceSec .mp-rating-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 0.3rem;
+        }
+        #marketplaceSec .mp-rating-title {
+            font-size: 0.78rem;
+            color: #2d5f28;
+            font-weight: 700;
+            letter-spacing: 0.02em;
+        }
+        #marketplaceSec .mp-rating-score {
+            font-size: 0.78rem;
+            color: #3f6840;
+            font-weight: 600;
+        }
+        #marketplaceSec .mp-stars {
+            display: flex;
+            gap: 0.12rem;
+        }
+        #marketplaceSec .mp-star {
+            border: none;
+            background: transparent;
+            color: #9ab090;
+            cursor: pointer;
+            font-size: 1.05rem;
+            line-height: 1;
+            padding: 0.06rem;
+            transition: transform 0.15s ease, color 0.15s ease;
+        }
+        #marketplaceSec .mp-star:hover {
+            transform: scale(1.12);
+        }
+        #marketplaceSec .mp-star.active {
+            color: #ffd35a;
+        }
+        #marketplaceSec .mp-pro-badge {
+            display: inline-block;
+            margin-top: 0.42rem;
+            font-size: 0.74rem;
+            font-weight: 700;
+            color: #f8fff3;
+            background: linear-gradient(105deg, #4cae4c, #2f8a2b);
+            border-radius: 999px;
+            padding: 0.22rem 0.55rem;
+        }
+        #marketplaceSec .mp-empty {
+            color: #4a6a42;
+            background: rgba(255, 255, 250, 0.6);
+            border: 1px dashed rgba(100, 170, 70, 0.4);
+            border-radius: 1rem;
+            padding: 1rem;
+        }
+        @media (max-width: 640px) {
+            #marketplaceSec .mp-iframe-panels { max-height: none; }
+        }
+
+        /* SECTION COACHING (gestion séparée) */
+        .coach-wrapper {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 24px;
+            margin-top: 15px;
+        }
+        .coach-option {
+            background: #FDF8F0;
+            border-radius: 28px;
+            padding: 20px;
+            flex: 1;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.25s;
+            border: 2px solid transparent;
+        }
+        .coach-option.active {
+            border-color: var(--coral);
+            background: #FFF0E8;
+            transform: translateY(-6px);
+        }
+        .coach-option i {
+            font-size: 2.5rem;
+            color: var(--mint);
+        }
+        .coach-message {
+            background: #FFFAF0;
+            border-radius: 28px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+
+        /* EVENEMENTS & COMMUNAUTÉ (deux colonnes) */
+        .event-commu-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 30px;
+        }
+        .event-box, .commu-box {
+            flex: 1;
+            background: #FFFFFFE6;
+            border-radius: 28px;
+            padding: 24px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.05);
+        }
+        .event-item {
+            display: flex;
+            gap: 15px;
+            margin: 15px 0;
+            align-items: center;
+        }
+        .commu-msg {
+            background: #F8F2E7;
+            border-radius: 24px;
+            padding: 12px;
+            margin: 12px 0;
+        }
+        button.commu-btn {
+            background: var(--sage);
+            border: none;
+            width: 100%;
+            padding: 12px;
+            border-radius: 40px;
+            font-weight: bold;
+            margin-top: 15px;
+        }
+
+        footer {
+            text-align: center;
+            padding: 35px;
+            color: #8A9A86;
+            border-top: 2px dashed #FFD9C5;
+            margin-top: 50px;
+        }
+        @media (max-width: 780px) {
+            .container { padding: 0 20px; }
+            .profil-grid { flex-direction: column; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <!-- HEADER -->
+    <div class="navbar">
+        <div class="logo">
+            <i class="fas fa-seedling"></i>
+            <i class="fas fa-brain"></i>
+            <span>Nutrivert</span>
+        </div>
+        <div class="nav-links">
+            <a href="../index.php">Accueil</a>
+            <a href="#profilSec">Profil</a>
+            <a href="#iaSec">IA Recettes</a>
+            <a href="#marketplaceSec">Marketplace</a>
+            <a href="#coachSec">Coaching</a>
+            <a href="#eventSec">Événements</a>
+        </div>
+    </div>
+    <div class="hero">
+        <h1>✨ Manger malin, zéro gaspillage ✨</h1>
+        <p>Nutrivert — intelligence nutritionnelle & marketplace durable</p>
+    </div>
+
+    <!-- 1. GESTION PROFIL NUTRITIONNEL (seule) -->
+    <div class="section-card" id="profilSec">
+        <div class="section-title">
+            <i class="fas fa-user-astronaut"></i>
+            <span>📋 Mon profil nutritionnel</span>
+        </div>
+        <div class="profil-grid">
+            <div class="profil-infos" id="profilInfosDisplay">
+                <div class="info-badge"><i class="fas fa-weight-scale"></i> Poids: <strong id="poidsVal">68</strong> kg</div>
+                <div class="info-badge"><i class="fas fa-ruler"></i> Taille: <strong id="tailleVal">165</strong> cm</div>
+                <div class="info-badge"><i class="fas fa-carrot"></i> Régime: <strong id="regimeVal">Végétarien</strong></div>
+                <div class="info-badge"><i class="fas fa-bullseye"></i> Objectif: <strong id="objectifVal">Perte poids</strong></div>
+            </div>
+            <button class="edit-btn" id="openProfilEdit"><i class="fas fa-pen-fancy"></i> Modifier mon profil</button>
+        </div>
+    </div>
+
+    <!-- 2. IA RECETTES -->
+    <div class="section-card ia-container" id="iaSec">
+        <div class="section-title">
+            <i class="fas fa-robot"></i>
+            <span>🤖 IA Anti-gaspillage & Recettes</span>
+        </div>
+        <p><i class="fas fa-apple-alt"></i> Tape tes ingrédients disponibles → recette personnalisée selon ton profil + achat manquants</p>
+        <div class="ingredient-group">
+            <input type="text" id="ingredientsField" placeholder="ex: courgette, tomates, oeufs, riz, fromage">
+            <button class="btn-primary" id="generateRecipeBtn"><i class="fas fa-magic"></i> Générer recette IA</button>
+        </div>
+        <div id="recipeResultArea" style="display: none;" class="recette-card"></div>
+    </div>
+
+    <!-- 3. MARKETPLACE (chargé depuis template dédié) -->
+    <div class="section-card ia-container" id="marketplaceSec">
+        <div id="marketplaceTemplateWrap" class="marketplace-template-wrap">
+            <div class="marketplace-loading" id="marketplaceLoadingMsg">Chargement du template Marketplace...</div>
+        </div>
+    </div>
+
+    <!-- 4. GESTION COACHING (plusieurs coachs objectifs) -->
+    <div class="section-card" id="coachSec">
+        <div class="section-title">
+            <i class="fas fa-chalkboard-user"></i>
+            <span>🎯 Coaching personnalisé — choisis ton objectif</span>
+        </div>
+        <div class="coach-wrapper" id="coachListContainer"></div>
+        <div id="coachDynamicMsg" class="coach-message"></div>
+    </div>
+    
+
+    <!-- 5. GESTION EVENEMENTS + COMMUNAUTÉ (deux en un) -->
+    <div class="section-card" id="eventSec">
+        <div class="section-title">
+            <i class="fas fa-calendar-check"></i>
+            <span>🌍 Événements & Communauté Nutrivert</span>
+        </div>
+        <div class="event-commu-grid">
+            <div class="event-box">
+                <h3><i class="fas fa-glass-cheers"></i> Événements à venir</h3>
+                <div class="event-item"><i class="fas fa-utensils" style="color:#FF7E67;"></i> Atelier cuisine anti-gaspi – 28 mai</div>
+                <div class="event-item"><i class="fas fa-hiking" style="color:#7DCFB6;"></i> Rando & snack healthy – 5 juin</div>
+                <div class="event-item"><i class="fas fa-seedling" style="color:#C8A2F0;"></i> Challenge "30 jours durable" – inscription</div>
+                <button style="background: none; border: 2px solid var(--coral); border-radius: 60px; padding: 8px 15px; margin-top: 15px;"><i class="fas fa-plus-circle"></i> Créer un événement</button>
+            </div>
+            <div class="commu-box">
+                <h3><i class="fas fa-users"></i> Communauté active</h3>
+                <div class="commu-msg"><i class="fas fa-comment-dots"></i> <strong>Léa:</strong> "Grâce à l'IA, j'ai cuisiné sans rien jeter !"</div>
+                <div class="commu-msg"><i class="fas fa-comment-dots"></i> <strong>Thomas:</strong> "Le coaching m'a aidé à perdre 3kg en douceur."</div>
+                <div><i class="fas fa-hashtag"></i> #nutrivert #zerogaspi #recettefuté</div>
+                <button class="commu-btn"><i class="fab fa-discord"></i> Rejoindre le groupe d'entraide</button>
+            </div>
+        </div>
+    </div>
+    <footer>
+        <i class="fas fa-leaf"></i> Nutrivert – Nutrition intelligente, durable & solidaire | Marketplace d'ingrédients frais
+    </footer>
+</div>
+
+<script src="js/nv_saisie_marketplace.js"></script>
+<script src="js/front_marketplace_full.js"></script>
+<script>
+    // ---------- PROFIL NUTRITION (gestion seule) ----------
+    let profil = {
+        poids: 68,
+        taille: 165,
+        regime: "Végétarien",
+        objectif: "Perte poids"
+    };
+
+    function afficherProfil() {
+        document.getElementById('poidsVal').innerText = profil.poids;
+        document.getElementById('tailleVal').innerText = profil.taille;
+        document.getElementById('regimeVal').innerText = profil.regime;
+        document.getElementById('objectifVal').innerText = profil.objectif;
+    }
+
+    document.getElementById('openProfilEdit').addEventListener('click', () => {
+        let newPoids = prompt("Poids (kg) :", profil.poids);
+        let newTaille = prompt("Taille (cm) :", profil.taille);
+        let newRegime = prompt("Régime (Végétarien, Flexitarien, Omnivore, Végétalien) :", profil.regime);
+        let newObj = prompt("Objectif (Perte poids, Prise muscle, Énergie, Maintien) :", profil.objectif);
+        if(newPoids && !isNaN(newPoids)) profil.poids = parseFloat(newPoids);
+        if(newTaille && !isNaN(newTaille)) profil.taille = parseFloat(newTaille);
+        if(newRegime) profil.regime = newRegime;
+        if(newObj) profil.objectif = newObj;
+        afficherProfil();
+        alert("✅ Profil nutritionnel mis à jour ! L'IA adapte désormais ses recettes.");
+    });
+    afficherProfil();
+
+    // ---------- IA RECETTES (selon profil + ingredients) ----------
+    document.getElementById('generateRecipeBtn').addEventListener('click', () => {
+        let ingredients = document.getElementById('ingredientsField').value.trim();
+        if(!ingredients) {
+            alert("🍅 Entrez vos ingrédients pour éviter le gaspillage !");
+            return;
+        }
+        // Génération de recette personnalisée
+        let regimeUser = profil.regime.toLowerCase();
+        let objUser = profil.objectif.toLowerCase();
+        let recommandation = `✨ <strong>Recette Nutrivert anti-gaspi ✨</strong><br> 
+        🥗 Ingrédients saisis : ${ingredients}<br>
+        🔥 Adapté à ton profil : ${profil.regime} / ${profil.objectif}<br><br>
+        🧑‍🍳 <strong>Idée recette:</strong> "Wok végétal équilibré" : fais revenir tes ingrédients avec une touche d'huile d'olive, ajoute des épices douces. Complète avec des protéines végétales (légumineuses).<br>
+        🎯 Astuce ${profil.objectif} : `;
+        if(objUser.includes("perte")) recommandation += " privilégie les légumes verts et réduis les féculents.";
+        else if(objUser.includes("muscle")) recommandation += " ajoute une source de protéines (tofu, pois chiches).";
+        else recommandation += " équilibre glucides / lipides de qualité.";
+        if(regimeUser.includes("végétarien")) recommandation += " 🌱 Option 100% végétale validée.";
+        
+        let recipeDiv = document.getElementById('recipeResultArea');
+        recipeDiv.style.display = "block";
+        recipeDiv.innerHTML = `<i class="fas fa-lightbulb"></i> ${recommandation}<br><small>✨ anti-gaspillage actif</small><br><br>
+        <button class="btn-market" id="goMarketplaceBtn">🛒 Voir le marketplace</button>`;
+        document.getElementById('goMarketplaceBtn')?.addEventListener('click', () => {
+            loadMarketplaceTemplate();
+            document.getElementById('marketplaceSec')?.scrollIntoView({ behavior: 'smooth' });
+        });
+    });
+
+    // ---------- MARKETPLACE via template PHP dédié ----------
+    let marketplaceLoaded = false;
+    let marketplaceInitialized = false;
+
+    function initMarketplaceFeature() {
+        if (marketplaceInitialized) return;
+        if (typeof window.initMarketplaceCrud !== 'function') return;
+        window.initMarketplaceCrud();
+        marketplaceInitialized = true;
+    }
+
+    async function loadMarketplaceTemplate() {
+        if(marketplaceLoaded) return;
+        const wrap = document.getElementById('marketplaceTemplateWrap');
+        if(!wrap) return;
+        try {
+            const response = await fetch('view/partials/nurtvie_marketplace.php', { cache: 'no-store' });
+            if(!response.ok) throw new Error(`HTTP ${response.status}`);
+            const html = await response.text();
+            wrap.innerHTML = html;
+            marketplaceLoaded = true;
+            initMarketplaceFeature();
+        } catch (error) {
+            wrap.innerHTML = `<div class="marketplace-loading">Impossible de charger le template marketplace pour l'instant. Vérifiez le fichier <strong>view/partials/nurtvie_marketplace.php</strong>.</div>`;
+        }
+    }
+    loadMarketplaceTemplate();
+
+    // ---------- COACHING (gestion séparée : plusieurs objectifs / coachs) ----------
+    const coachData = [
+        { id: 0, nom: "Clara", objectif: "Perte de poids", icone: "fa-leaf", msg: "Programme perte de poids : déficit modéré, aliments rassasiants. Suivi personnalisé chaque semaine." },
+        { id: 1, nom: "Romain", objectif: "Prise de muscle", icone: "fa-dumbbell", msg: "Régime hyperprotéiné végétal + séances types. Coaching prise de masse sèche." },
+        { id: 2, nom: "Sophia", objectif: "Énergie & vitalité", icone: "fa-bolt", msg: "Boost antifatigue, micronutriments, chrono-nutrition. Réduire le stress oxydatif." },
+        { id: 3, nom: "Karim", objectif: "Bien-être digestif", icone: "fa-stethoscope", msg: "Microbiote, aliments fermentés, FODMAPs. Retrouvez un ventre léger." }
+    ];
+    
+    function renderCoaching() {
+        const container = document.getElementById('coachListContainer');
+        container.innerHTML = '';
+        coachData.forEach(coach => {
+            const card = document.createElement('div');
+            card.className = 'coach-option';
+            card.innerHTML = `<i class="fas ${coach.icone}"></i><h3>${coach.objectif}</h3><p>Coach ${coach.nom}</p>`;
+            card.addEventListener('click', () => {
+                document.querySelectorAll('.coach-option').forEach(c => c.classList.remove('active'));
+                card.classList.add('active');
+                document.getElementById('coachDynamicMsg').innerHTML = `<i class="fas fa-star"></i> <strong>Coaching ${coach.objectif}</strong><br>${coach.msg}<br><br>
+                🔔 Suivi intégré avec votre profil (${profil.objectif}) + recommandations adaptées. Planning de calls et défis.`;
+            });
+            container.appendChild(card);
+        });
+        // actif par défaut
+        if(container.firstChild) container.firstChild.click();
+    }
+    renderCoaching();
+
+    // Bonus: scroll doux & interactions supplémentaires
+    document.querySelectorAll('.nav-links a').forEach(anchor => {
+        anchor.addEventListener('click', function(e) {
+            const hash = this.getAttribute('href');
+            if(hash && hash !== "#") {
+                e.preventDefault();
+                if(hash === "#marketplaceSec") loadMarketplaceTemplate();
+                const target = document.querySelector(hash);
+                if(target) target.scrollIntoView({ behavior: 'smooth' });
+            }
+        });
+    });
+</script>
+</body>
+</html>
