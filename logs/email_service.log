@@ -1,0 +1,96 @@
+[2026-05-10 15:00:00] Tentative envoi via PHP mail() Ã  jacem@client.com
+[2026-05-10 15:00:02] Ã‰chec envoi email Ã  jacem@client.com - mail() a retournÃ© false. Configuration: sendmail_path=non configurÃ©, SMTP=localhost, smtp_port=25
+[2026-05-10 15:00:02] Tentative de fallback SMTP aprÃ¨s Ã©chec de mail()
+[2026-05-10 15:00:02] SMTP rÃ©ponse inattendue: 530-5.7.0 Must issue a STARTTLS command first. For more information, go to
+530-5.7.0  https://support.google.com/a/answer/3221692 and review RFC 3207
+530 5.7.0 specifications. a640c23a62f3a-bcfb7b17d1fsm10507966b.41 - gsmtp
+
+[2026-05-10 15:01:55] Tentative envoi via SMTP Ã  jacem@client.com
+[2026-05-10 15:01:55] SMTP rÃ©ponse inattendue: 530-5.7.0 Must issue a STARTTLS command first. For more information, go to
+530-5.7.0  https://support.google.com/a/answer/3221692 and review RFC 3207
+530 5.7.0 specifications. a640c23a62f3a-bcac4840df7sm347100266b.57 - gsmtp
+
+[2026-05-10 15:12:42] Tentative envoi via PHP mail() Ã  jacem@client.com
+[2026-05-10 15:12:44] Ã‰chec envoi email Ã  jacem@client.com - mail() a retournÃ© false. Configuration: sendmail_path=non configurÃ©, SMTP=localhost, smtp_port=25
+[2026-05-10 15:12:44] Tentative de fallback SMTP aprÃ¨s Ã©chec de mail()
+[2026-05-10 15:12:44] SMTP rÃ©ponse inattendue: 530-5.7.0 Must issue a STARTTLS command first. For more information, go to
+530-5.7.0  https://support.google.com/a/answer/3221692 and review RFC 3207
+530 5.7.0 specifications. a640c23a62f3a-bcd6ba0a120sm122298366b.45 - gsmtp
+
+[2026-05-10 15:16:21] Tentative envoi via PHP mail() Ã  test4545@gmail.com
+[2026-05-10 15:16:23] Ã‰chec envoi email Ã  test4545@gmail.com - mail() a retournÃ© false. Configuration: sendmail_path=non configurÃ©, SMTP=localhost, smtp_port=25
+[2026-05-10 15:16:23] Tentative de fallback SMTP aprÃ¨s Ã©chec de mail()
+[2026-05-10 15:16:23] SMTP rÃ©ponse inattendue: 530-5.7.0 Must issue a STARTTLS command first. For more information, go to
+530-5.7.0  https://support.google.com/a/answer/3221692 and review RFC 3207
+530 5.7.0 specifications. a640c23a62f3a-bcb2882737fsm318612366b.63 - gsmtp
+
+[2026-05-10 15:16:23] Tentative envoi via PHP mail() Ã  test4545@gmail.com
+[2026-05-10 15:16:25] Ã‰chec envoi email Ã  test4545@gmail.com - mail() a retournÃ© false. Configuration: sendmail_path=non configurÃ©, SMTP=localhost, smtp_port=25
+[2026-05-10 15:16:25] Tentative de fallback SMTP aprÃ¨s Ã©chec de mail()
+[2026-05-10 15:16:26] SMTP rÃ©ponse inattendue: 530-5.7.0 Must issue a STARTTLS command first. For more information, go to
+530-5.7.0  https://support.google.com/a/answer/3221692 and review RFC 3207
+530 5.7.0 specifications. a640c23a62f3a-bce33b0071csm94699766b.51 - gsmtp
+
+[2026-05-10 15:16:26] Tentative envoi via PHP mail() Ã  client@client.com
+[2026-05-10 15:16:28] Ã‰chec envoi email Ã  client@client.com - mail() a retournÃ© false. Configuration: sendmail_path=non configurÃ©, SMTP=localhost, smtp_port=25
+[2026-05-10 15:16:28] Tentative de fallback SMTP aprÃ¨s Ã©chec de mail()
+[2026-05-10 15:16:28] SMTP rÃ©ponse inattendue: 530-5.7.0 Must issue a STARTTLS command first. For more information, go to
+530-5.7.0  https://support.google.com/a/answer/3221692 and review RFC 3207
+530 5.7.0 specifications. a640c23a62f3a-bcdd1914e0esm108930966b.52 - gsmtp
+
+[2026-05-10 15:16:28] Tentative envoi via PHP mail() Ã  youssefjallouli00@gmail.com
+[2026-05-10 15:16:30] Ã‰chec envoi email Ã  youssefjallouli00@gmail.com - mail() a retournÃ© false. Configuration: sendmail_path=non configurÃ©, SMTP=localhost, smtp_port=25
+[2026-05-10 15:16:30] Tentative de fallback SMTP aprÃ¨s Ã©chec de mail()
+[2026-05-10 15:16:30] SMTP rÃ©ponse inattendue: 530-5.7.0 Must issue a STARTTLS command first. For more information, go to
+530-5.7.0  https://support.google.com/a/answer/3221692 and review RFC 3207
+530 5.7.0 specifications. 4fb4d7f45d1cf-67f7d2b204fsm1395641a12.3 - gsmtp
+
+[2026-05-10 15:17:59] Tentative envoi via PHP mail() Ã  test4545@gmail.com
+[2026-05-10 15:18:01] Ã‰chec envoi email Ã  test4545@gmail.com - mail() a retournÃ© false. Configuration: sendmail_path=non configurÃ©, SMTP=localhost, smtp_port=25
+[2026-05-10 15:18:01] Tentative de fallback SMTP aprÃ¨s Ã©chec de mail()
+[2026-05-10 15:18:01] SMTP rÃ©ponse inattendue: 530-5.7.0 Must issue a STARTTLS command first. For more information, go to
+530-5.7.0  https://support.google.com/a/answer/3221692 and review RFC 3207
+530 5.7.0 specifications. 4fb4d7f45d1cf-67ef0dfd34fsm2649023a12.14 - gsmtp
+
+[2026-05-10 15:18:01] Tentative envoi via PHP mail() Ã  test4545@gmail.com
+[2026-05-10 15:18:03] Ã‰chec envoi email Ã  test4545@gmail.com - mail() a retournÃ© false. Configuration: sendmail_path=non configurÃ©, SMTP=localhost, smtp_port=25
+[2026-05-10 15:18:03] Tentative de fallback SMTP aprÃ¨s Ã©chec de mail()
+[2026-05-10 15:18:04] SMTP rÃ©ponse inattendue: 530-5.7.0 Must issue a STARTTLS command first. For more information, go to
+530-5.7.0  https://support.google.com/a/answer/3221692 and review RFC 3207
+530 5.7.0 specifications. 4fb4d7f45d1cf-67ef0e2c317sm2687770a12.31 - gsmtp
+
+[2026-05-10 15:18:04] Tentative envoi via PHP mail() Ã  client@client.com
+[2026-05-10 15:18:06] Ã‰chec envoi email Ã  client@client.com - mail() a retournÃ© false. Configuration: sendmail_path=non configurÃ©, SMTP=localhost, smtp_port=25
+[2026-05-10 15:18:06] Tentative de fallback SMTP aprÃ¨s Ã©chec de mail()
+[2026-05-10 15:18:06] SMTP rÃ©ponse inattendue: 530-5.7.0 Must issue a STARTTLS command first. For more information, go to
+530-5.7.0  https://support.google.com/a/answer/3221692 and review RFC 3207
+530 5.7.0 specifications. a640c23a62f3a-bcaf9eefc48sm337445866b.37 - gsmtp
+
+[2026-05-10 15:18:06] Tentative envoi via PHP mail() Ã  youssefjallouli00@gmail.com
+[2026-05-10 15:18:08] Ã‰chec envoi email Ã  youssefjallouli00@gmail.com - mail() a retournÃ© false. Configuration: sendmail_path=non configurÃ©, SMTP=localhost, smtp_port=25
+[2026-05-10 15:18:08] Tentative de fallback SMTP aprÃ¨s Ã©chec de mail()
+[2026-05-10 15:18:09] SMTP rÃ©ponse inattendue: 530-5.7.0 Must issue a STARTTLS command first. For more information, go to
+530-5.7.0  https://support.google.com/a/answer/3221692 and review RFC 3207
+530 5.7.0 specifications. a640c23a62f3a-bcc5f0b9decsm191210166b.9 - gsmtp
+
+[2026-05-11 00:54:44] Tentative envoi via PHP mail() Ã  jacem@client.com
+[2026-05-11 00:54:46] Ã‰chec envoi email Ã  jacem@client.com - mail() a retournÃ© false. Configuration: sendmail_path=non configurÃ©, SMTP=localhost, smtp_port=25
+[2026-05-11 00:54:46] Tentative de fallback SMTP aprÃ¨s Ã©chec de mail()
+[2026-05-11 00:54:46] SMTP rÃ©ponse inattendue: 530-5.7.0 Must issue a STARTTLS command first. For more information, go to
+530-5.7.0  https://support.google.com/a/answer/3221692 and review RFC 3207
+530 5.7.0 specifications. 5b1f17b1804b1-48e701e9585sm142984605e9.5 - gsmtp
+
+[2026-05-11 00:55:01] Tentative envoi via PHP mail() Ã  jacem@client.com
+[2026-05-11 00:55:03] Ã‰chec envoi email Ã  jacem@client.com - mail() a retournÃ© false. Configuration: sendmail_path=non configurÃ©, SMTP=localhost, smtp_port=25
+[2026-05-11 00:55:03] Tentative de fallback SMTP aprÃ¨s Ã©chec de mail()
+[2026-05-11 00:55:03] SMTP rÃ©ponse inattendue: 530-5.7.0 Must issue a STARTTLS command first. For more information, go to
+530-5.7.0  https://support.google.com/a/answer/3221692 and review RFC 3207
+530 5.7.0 specifications. ffacd0b85a97d-45491304505sm21283914f8f.22 - gsmtp
+
+[2026-05-11 00:55:09] Tentative envoi via PHP mail() Ã  jacem@client.com
+[2026-05-11 00:55:11] Ã‰chec envoi email Ã  jacem@client.com - mail() a retournÃ© false. Configuration: sendmail_path=non configurÃ©, SMTP=localhost, smtp_port=25
+[2026-05-11 00:55:11] Tentative de fallback SMTP aprÃ¨s Ã©chec de mail()
+[2026-05-11 00:55:12] SMTP rÃ©ponse inattendue: 530-5.7.0 Must issue a STARTTLS command first. For more information, go to
+530-5.7.0  https://support.google.com/a/answer/3221692 and review RFC 3207
+530 5.7.0 specifications. 5b1f17b1804b1-48e702e5516sm219829025e9.7 - gsmtp
+

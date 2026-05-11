@@ -1,0 +1,68 @@
+[2026-05-10 15:39:29] [INFO] Participant créé avec ID 1
+[2026-05-10 15:39:47] [ERROR] send_email(): PHPMailer absent : dans le dossier projet, exécutez composer install.
+[2026-05-10 15:51:27] [ERROR] send_email(): PHPMailer absent : dans le dossier projet, exécutez composer install.
+[2026-05-10 20:26:12] [INFO] Événement créé: marthon
+[2026-05-10 20:28:34] [INFO] Recommandation personnalisée créée avec ID 1
+[2026-05-10 20:34:19] [INFO] Participant créé avec ID 1
+[2026-05-10 20:45:03] [WARNING] BaseController::eventGetAllPublished() - SQLSTATE[42S22]: Column not found: 1054 Unknown column 'e.is_published' in 'where clause'
+[2026-05-10 20:45:03] [WARNING] BaseController::categoryGetAllPublished() - SQLSTATE[42S22]: Column not found: 1054 Unknown column 'is_published' in 'where clause'
+[2026-05-10 20:45:03] [ERROR] BaseController::eventGetRecommendations() - SQLSTATE[42S02]: Base table or view not found: 1146 Table 'nutrivert.inscriptions' doesn't exist
+[2026-05-10 20:45:13] [WARNING] BaseController::eventGetAllPublished() - SQLSTATE[42S22]: Column not found: 1054 Unknown column 'e.is_published' in 'where clause'
+[2026-05-10 20:45:20] [WARNING] BaseController::eventGetAllPublished() - SQLSTATE[42S22]: Column not found: 1054 Unknown column 'e.is_published' in 'where clause'
+[2026-05-10 20:45:21] [WARNING] BaseController::categoryGetAllPublished() - SQLSTATE[42S22]: Column not found: 1054 Unknown column 'is_published' in 'where clause'
+[2026-05-10 20:45:26] [ERROR] BaseController::participantGetAll() - SQLSTATE[42S02]: Base table or view not found: 1146 Table 'nutrivert.participants' doesn't exist
+[2026-05-10 20:47:36] [WARNING] BaseController::eventGetAllPublished() - SQLSTATE[42S22]: Column not found: 1054 Unknown column 'e.is_published' in 'where clause'
+[2026-05-10 20:47:36] [WARNING] BaseController::categoryGetAllPublished() - SQLSTATE[42S22]: Column not found: 1054 Unknown column 'is_published' in 'where clause'
+[2026-05-10 20:47:36] [ERROR] BaseController::eventGetRecommendations() - SQLSTATE[42S02]: Base table or view not found: 1146 Table 'nutrivert.inscriptions' doesn't exist
+[2026-05-10 20:50:55] [WARNING] BaseController::categoryGetAllPublished() - SQLSTATE[42S22]: Column not found: 1054 Unknown column 'is_published' in 'where clause'
+[2026-05-10 20:51:26] [WARNING] BaseController::categoryGetAllPublished() - SQLSTATE[42S22]: Column not found: 1054 Unknown column 'is_published' in 'where clause'
+[2026-05-10 20:54:04] [WARNING] BaseController::eventGetAllPublished() - SQLSTATE[42S22]: Column not found: 1054 Unknown column 'e.is_published' in 'where clause'
+[2026-05-10 20:54:04] [WARNING] BaseController::categoryGetAllPublished() - SQLSTATE[42S22]: Column not found: 1054 Unknown column 'is_published' in 'where clause'
+[2026-05-10 20:54:04] [ERROR] BaseController::eventGetRecommendations() - SQLSTATE[42S02]: Base table or view not found: 1146 Table 'nutrivert.inscriptions' doesn't exist
+[2026-05-10 20:54:23] [WARNING] BaseController::categoryGetAllPublished() - SQLSTATE[42S22]: Column not found: 1054 Unknown column 'is_published' in 'where clause'
+[2026-05-10 20:54:26] [WARNING] BaseController::categoryGetAllPublished() - SQLSTATE[42S22]: Column not found: 1054 Unknown column 'is_published' in 'where clause'
+[2026-05-10 20:54:28] [WARNING] BaseController::eventGetAllPublished() - SQLSTATE[42S22]: Column not found: 1054 Unknown column 'e.is_published' in 'where clause'
+[2026-05-10 20:54:28] [WARNING] BaseController::categoryGetAllPublished() - SQLSTATE[42S22]: Column not found: 1054 Unknown column 'is_published' in 'where clause'
+[2026-05-10 20:54:28] [ERROR] BaseController::eventGetRecommendations() - SQLSTATE[42S02]: Base table or view not found: 1146 Table 'nutrivert.inscriptions' doesn't exist
+[2026-05-10 20:59:05] [WARNING] BaseController::eventGetAllPublished() - SQLSTATE[42S22]: Column not found: 1054 Unknown column 'e.is_published' in 'where clause'
+[2026-05-10 20:59:05] [WARNING] BaseController::categoryGetAllPublished() - SQLSTATE[42S22]: Column not found: 1054 Unknown column 'is_published' in 'where clause'
+[2026-05-10 20:59:05] [ERROR] BaseController::eventGetRecommendations() - SQLSTATE[42S02]: Base table or view not found: 1146 Table 'nutrivert.inscriptions' doesn't exist
+[2026-05-10 20:59:59] [WARNING] BaseController::eventGetAllPublished() - SQLSTATE[42S22]: Column not found: 1054 Unknown column 'e.is_published' in 'where clause'
+[2026-05-10 21:00:13] [WARNING] BaseController::categoryGetAllPublished() - SQLSTATE[42S22]: Column not found: 1054 Unknown column 'is_published' in 'where clause'
+[2026-05-10 21:01:43] [WARNING] BaseController::eventGetAllPublished() - SQLSTATE[42S22]: Column not found: 1054 Unknown column 'e.is_published' in 'where clause'
+[2026-05-10 21:01:43] [WARNING] BaseController::categoryGetAllPublished() - SQLSTATE[42S22]: Column not found: 1054 Unknown column 'is_published' in 'where clause'
+[2026-05-10 21:01:43] [ERROR] BaseController::eventGetRecommendations() - SQLSTATE[42S02]: Base table or view not found: 1146 Table 'nutrivert.inscriptions' doesn't exist
+[2026-05-10 21:04:52] [WARNING] BaseController::eventGetAllPublished() - SQLSTATE[42S22]: Column not found: 1054 Unknown column 'e.is_published' in 'where clause'
+[2026-05-10 21:04:52] [WARNING] BaseController::categoryGetAllPublished() - SQLSTATE[42S22]: Column not found: 1054 Unknown column 'is_published' in 'where clause'
+[2026-05-10 21:04:52] [ERROR] BaseController::eventGetRecommendations() - SQLSTATE[42S02]: Base table or view not found: 1146 Table 'nutrivert.inscriptions' doesn't exist
+[2026-05-10 21:05:19] [WARNING] BaseController::categoryGetAllPublished() - SQLSTATE[42S22]: Column not found: 1054 Unknown column 'is_published' in 'where clause'
+[2026-05-10 21:05:49] [WARNING] BaseController::eventGetAllPublished() - SQLSTATE[42S22]: Column not found: 1054 Unknown column 'e.is_published' in 'where clause'
+[2026-05-10 21:16:21] [WARNING] BaseController::eventGetAllPublished() - SQLSTATE[42S22]: Column not found: 1054 Unknown column 'e.is_published' in 'where clause'
+[2026-05-10 21:16:21] [WARNING] BaseController::categoryGetAllPublished() - SQLSTATE[42S22]: Column not found: 1054 Unknown column 'is_published' in 'where clause'
+[2026-05-10 21:16:26] [WARNING] BaseController::eventGetAllPublished() - SQLSTATE[42S22]: Column not found: 1054 Unknown column 'e.is_published' in 'where clause'
+[2026-05-10 21:16:39] [WARNING] BaseController::eventGetAllPublished() - SQLSTATE[42S22]: Column not found: 1054 Unknown column 'e.is_published' in 'where clause'
+[2026-05-10 21:16:39] [WARNING] BaseController::categoryGetAllPublished() - SQLSTATE[42S22]: Column not found: 1054 Unknown column 'is_published' in 'where clause'
+[2026-05-10 21:17:09] [ERROR] BaseController::participantCreate() - SQLSTATE[42S22]: Column not found: 1054 Unknown column 'mot_de_passe' in 'field list'
+[2026-05-10 21:17:20] [WARNING] BaseController::eventGetAllPublished() - SQLSTATE[42S22]: Column not found: 1054 Unknown column 'e.is_published' in 'where clause'
+[2026-05-10 21:17:20] [WARNING] BaseController::categoryGetAllPublished() - SQLSTATE[42S22]: Column not found: 1054 Unknown column 'is_published' in 'where clause'
+[2026-05-10 22:10:16] [WARNING] BaseController::eventGetAllPublished() - SQLSTATE[42S22]: Column not found: 1054 Unknown column 'e.is_published' in 'where clause'
+[2026-05-10 22:10:16] [WARNING] BaseController::categoryGetAllPublished() - SQLSTATE[42S22]: Column not found: 1054 Unknown column 'is_published' in 'where clause'
+[2026-05-10 22:10:21] [WARNING] BaseController::eventGetAllPublished() - SQLSTATE[42S22]: Column not found: 1054 Unknown column 'e.is_published' in 'where clause'
+[2026-05-10 22:10:24] [WARNING] BaseController::categoryGetAllPublished() - SQLSTATE[42S22]: Column not found: 1054 Unknown column 'is_published' in 'where clause'
+[2026-05-10 22:23:59] [WARNING] BaseController::eventGetAllPublished() - SQLSTATE[42S22]: Column not found: 1054 Unknown column 'e.is_published' in 'where clause'
+[2026-05-10 22:23:59] [WARNING] BaseController::categoryGetAllPublished() - SQLSTATE[42S22]: Column not found: 1054 Unknown column 'is_published' in 'where clause'
+[2026-05-10 22:26:08] [WARNING] BaseController::eventGetAllPublished() - SQLSTATE[42S22]: Column not found: 1054 Unknown column 'e.is_published' in 'where clause'
+[2026-05-10 22:26:08] [WARNING] BaseController::categoryGetAllPublished() - SQLSTATE[42S22]: Column not found: 1054 Unknown column 'is_published' in 'where clause'
+[2026-05-10 22:27:47] [WARNING] BaseController::eventGetAllPublished() - SQLSTATE[42S22]: Column not found: 1054 Unknown column 'e.is_published' in 'where clause'
+[2026-05-10 22:27:47] [WARNING] BaseController::categoryGetAllPublished() - SQLSTATE[42S22]: Column not found: 1054 Unknown column 'is_published' in 'where clause'
+[2026-05-10 22:35:23] [WARNING] BaseController::eventGetAllPublished() - SQLSTATE[42S02]: Base table or view not found: 1146 Table 'nutrivert.evenements' doesn't exist
+[2026-05-10 22:35:23] [ERROR] BaseController::eventGetAll() - SQLSTATE[42S02]: Base table or view not found: 1146 Table 'nutrivert.evenements' doesn't exist
+[2026-05-10 22:35:23] [WARNING] BaseController::categoryGetAllPublished() - SQLSTATE[42S02]: Base table or view not found: 1146 Table 'nutrivert.categories' doesn't exist
+[2026-05-10 22:35:23] [ERROR] BaseController::categoryGetAll() - SQLSTATE[42S02]: Base table or view not found: 1146 Table 'nutrivert.categories' doesn't exist
+[2026-05-10 22:35:23] [ERROR] BaseController::eventGetRecommendations() - SQLSTATE[42S02]: Base table or view not found: 1146 Table 'nutrivert.evenements' doesn't exist
+[2026-05-10 22:35:26] [WARNING] BaseController::eventGetAllPublished() - SQLSTATE[42S02]: Base table or view not found: 1146 Table 'nutrivert.evenements' doesn't exist
+[2026-05-10 22:35:26] [ERROR] BaseController::eventGetAll() - SQLSTATE[42S02]: Base table or view not found: 1146 Table 'nutrivert.evenements' doesn't exist
+[2026-05-10 22:35:28] [WARNING] BaseController::categoryGetAllPublished() - SQLSTATE[42S02]: Base table or view not found: 1146 Table 'nutrivert.categories' doesn't exist
+[2026-05-10 22:35:28] [ERROR] BaseController::categoryGetAll() - SQLSTATE[42S02]: Base table or view not found: 1146 Table 'nutrivert.categories' doesn't exist
+[2026-05-10 22:35:33] [WARNING] BaseController::categoryGetAllPublished() - SQLSTATE[42S02]: Base table or view not found: 1146 Table 'nutrivert.categories' doesn't exist
+[2026-05-10 22:35:33] [ERROR] BaseController::categoryGetAll() - SQLSTATE[42S02]: Base table or view not found: 1146 Table 'nutrivert.categories' doesn't exist
