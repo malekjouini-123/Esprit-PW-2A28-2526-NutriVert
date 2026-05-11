@@ -14,7 +14,6 @@ class CoachingController
     private array $allowedSortColumns = ['duration_weeks', 'difficulty_level', 'created_at', 'title'];
 
     public function __construct() { $this->pdo = getDB(); }
-    public function __destruct() {}
 
     public function handle(string $action): void
     {
@@ -57,13 +56,13 @@ class CoachingController
             $exercisesByCoaching[(int)$exercise['coaching_id']][] = $exercise;
         }
         $flashMessage = $this->consumeFlash();
-        include __DIR__ . '/../views/front/coaching.php';
+        include __DIR__ . '/../views/coaching/index.php';
     }
 
     private function renderCreate(): void
     {
         $flashMessage = $this->consumeFlash();
-        include __DIR__ . '/../views/front/coaching_create.php';
+        include __DIR__ . '/../views/coaching/create.php';
     }
 
     private function edit(): void
@@ -73,7 +72,7 @@ class CoachingController
         $editingProgram = $this->dbGetById($id);
         if (!$editingProgram) { $this->setFlash('Programme introuvable.'); $this->redirect('index.php?controller=coaching&action=index'); }
         $flashMessage = $this->consumeFlash();
-        include __DIR__ . '/../views/front/coaching_edit.php';
+        include __DIR__ . '/../views/coaching/edit.php';
     }
 
     private function store(): void
@@ -110,6 +109,72 @@ class CoachingController
         $this->dbDelete($id);
         $this->setFlash('Programme supprimé avec succès.');
         $this->redirectBackToCoaching();
+    }
+
+    private function exportPdf(): void
+    {
+        $id = $this->getIdFromGet();
+        if ($id === null) { $this->setFlash('Identifiant invalide.'); $this->redirect('index.php?controller=coaching&action=index'); }
+        $program = $this->dbGetById($id);
+        if (!$program) { $this->setFlash('Programme introuvable.'); $this->redirect('index.php?controller=coaching&action=index'); }
+
+        $exerciseController = new ExerciseController();
+        $exercises = $exerciseController->getByCoachingForController($id);
+
+        $e = static fn($v): string => htmlspecialchars((string)$v, ENT_QUOTES, 'UTF-8');
+
+        $difficultyLabel = ['easy' => 'Facile', 'medium' => 'Moyen', 'hard' => 'Difficile'];
+
+        $rows = '';
+        if (empty($exercises)) {
+            $rows = '<tr><td colspan="5" style="text-align:center;color:#888;">Aucun exercice lié à ce programme.</td></tr>';
+        } else {
+            foreach ($exercises as $ex) {
+                $rows .= '<tr>
+                    <td>' . $e($ex['name']) . '</td>
+                    <td style="text-align:center;">' . (int)$ex['sets'] . '</td>
+                    <td style="text-align:center;">' . (int)$ex['reps'] . '</td>
+                    <td style="text-align:center;">' . $e($ex['rest_time']) . '</td>
+                    <td>' . $e($ex['description'] ?: '—') . '</td>
+                </tr>';
+            }
+        }
+
+        $html = '<!DOCTYPE html><html><head><meta charset="UTF-8">
+        <style>
+            body { font-family: DejaVu Sans, sans-serif; color: #333; font-size: 13px; }
+            h1 { color: #4A6B4A; font-size: 22px; margin-bottom: 4px; }
+            .meta { color: #666; font-size: 12px; margin-bottom: 20px; }
+            .description { background: #f4f8f4; padding: 10px; border-left: 4px solid #7DCFB6; margin-bottom: 20px; }
+            table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+            th { background: #4A6B4A; color: white; padding: 8px; text-align: left; font-size: 12px; }
+            td { padding: 7px 8px; border-bottom: 1px solid #e0e0e0; font-size: 12px; vertical-align: top; }
+            tr:nth-child(even) td { background: #f9f9f9; }
+            .footer { margin-top: 30px; font-size: 10px; color: #aaa; text-align: center; }
+        </style></head><body>
+        <h1>' . $e($program->getTitle()) . '</h1>
+        <div class="meta">
+            Durée : ' . (int)$program->getDurationWeeks() . ' semaine(s) &nbsp;|&nbsp;
+            Niveau : ' . $e($difficultyLabel[$program->getDifficultyLevel()] ?? $program->getDifficultyLevel()) . '
+        </div>
+        ' . ($program->getDescription() ? '<div class="description">' . $e($program->getDescription()) . '</div>' : '') . '
+        <table>
+            <thead><tr>
+                <th>Exercice</th><th>Séries</th><th>Répétitions</th><th>Repos</th><th>Description</th>
+            </tr></thead>
+            <tbody>' . $rows . '</tbody>
+        </table>
+        <div class="footer">Généré par Nutrivert — ' . date('d/m/Y') . '</div>
+        </body></html>';
+
+        $dompdf = new Dompdf(['isHtml5ParserEnabled' => true, 'isRemoteEnabled' => false]);
+        $dompdf->loadHtml($html);
+        $dompdf->setPaper('A4', 'portrait');
+        $dompdf->render();
+
+        $filename = preg_replace('/[^A-Za-z0-9_\-]/', '_', $program->getTitle()) . '.pdf';
+        $dompdf->stream($filename, ['Attachment' => true]);
+        exit;
     }
 
     private function exportCsv(): void
@@ -184,7 +249,7 @@ class CoachingController
             $type = $exercice['type'];
             if ($compteurs[$type] < $regle[$type]) { $seance[] = $exercice; $compteurs[$type]++; }
         }
-        include __DIR__ . '/../views/front/seance_generee.php';
+        include __DIR__ . '/../views/coaching/seance.php';
     }
 
     private function dbGetAll(): array
@@ -290,9 +355,9 @@ class CoachingController
         return $msg;
     }
 
-    private function redirect(string $url): never { header('Location: ' . $url); exit; }
+    private function redirect(string $url): void { header('Location: ' . $url); exit; }
 
-    private function redirectBackToCoaching(?int $editId = null): never
+    private function redirectBackToCoaching(?int $editId = null): void
     {
         if (($_GET['redirect'] ?? '') === 'dashboard') {
             $url = 'index.php?controller=dashboard&action=index';

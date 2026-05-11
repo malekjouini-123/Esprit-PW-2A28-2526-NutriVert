@@ -192,7 +192,7 @@ if (session_status() === PHP_SESSION_NONE) session_start();
         </a>
         <br><br>
         <a href="index.php?controller=user_dashboard&action=chatbot" class="btn-coaching" style="background: linear-gradient(135deg, #4A6B4A, #7DCFB6);">
-            <i class="fas fa-robot"></i> Coaching via Chatbot
+            <i class="fas fa-robot"></i> Assistant Nutrition IA
         </a>
     </div>
 

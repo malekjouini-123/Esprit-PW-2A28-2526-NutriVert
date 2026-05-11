@@ -22,15 +22,15 @@ function getDB(): PDO {
             ];
             $pdo = new PDO($dsn, DB_USER, DB_PASS, $options);
             
-            // Exécuter la migration automatique une seule fois
-            if (!$migrationDone && !isset($_SESSION['_migration_done'])) {
+            $migrationVersion = 6;
+            if (!$migrationDone && (($_SESSION['_migration_version'] ?? 0) < $migrationVersion)) {
                 runAutoMigration($pdo);
-                $_SESSION['_migration_done'] = true;
+                $_SESSION['_migration_version'] = $migrationVersion;
                 $migrationDone = true;
             }
         } catch (PDOException $e) {
             http_response_code(500);
-            exit('Database connection failed.');
+            exit('Database connection failed: ' . $e->getMessage());
         }
     }
     
@@ -40,38 +40,53 @@ function getDB(): PDO {
 // Fonction d'auto-migration
 function runAutoMigration(PDO $pdo): void {
     try {
+        // Rendre nullable les colonnes NOT NULL sans défaut que le module final ne collecte pas
+        foreach (['prenom', 'face_descriptor'] as $colName) {
+            $col = $pdo->query("SHOW COLUMNS FROM utilisateurs LIKE '$colName'")->fetch(PDO::FETCH_ASSOC);
+            if ($col && strpos($col['Null'], 'YES') === false) {
+                $type = $col['Type'];
+                $pdo->exec("ALTER TABLE utilisateurs MODIFY COLUMN `$colName` $type NULL DEFAULT NULL");
+            }
+        }
+
+        // Vérifier que le ENUM 'role' inclut 'user' (le module teammates utilise 'client')
+        $col = $pdo->query("SHOW COLUMNS FROM utilisateurs LIKE 'role'")->fetch(PDO::FETCH_ASSOC);
+        if ($col && strpos($col['Type'], "'user'") === false) {
+            $pdo->exec("ALTER TABLE utilisateurs MODIFY COLUMN role ENUM('user','client','coach','admin') NOT NULL DEFAULT 'user'");
+        }
+
         // Vérifier et ajouter la colonne 'age' si elle n'existe pas
-        $stmt = $pdo->query("SHOW COLUMNS FROM users LIKE 'age'");
+        $stmt = $pdo->query("SHOW COLUMNS FROM utilisateurs LIKE 'age'");
         if ($stmt->rowCount() === 0) {
-            $pdo->exec("ALTER TABLE users ADD COLUMN age INT AFTER taille");
-            $pdo->exec("ALTER TABLE users ADD COLUMN sexe ENUM('homme', 'femme') AFTER age");
-            $pdo->exec("ALTER TABLE users ADD COLUMN objectif ENUM('perte', 'maintien', 'muscle') AFTER sexe");
+            $pdo->exec("ALTER TABLE utilisateurs ADD COLUMN age INT AFTER taille");
+            $pdo->exec("ALTER TABLE utilisateurs ADD COLUMN sexe ENUM('homme', 'femme') AFTER age");
+            $pdo->exec("ALTER TABLE utilisateurs ADD COLUMN objectif ENUM('perte', 'maintien', 'muscle') AFTER sexe");
         }
 
         // Vérifier et ajouter 'imc' si absent
-        $stmt = $pdo->query("SHOW COLUMNS FROM users LIKE 'imc'");
+        $stmt = $pdo->query("SHOW COLUMNS FROM utilisateurs LIKE 'imc'");
         if ($stmt->rowCount() === 0) {
-            $pdo->exec("ALTER TABLE users ADD COLUMN imc FLOAT AFTER objectif");
+            $pdo->exec("ALTER TABLE utilisateurs ADD COLUMN imc FLOAT AFTER objectif");
         }
 
         // Vérifier et ajouter 'calories' si absent
-        $stmt = $pdo->query("SHOW COLUMNS FROM users LIKE 'calories'");
+        $stmt = $pdo->query("SHOW COLUMNS FROM utilisateurs LIKE 'calories'");
         if ($stmt->rowCount() === 0) {
-            $pdo->exec("ALTER TABLE users ADD COLUMN calories INT AFTER imc");
+            $pdo->exec("ALTER TABLE utilisateurs ADD COLUMN calories INT AFTER imc");
         }
 
         // Vérifier et ajouter 'specialite' et 'bio' si absents
-        $stmt = $pdo->query("SHOW COLUMNS FROM users LIKE 'specialite'");
+        $stmt = $pdo->query("SHOW COLUMNS FROM utilisateurs LIKE 'specialite'");
         if ($stmt->rowCount() === 0) {
-            $pdo->exec("ALTER TABLE users ADD COLUMN specialite VARCHAR(255) AFTER calories");
-            $pdo->exec("ALTER TABLE users ADD COLUMN bio TEXT AFTER specialite");
+            $pdo->exec("ALTER TABLE utilisateurs ADD COLUMN specialite VARCHAR(255) AFTER calories");
+            $pdo->exec("ALTER TABLE utilisateurs ADD COLUMN bio TEXT AFTER specialite");
         }
 
         // Vérifier et ajouter 'created_at' si absent
-        $stmt = $pdo->query("SHOW COLUMNS FROM users LIKE 'created_at'");
+        $stmt = $pdo->query("SHOW COLUMNS FROM utilisateurs LIKE 'created_at'");
         if ($stmt->rowCount() === 0) {
-            $pdo->exec("ALTER TABLE users ADD COLUMN created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP AFTER bio");
-            $pdo->exec("ALTER TABLE users ADD COLUMN updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP AFTER created_at");
+            $pdo->exec("ALTER TABLE utilisateurs ADD COLUMN created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP AFTER bio");
+            $pdo->exec("ALTER TABLE utilisateurs ADD COLUMN updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP AFTER created_at");
         }
 
         // Créer table coaching_programs si elle n'existe pas
@@ -126,6 +141,77 @@ function runAutoMigration(PDO $pdo): void {
                 $pdo->exec("ALTER TABLE exercises ADD COLUMN duree_sec INT DEFAULT 30 AFTER ordre");
             }
         }
+        // ── Password reset columns ─────────────────────────────────────────
+        $stmt = $pdo->query("SHOW COLUMNS FROM utilisateurs LIKE 'reset_token'");
+        if ($stmt->rowCount() === 0) {
+            $pdo->exec("ALTER TABLE utilisateurs ADD COLUMN reset_token VARCHAR(64) NULL AFTER bio");
+            $pdo->exec("ALTER TABLE utilisateurs ADD COLUMN reset_token_expiry DATETIME NULL AFTER reset_token");
+        }
+
+        // ── Face ID table (drop old schema if user_id FK pointed to users) ─
+        $stmt = $pdo->query("SHOW TABLES LIKE 'visages_utilisateurs'");
+        if ($stmt->rowCount() > 0) {
+            $col = $pdo->query("SHOW COLUMNS FROM visages_utilisateurs LIKE 'user_id'");
+            if ($col->rowCount() > 0) {
+                $pdo->exec("DROP TABLE visages_utilisateurs");
+            }
+        }
+        $stmt = $pdo->query("SHOW TABLES LIKE 'visages_utilisateurs'");
+        if ($stmt->rowCount() === 0) {
+            $pdo->exec("CREATE TABLE visages_utilisateurs (
+                id_visage INT AUTO_INCREMENT PRIMARY KEY,
+                id_utilisateur INT NOT NULL,
+                face_encoding LONGTEXT NOT NULL,
+                created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+                UNIQUE KEY uniq_visage_utilisateur (id_utilisateur),
+                CONSTRAINT fk_visages_utilisateurs
+                    FOREIGN KEY (id_utilisateur) REFERENCES utilisateurs(id_utilisateur) ON DELETE CASCADE
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
+        }
+
+        // ── AI chat table (drop old schema if user_id FK pointed to users) ─
+        $stmt = $pdo->query("SHOW TABLES LIKE 'ai_chats'");
+        if ($stmt->rowCount() > 0) {
+            $col = $pdo->query("SHOW COLUMNS FROM ai_chats LIKE 'user_id'");
+            if ($col->rowCount() > 0) {
+                $pdo->exec("DROP TABLE ai_chats");
+            }
+        }
+        $stmt = $pdo->query("SHOW TABLES LIKE 'ai_chats'");
+        if ($stmt->rowCount() === 0) {
+            $pdo->exec("CREATE TABLE ai_chats (
+                id_chat INT AUTO_INCREMENT PRIMARY KEY,
+                id_utilisateur INT NOT NULL,
+                user_message TEXT NOT NULL,
+                ai_response MEDIUMTEXT NOT NULL,
+                model VARCHAR(100) NOT NULL,
+                created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                CONSTRAINT fk_ai_chats_utilisateurs
+                    FOREIGN KEY (id_utilisateur) REFERENCES utilisateurs(id_utilisateur) ON DELETE CASCADE
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
+        }
+
+        // ── Auth log table (drop old schema if user_id FK pointed to users) ─
+        $stmt = $pdo->query("SHOW TABLES LIKE 'authentifications'");
+        if ($stmt->rowCount() > 0) {
+            $col = $pdo->query("SHOW COLUMNS FROM authentifications LIKE 'user_id'");
+            if ($col->rowCount() > 0) {
+                $pdo->exec("DROP TABLE authentifications");
+            }
+        }
+        $stmt = $pdo->query("SHOW TABLES LIKE 'authentifications'");
+        if ($stmt->rowCount() === 0) {
+            $pdo->exec("CREATE TABLE authentifications (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                id_utilisateur INT NOT NULL,
+                type_connexion VARCHAR(50) NOT NULL DEFAULT 'email',
+                derniere_connexion DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                CONSTRAINT fk_authentifications_utilisateurs
+                    FOREIGN KEY (id_utilisateur) REFERENCES utilisateurs(id_utilisateur) ON DELETE CASCADE
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
+        }
+
     } catch (PDOException $e) {
         // Ignorer les erreurs de migration, continuer quand même
         // Cela peut arriver si la table n'existe pas encore

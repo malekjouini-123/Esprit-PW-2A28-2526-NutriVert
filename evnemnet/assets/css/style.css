@@ -1,0 +1,339 @@
+@import url('https://fonts.googleapis.com/css2?family=Quicksand:wght@300;400;500;600;700&display=swap');
+
+* { 
+    margin: 0; 
+    padding: 0; 
+    box-sizing: border-box; 
+} 
+
+body { 
+    font-family: 'Quicksand', sans-serif; 
+    background: #FFF9F0; 
+    color: #2D3E2B; 
+    scroll-behavior: smooth; 
+} 
+
+/* palette créative et joyeuse */ 
+:root { 
+    --coral: #FF7E67; 
+    --mint: #7DCFB6; 
+    --lavender: #C8A2F0; 
+    --sunset: #FFB347; 
+    --sage: #A3C4A2; 
+    --deep: #4A6B4A; 
+    --bg-warm: #FFF5E6; 
+    --card-white: #FFFFFF; 
+    --shadow: 0 20px 35px -12px rgba(0,0,0,0.1); 
+    --border-radius: 32px; 
+} 
+
+.container { 
+    max-width: 1280px; 
+    margin: 0 auto; 
+    padding: 0 30px; 
+} 
+
+/* navbar créative */ 
+.navbar { 
+    display: flex; 
+    justify-content: space-between; 
+    align-items: center; 
+    flex-wrap: wrap; 
+    padding: 25px 0; 
+} 
+.logo { 
+    display: flex; 
+    align-items: center; 
+    gap: 12px; 
+    text-decoration: none;
+} 
+.logo i { 
+    font-size: 2.4rem; 
+    color: var(--coral); 
+    filter: drop-shadow(0 2px 5px rgba(255,126,103,0.3)); 
+} 
+.logo span { 
+    font-size: 2rem; 
+    font-weight: 700; 
+    background: linear-gradient(135deg, #FF7E67, #7DCFB6); 
+    -webkit-background-clip: text; 
+    background-clip: text; 
+    color: transparent; 
+} 
+.nav-links { 
+    display: flex; 
+    gap: 32px; 
+} 
+.nav-links a { 
+    text-decoration: none; 
+    font-weight: 600; 
+    color: #4A5B4A; 
+    transition: 0.2s; 
+} 
+.nav-links a:hover { 
+    color: var(--coral); 
+    transform: translateY(-2px); 
+} 
+
+/* titre accueil */ 
+.hero { 
+    text-align: center; 
+    margin: 40px 0 30px; 
+} 
+.hero h1 { 
+    font-size: 3rem; 
+    background: linear-gradient(120deg, #FF7E67, #C8A2F0, #7DCFB6); 
+    background-size: 200% auto; 
+    -webkit-background-clip: text; 
+    background-clip: text; 
+    color: transparent; 
+    animation: shimmer 5s linear infinite; 
+} 
+@keyframes shimmer { 
+    0% { background-position: 0% 50%; } 
+    100% { background-position: 200% 50%; } 
+} 
+.hero p { 
+    font-size: 1.2rem; 
+    color: #6B7C68; 
+    margin-top: 12px; 
+} 
+
+/* SECTION GESTION PROFIL (carte séparée) */ 
+.section-card { 
+    background: var(--card-white); 
+    border-radius: var(--border-radius); 
+    padding: 30px; 
+    margin: 40px 0; 
+    box-shadow: var(--shadow); 
+    transition: all 0.3s ease; 
+    border: 1px solid rgba(125,207,182,0.3); 
+} 
+.section-title { 
+    font-size: 1.8rem; 
+    font-weight: 700; 
+    display: flex; 
+    align-items: center; 
+    gap: 12px; 
+    margin-bottom: 25px; 
+    color: var(--deep); 
+} 
+.section-title i { 
+    font-size: 2rem; 
+    color: var(--coral); 
+} 
+.profil-grid { 
+    display: flex; 
+    flex-wrap: wrap; 
+    gap: 20px; 
+    justify-content: space-between; 
+    align-items: center; 
+} 
+.profil-infos { 
+    background: #FEF7E8; 
+    border-radius: 28px; 
+    padding: 20px 25px; 
+    flex: 2; 
+    display: flex; 
+    flex-wrap: wrap; 
+    gap: 20px; 
+} 
+.info-badge { 
+    background: white; 
+    border-radius: 60px; 
+    padding: 8px 20px; 
+    font-weight: 600; 
+    box-shadow: 0 2px 6px rgba(0,0,0,0.03); 
+} 
+.edit-btn { 
+    background: var(--mint); 
+    border: none; 
+    padding: 12px 28px; 
+    border-radius: 60px; 
+    font-weight: 700; 
+    color: #2D3E2B; 
+    cursor: pointer; 
+    transition: 0.2s; 
+    text-decoration: none;
+    display: inline-block;
+} 
+.edit-btn:hover { 
+    background: var(--coral); 
+    color: white; 
+    transform: scale(1.02); 
+} 
+
+/* SECTION IA RECETTES + MARKETPLACE intégré dans sa propre carte */ 
+.ia-container { 
+    background: linear-gradient(135deg, #FFF2E6, #FFFFFF); 
+} 
+.ingredient-group { 
+    display: flex; 
+    gap: 15px; 
+    flex-wrap: wrap; 
+    margin: 20px 0; 
+} 
+.ingredient-group input, .ingredient-group textarea { 
+    flex: 3; 
+    padding: 15px 20px; 
+    border-radius: 20px; 
+    border: 2px solid #FFD5C2; 
+    font-family: 'Quicksand', sans-serif; 
+    font-size: 1rem; 
+    background: white; 
+} 
+.btn-primary { 
+    background: var(--sunset); 
+    border: none; 
+    padding: 12px 28px; 
+    border-radius: 60px; 
+    font-weight: 700; 
+    color: #2D3E2B; 
+    cursor: pointer; 
+    transition: 0.2s; 
+    text-decoration: none;
+} 
+.btn-primary:hover {
+    background: var(--coral);
+    color: white;
+}
+.recette-card { 
+    background: #FFF9EF; 
+    border-radius: 28px; 
+    padding: 20px; 
+    margin-top: 25px; 
+    border-left: 12px solid var(--coral); 
+} 
+.marketplace-card { 
+    background: #E6F4EE; 
+    border-radius: 28px; 
+    padding: 18px; 
+    margin-top: 20px; 
+    display: flex; 
+    justify-content: space-between; 
+    align-items: center; 
+    flex-wrap: wrap; 
+} 
+.btn-market { 
+    background: var(--lavender); 
+    border: none; 
+    padding: 10px 25px; 
+    border-radius: 40px; 
+    font-weight: bold; 
+    cursor: pointer; 
+} 
+
+/* SECTION COACHING (gestion séparée) */ 
+.coach-wrapper { 
+    display: flex; 
+    flex-wrap: wrap; 
+    gap: 24px; 
+    margin-top: 15px; 
+} 
+.coach-option { 
+    background: #FDF8F0; 
+    border-radius: 28px; 
+    padding: 20px; 
+    flex: 1; 
+    text-align: center; 
+    cursor: pointer; 
+    transition: all 0.25s; 
+    border: 2px solid transparent; 
+} 
+.coach-option.active { 
+    border-color: var(--coral); 
+    background: #FFF0E8; 
+    transform: translateY(-6px); 
+} 
+.coach-option i { 
+    font-size: 2.5rem; 
+    color: var(--mint); 
+} 
+.coach-message { 
+    background: #FFFAF0; 
+    border-radius: 28px; 
+    padding: 20px; 
+    margin-top: 20px; 
+} 
+
+/* EVENEMENTS & COMMUNAUTÉ (deux colonnes) */ 
+.event-commu-grid { 
+    display: grid; 
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); 
+    gap: 30px; 
+} 
+.event-box, .commu-box { 
+    background: #FFFFFFE6; 
+    border-radius: 28px; 
+    padding: 24px; 
+    box-shadow: 0 8px 20px rgba(0,0,0,0.05); 
+} 
+.event-item { 
+    display: flex; 
+    gap: 15px; 
+    margin: 15px 0; 
+    align-items: center; 
+} 
+.commu-msg { 
+    background: #F8F2E7; 
+    border-radius: 24px; 
+    padding: 12px; 
+    margin: 12px 0; 
+} 
+button.commu-btn { 
+    background: var(--sage); 
+    border: none; 
+    width: 100%; 
+    padding: 12px; 
+    border-radius: 40px; 
+    font-weight: bold; 
+    margin-top: 15px; 
+} 
+
+footer { 
+    text-align: center; 
+    padding: 35px; 
+    color: #8A9A86; 
+    border-top: 2px dashed #FFD9C5; 
+    margin-top: 50px; 
+} 
+
+/* Card specific for events */
+.event-card {
+    background: white;
+    border-radius: 24px;
+    overflow: hidden;
+    box-shadow: var(--shadow);
+    transition: transform 0.3s;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+.event-card:hover {
+    transform: translateY(-10px);
+}
+.event-card img {
+    width: 100%;
+    height: 200px;
+    object-fit: cover;
+}
+.event-card-content {
+    padding: 20px;
+    flex-grow: 1;
+}
+.event-badge {
+    background: var(--mint);
+    color: #2D3E2B;
+    padding: 5px 15px;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    margin-bottom: 10px;
+    display: inline-block;
+}
+
+@media (max-width: 780px) { 
+    .container { padding: 0 20px; } 
+    .profil-grid { flex-direction: column; } 
+    .event-commu-grid { grid-template-columns: 1fr; }
+} 

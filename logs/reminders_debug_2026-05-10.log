@@ -1,0 +1,57 @@
+[2026-05-10 14:59:19] ðŸ“§ sendExerciseFailureReminder: userId=19, coachingId=18, type=completion
+[2026-05-10 14:59:19]   âœ… Sending email to: jacem@client.com (User: Jacem)
+[2026-05-10 15:00:00] ðŸ“§ sendExerciseFailureReminder: userId=19, coachingId=18, type=completion
+[2026-05-10 15:00:00]   âœ… Sending email to: jacem@client.com (User: Jacem)
+[2026-05-10 15:00:02]   âŒ Failed to send email via EmailService
+[2026-05-10 15:01:55] ðŸ“§ sendExerciseFailureReminder: userId=19, coachingId=17, type=completion
+[2026-05-10 15:01:55]   âœ… Sending email to: jacem@client.com (User: Jacem)
+[2026-05-10 15:01:55]   âŒ Failed to send email via EmailService
+[2026-05-10 15:12:42] ðŸ“§ sendExerciseFailureReminder: userId=19, coachingId=17, type=completion
+[2026-05-10 15:12:42]   âœ… Sending email to: jacem@client.com (User: Jacem)
+[2026-05-10 15:12:44]   âŒ Failed to send email via EmailService
+[2026-05-10 15:16:21] === DÃ©but du traitement des rappels ===
+[2026-05-10 15:16:21] Recherche coachings incomplets (inactivitÃ© > 24h)
+[2026-05-10 15:16:21] âœ… TrouvÃ© 4 utilisateurs inactifs
+[2026-05-10 15:16:21]   âœ… Rappel devrait Ãªtre envoyÃ© (0/5)
+[2026-05-10 15:16:21] ðŸ“§ Envoi rappel Ã  user #11 (coaching #26, progression: 0%)
+[2026-05-10 15:16:21]   ðŸ“§ Envoi email Ã  test4545@gmail.com (type: urgent, progression: 0%)
+[2026-05-10 15:16:23]   âŒ Ã‰chec envoi email via EmailService
+[2026-05-10 15:16:23] âŒ Ã‰chec envoi email user #11
+[2026-05-10 15:16:23]   âœ… Rappel devrait Ãªtre envoyÃ© (0/5)
+[2026-05-10 15:16:23] ðŸ“§ Envoi rappel Ã  user #11 (coaching #24, progression: 0%)
+[2026-05-10 15:16:23]   ðŸ“§ Envoi email Ã  test4545@gmail.com (type: urgent, progression: 0%)
+[2026-05-10 15:16:26]   âŒ Ã‰chec envoi email via EmailService
+[2026-05-10 15:16:26] âŒ Ã‰chec envoi email user #11
+[2026-05-10 15:16:26]   âœ… Rappel devrait Ãªtre envoyÃ© (0/5)
+[2026-05-10 15:16:26] ðŸ“§ Envoi rappel Ã  user #20 (coaching #54, progression: 0%)
+[2026-05-10 15:16:26]   ðŸ“§ Envoi email Ã  client@client.com (type: urgent, progression: 0%)
+[2026-05-10 15:16:28]   âŒ Ã‰chec envoi email via EmailService
+[2026-05-10 15:16:28] âŒ Ã‰chec envoi email user #20
+[2026-05-10 15:16:28]   âœ… Rappel devrait Ãªtre envoyÃ© (0/5)
+[2026-05-10 15:16:28] ðŸ“§ Envoi rappel Ã  user #13 (coaching #16, progression: 66%)
+[2026-05-10 15:16:28]   ðŸ“§ Envoi email Ã  youssefjallouli00@gmail.com (type: urgent, progression: 66%)
+[2026-05-10 15:16:30]   âŒ Ã‰chec envoi email via EmailService
+[2026-05-10 15:16:30] âŒ Ã‰chec envoi email user #13
+[2026-05-10 15:17:59] === DÃ©but du traitement des rappels ===
+[2026-05-10 15:17:59] Recherche coachings incomplets (inactivitÃ© > 24h)
+[2026-05-10 15:17:59] âœ… TrouvÃ© 4 utilisateurs inactifs
+[2026-05-10 15:17:59]   âœ… Rappel devrait Ãªtre envoyÃ© (0/5)
+[2026-05-10 15:17:59] ðŸ“§ Envoi rappel Ã  user #11 (coaching #26, progression: 0%)
+[2026-05-10 15:17:59]   ðŸ“§ Envoi email Ã  test4545@gmail.com (type: urgent, progression: 0%)
+[2026-05-10 15:18:01]   âŒ Ã‰chec envoi email via EmailService
+[2026-05-10 15:18:01] âŒ Ã‰chec envoi email user #11
+[2026-05-10 15:18:01]   âœ… Rappel devrait Ãªtre envoyÃ© (0/5)
+[2026-05-10 15:18:01] ðŸ“§ Envoi rappel Ã  user #11 (coaching #24, progression: 0%)
+[2026-05-10 15:18:01]   ðŸ“§ Envoi email Ã  test4545@gmail.com (type: urgent, progression: 0%)
+[2026-05-10 15:18:04]   âŒ Ã‰chec envoi email via EmailService
+[2026-05-10 15:18:04] âŒ Ã‰chec envoi email user #11
+[2026-05-10 15:18:04]   âœ… Rappel devrait Ãªtre envoyÃ© (0/5)
+[2026-05-10 15:18:04] ðŸ“§ Envoi rappel Ã  user #20 (coaching #54, progression: 0%)
+[2026-05-10 15:18:04]   ðŸ“§ Envoi email Ã  client@client.com (type: urgent, progression: 0%)
+[2026-05-10 15:18:06]   âŒ Ã‰chec envoi email via EmailService
+[2026-05-10 15:18:06] âŒ Ã‰chec envoi email user #20
+[2026-05-10 15:18:06]   âœ… Rappel devrait Ãªtre envoyÃ© (0/5)
+[2026-05-10 15:18:06] ðŸ“§ Envoi rappel Ã  user #13 (coaching #16, progression: 66%)
+[2026-05-10 15:18:06]   ðŸ“§ Envoi email Ã  youssefjallouli00@gmail.com (type: urgent, progression: 66%)
+[2026-05-10 15:18:09]   âŒ Ã‰chec envoi email via EmailService
+[2026-05-10 15:18:09] âŒ Ã‰chec envoi email user #13

@@ -18,7 +18,6 @@ class UserDashboardController
         $this->pdo = getDB(); 
     }
 
-    public function __destruct() {}
 
     public function handle(string $action): void
     {
@@ -67,7 +66,7 @@ class UserDashboardController
         $flashMessage = $_SESSION['flash_message'] ?? null;
         unset($_SESSION['flash_message']);
 
-        include __DIR__ . '/../views/user/coaching_list.php';
+        include __DIR__ . '/../views/coaching/list.php';
     }
 
     // =========================================================================
@@ -76,11 +75,9 @@ class UserDashboardController
 
     private function chatbot(): void
     {
-        $user = $_SESSION['user'];
-        $flashMessage = $_SESSION['flash_message'] ?? null;
-        unset($_SESSION['flash_message']);
-
-        include __DIR__ . '/../views/user/chatbot.php';
+        // Delegate to ChatController which loads history from DB and the real Gemini view.
+        require_once __DIR__ . '/ChatController.php';
+        (new ChatController())->handle('index');
     }
 
     // =========================================================================
@@ -134,7 +131,7 @@ class UserDashboardController
         $currentExercise = $exercises[$currentExerciseIndex];
         $totalExercises = count($exercises);
         
-        include __DIR__ . '/../views/user/coaching_session.php';
+        include __DIR__ . '/../views/coaching/session.php';
     }
 
     // =========================================================================
@@ -174,7 +171,7 @@ class UserDashboardController
         $currentExercise = $exercises[$nextIndex];
         $totalExercises = count($exercises);
 
-        include __DIR__ . '/../views/user/coaching_session.php';
+        include __DIR__ . '/../views/coaching/session.php';
     }
 
     // =========================================================================
@@ -199,14 +196,14 @@ class UserDashboardController
 
         $_SESSION['flash_message'] = 'Coaching complété avec succès! 🎉';
 
-        include __DIR__ . '/../views/user/coaching_complete.php';
+        include __DIR__ . '/../views/coaching/complete.php';
     }
 
     // =========================================================================
     //  UTILITAIRES
     // =========================================================================
 
-    private function redirect(string $url): never
+    private function redirect(string $url): void
     {
         header('Location: ' . $url);
         exit;

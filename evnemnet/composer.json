@@ -1,0 +1,11 @@
+{
+  "name": "projet/events",
+  "description": "Gestion des evenements (PHP)",
+  "type": "project",
+  "require": {
+    "php": ">=8.0",
+    "phpmailer/phpmailer": "^6.10",
+    "dompdf/dompdf": "^3.1"
+  }
+}
+
