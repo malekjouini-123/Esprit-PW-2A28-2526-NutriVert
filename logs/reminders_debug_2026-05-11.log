@@ -1,0 +1,9 @@
+[2026-05-11 00:54:44] ðŸ“§ sendExerciseFailureReminder: userId=19, coachingId=18, type=quit
+[2026-05-11 00:54:44]   âœ… Sending email to: jacem@client.com (User: Jacem)
+[2026-05-11 00:54:46]   âŒ Failed to send email via EmailService
+[2026-05-11 00:55:01] ðŸ“§ sendExerciseFailureReminder: userId=19, coachingId=17, type=quit
+[2026-05-11 00:55:01]   âœ… Sending email to: jacem@client.com (User: Jacem)
+[2026-05-11 00:55:03]   âŒ Failed to send email via EmailService
+[2026-05-11 00:55:09] ðŸ“§ sendExerciseFailureReminder: userId=19, coachingId=17, type=quit
+[2026-05-11 00:55:09]   âœ… Sending email to: jacem@client.com (User: Jacem)
+[2026-05-11 00:55:12]   âŒ Failed to send email via EmailService

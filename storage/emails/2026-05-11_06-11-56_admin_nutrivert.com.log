@@ -1,0 +1,28 @@
+TO: admin@nutrivert.com
+SUBJECT: Réinitialiser votre mot de passe — NutriVert
+DATE: 2026-05-11 06:11:56
+RESET_LINK: http://localhost/Integration/final/index.php?view=reset-password&token=79b66b843c352d424f9a589e29e879caad20c42cd88ae457238deaddcb97d36e
+
+--- MESSAGE ---
+
+                
+                    
+                        Réinitialisation de Mot de Passe
+                        Bonjour Admin,
+                        Vous avez demandé la réinitialisation de votre mot de passe NutriVert.
+                        
+                            
+                                Réinitialiser Mot de Passe
+                            
+                        
+                        Ou copiez ce lien :
+                            http://localhost/Integration/final/index.php?view=reset-password&amp;token=79b66b843c352d424f9a589e29e879caad20c42cd88ae457238deaddcb97d36e
+                        
+                        
+                            Important : Ce lien expire dans 1 heure.
+                            Si vous n'avez pas demandé cette réinitialisation, ignorez cet email.
+                        
+                        © NutriVert — 2026
+                    
+                
+--- END ---

@@ -3,11 +3,14 @@ declare(strict_types=1);
 
 session_start();
 
+require_once __DIR__ . '/vendor/autoload.php';
 require_once __DIR__ . '/config/database.php';
-require_once __DIR__ . '/controllers/UserController.php';
-require_once __DIR__ . '/controllers/ExerciseController.php';
-require_once __DIR__ . '/controllers/CoachingController.php';
-require_once __DIR__ . '/controllers/UserDashboardController.php';
+require_once __DIR__ . '/user/Controller/UserController.php';
+require_once __DIR__ . '/coaching/Controller/ExerciseController.php';
+require_once __DIR__ . '/coaching/Controller/CoachingController.php';
+require_once __DIR__ . '/user/Controller/UserDashboardController.php';
+require_once __DIR__ . '/chat/Controller/ChatController.php';
+require_once __DIR__ . '/admin/Controller/AdminController.php';
 
 // ✅ Vérifier si l'utilisateur essaie d'accéder au dashboard sans être admin
 function requireAdmin(): void {
@@ -45,12 +48,17 @@ $view   = $_GET['view']       ?? '';
 if (!$page && $view) {
     $flashMessage = $_SESSION['flash_message'] ?? null;
     unset($_SESSION['flash_message']);
-    
+
+    // reset-password needs the token available to the view
+    $token = (string)($_GET['token'] ?? '');
+
     match ($view) {
-        'register'  => include __DIR__ . '/views/front/register.php',
-        'login'     => include __DIR__ . '/views/front/login.php',
-        'interface' => include __DIR__ . '/views/front/interface.php',
-        default     => header('Location: index.php'),
+        'register'       => include __DIR__ . '/auth/View/register.php',
+        'login'          => include __DIR__ . '/auth/View/login.php',
+        'interface'      => include __DIR__ . '/views/home.php',
+        'forgot-password'=> (new UserController())->handle('forgotPassword'),
+        'reset-password' => (new UserController())->handle('resetPassword'),
+        default          => header('Location: index.php'),
     };
     exit;
 }
@@ -59,13 +67,28 @@ if (!$page && $view) {
 if (!$page) {
     $flashMessage = $_SESSION['flash_message'] ?? null;
     unset($_SESSION['flash_message']);
-    include __DIR__ . '/views/front/interface.php';
+    include __DIR__ . '/views/home.php';
     exit;
 }
 
 switch ($page) {
     case 'user':
         (new UserController())->handle($action);
+        break;
+
+    case 'face-login':
+        (new UserController())->faceLogin();
+        break;
+
+    case 'chat':
+    case 'chatbot':
+        requireLogin();
+        (new ChatController())->handle($action);
+        break;
+
+    case 'admin':
+        requireAdmin();
+        (new AdminController())->handle($action);
         break;
 
     case 'coaching':
@@ -97,6 +120,12 @@ switch ($page) {
         $exerciseController = new ExerciseController();
         $coachingPrograms   = $coachingController->getAllForDashboard();
         $exercises          = $exerciseController->getAllForDashboard();
+
+        // Extra stats for backoffice overview
+        $db = getDB();
+        $totalUsers  = (int)$db->query("SELECT COUNT(*) FROM utilisateurs")->fetchColumn();
+        $totalChats  = (int)$db->query("SELECT COUNT(*) FROM ai_chats")->fetchColumn();
+        $totalFaces  = (int)$db->query("SELECT COUNT(*) FROM visages_utilisateurs")->fetchColumn();
         $view               = $_GET['view'] ?? 'coaching_list';
 
         $coachingId = filter_input(INPUT_GET, 'coaching_id', FILTER_VALIDATE_INT);
@@ -110,7 +139,7 @@ switch ($page) {
 
         switch ($view) {
             case 'coaching_create':
-                include __DIR__ . '/views/back/coaching_create.php';
+                include __DIR__ . '/admin/View/coaching_create.php';
                 break;
 
             case 'coaching_edit':
@@ -122,7 +151,7 @@ switch ($page) {
                     header('Location: index.php?controller=dashboard&action=index');
                     exit;
                 }
-                include __DIR__ . '/views/back/coaching_edit.php';
+                include __DIR__ . '/admin/View/coaching_edit.php';
                 break;
 
             case 'exercises':
@@ -141,7 +170,7 @@ switch ($page) {
                     $exercises,
                     static fn(array $exercise): bool => (int)$exercise['coaching_id'] === $coachingId
                 ));
-                include __DIR__ . '/views/back/exercises.php';
+                include __DIR__ . '/admin/View/exercises.php';
                 break;
 
             case 'exercises_create':
@@ -156,7 +185,12 @@ switch ($page) {
                     header('Location: index.php?controller=dashboard&action=index');
                     exit;
                 }
-                include __DIR__ . '/views/back/exercises_create.php';
+                $filterCoachingId = $coachingId;
+                $coachingPrograms = array_map(
+                    static fn($p): array => ['id' => $p->getId(), 'title' => $p->getTitle()],
+                    $coachingPrograms
+                );
+                include __DIR__ . '/admin/View/exercises_create.php';
                 break;
 
             case 'exercises_edit':
@@ -170,20 +204,69 @@ switch ($page) {
                 }
                 $coachingId      = (int)$editingExercise['coaching_id'];
                 $selectedProgram = $coachingController->getByIdForDashboard($coachingId);
-                include __DIR__ . '/views/back/exercises_edit.php';
+                include __DIR__ . '/admin/View/exercises_edit.php';
                 break;
 
             case 'coaching_list':
             default:
-                include __DIR__ . '/views/back/dashboard.php';
+                include __DIR__ . '/admin/View/dashboard.php';
                 break;
         }
         break;
 
     default:
-        // Afficher la page d'accueil
         $flashMessage = $_SESSION['flash_message'] ?? null;
         unset($_SESSION['flash_message']);
-        include __DIR__ . '/views/front/interface.php';
+        include __DIR__ . '/views/home.php';
         exit;
 }
+
+// ✅ تم دمج السكريبت هنا بشكل صحيح داخل شرط الـ Admin
+if (isset($_SESSION['user']) && $_SESSION['user']['role'] === 'admin'): ?>
+<?php if (isset($_SESSION['user']) && $_SESSION['user']['role'] === 'admin'): ?>
+<?php if (isset($_SESSION['user']) && $_SESSION['user']['role'] === 'admin'): ?>
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    const forceMatchStyle = function() {
+        // 1. البحث عن زر "Face ID" لاستخدامه كنموذج للتصميم
+        const allLinks = Array.from(document.querySelectorAll('a'));
+        const faceIdLink = allLinks.find(el => el.innerText.includes('Face ID'));
+        const sidebar = document.querySelector('.sidebar-menu') || (faceIdLink ? faceIdLink.closest('nav') || faceIdLink.parentElement.parentElement : null);
+
+        if (faceIdLink && sidebar && !document.querySelector('#tab-recette-final')) {
+            // 2. إنشاء عنصر القائمة الجديد
+            const navItem = document.createElement('div');
+            navItem.id = 'tab-recette-final';
+            
+            // نسخ الكلاسات لضمان نفس التنسيق
+            const originalClasses = faceIdLink.className;
+            const originalParentClasses = faceIdLink.parentElement.className;
+            navItem.className = originalParentClasses;
+
+            // ✅ الرابط الصحيح والمؤكد لفتح الـ Back Office بناءً على كود الـ header الخاص بك
+            const targetUrl = "/integration/recette/public/index.php?page=back_dashboard";
+
+            navItem.innerHTML = `
+                <a href="${targetUrl}" class="${originalClasses}" style="display: flex; align-items: center; gap: 12px;">
+                   <span style="font-size: 20px;">🍲</span>
+                   <span>Recettes</span>
+                </a>
+            `;
+
+            // 3. وضعه قبل زر "Retour au site"
+            const returnBtn = allLinks.find(el => el.innerText.includes('Retour au site'));
+            if (returnBtn) {
+                returnBtn.parentElement.parentElement.insertBefore(navItem, returnBtn.parentElement);
+            } else {
+                sidebar.appendChild(navItem);
+            }
+        }
+    };
+
+    forceMatchStyle();
+    setInterval(forceMatchStyle, 1000);
+});
+</script>
+<?php endif; ?>
+<?php endif; ?>
+<?php endif; // نهاية شرط الأدمن ?>

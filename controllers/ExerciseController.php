@@ -13,7 +13,6 @@ class ExerciseController
     private array $allowedSortColumns = ['sets', 'reps', 'created_at', 'name'];
 
     public function __construct() { $this->pdo = getDB(); }
-    public function __destruct() {}
 
     public function handle(string $action): void
     {
@@ -60,7 +59,7 @@ class ExerciseController
         }
 
         $flashMessage = $this->consumeFlash();
-        include __DIR__ . '/../views/front/exercises.php';
+        include __DIR__ . '/../views/coaching/exercises.php';
     }
 
     private function renderCreate(): void
@@ -70,7 +69,7 @@ class ExerciseController
         $filterCoachingId = $filterCoachingId !== false && $filterCoachingId !== null ? (int)$filterCoachingId : 0;
         $redirectTarget   = trim((string)($_GET['redirect'] ?? ''));
         $flashMessage     = $this->consumeFlash();
-        include __DIR__ . '/../views/front/exercises_create.php';
+        include __DIR__ . '/../views/coaching/exercises_create.php';
     }
 
     private function edit(): void
@@ -84,7 +83,7 @@ class ExerciseController
         $coachingId       = $filterCoachingId;
         $redirectTarget   = trim((string)($_GET['redirect'] ?? ''));
         $flashMessage     = $this->consumeFlash();
-        include __DIR__ . '/../views/front/exercises_edit.php';
+        include __DIR__ . '/../views/coaching/exercises_edit.php';
     }
 
     private function store(): void
@@ -273,7 +272,7 @@ class ExerciseController
         return $msg;
     }
 
-    private function redirect(string $url): never { header('Location: ' . $url); exit; }
+    private function redirect(string $url): void { header('Location: ' . $url); exit; }
 
     private function deleteUploadedImage(string $relativePath): void
     {
@@ -281,7 +280,7 @@ class ExerciseController
         if (is_file($absolutePath)) @unlink($absolutePath);
     }
 
-    private function redirectBackToExercises(?int $editId = null, int $coachingId = 0): never
+    private function redirectBackToExercises(?int $editId = null, int $coachingId = 0): void
     {
         $redirect = trim((string)($_GET['redirect'] ?? ''));
         if ($redirect === 'dashboard') {

@@ -1,0 +1,7 @@
+[2026-05-09 20:14:12] [WARNING] Evenement::getAllPublished() fallback - SQLSTATE[42S22]: Column not found: 1054 Unknown column 'e.is_published' in 'where clause'
+[2026-05-09 20:14:15] [WARNING] Evenement::getAllPublished() fallback - SQLSTATE[42S22]: Column not found: 1054 Unknown column 'e.is_published' in 'where clause'
+[2026-05-09 20:16:52] [INFO] Participant 2 mis à jour
+[2026-05-09 20:38:48] [WARNING] Evenement::getAllPublished() fallback - SQLSTATE[42S22]: Column not found: 1054 Unknown column 'e.is_published' in 'where clause'
+[2026-05-09 23:18:29] [WARNING] Evenement::getAllPublished() fallback - SQLSTATE[42S22]: Column not found: 1054 Unknown column 'e.is_published' in 'where clause'
+[2026-05-09 23:19:24] [WARNING] Evenement::getAllPublished() fallback - SQLSTATE[42S22]: Column not found: 1054 Unknown column 'e.is_published' in 'where clause'
+[2026-05-09 23:19:27] [WARNING] Evenement::getAllPublished() fallback - SQLSTATE[42S22]: Column not found: 1054 Unknown column 'e.is_published' in 'where clause'
